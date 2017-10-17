@@ -1,6 +1,7 @@
-(ns lcmap-mastodon.core
-  (:require [clojure.data :as data])
-)
+(ns mastodon.core
+  (:require [clojure.data :as data]
+            [mastodon.http :as http]))
+
 
 (defn ard-sources
   "Reporting function, provides list of source files available
@@ -11,22 +12,33 @@
 
    Returns list of ARD source files for an individual tile
   "
-  [host hv]
+  [host hv reg get_req]
+  ;; construct GET request for ARD server
+  ;; make request
+  ;; return hash map of response
+  ;; if success {"sources": '(filea fileb)}
+  ;; else {"error": "message"}
   (list "ho.tar.gz" "hum.tar.gz" "foo.tar.gz" "bar.tar.gz")
 )
 
 (defn idw-sources
   "Reporting function, provides list of source files available
-   from the IDW host for a give Tile
+   from the ID, host, and region for a given Tile
 
    ^String :host: IDW Host
    ^String :hv:   Tile ID
 
    Returns list of ARD source files for an individual tile
   "
-  [host hv]
+  [host hv reg get_req]
+  ;; construct GET request to correct chipmunk instance
+  ;; make request
+  ;; return hash-map constructed from response
+  ;; if success {"sources": '(filea fileb)}
+  ;; else {"error": "message"}
   (list "foo.tar.gz" "bar.tar.gz" "baz.tar.gz")
 )
+
 
 (defn hvdiff
   "Diff function, comparing what source files the ARD source has available, 
@@ -35,12 +47,13 @@
    ^String :ardh: ARD Host
    ^String :idwh: IDW Host
    ^String :hv:   Tile ID
+   ^String :reg:  Region
 
    Returns tuple (things only in IDW, things only in ARD)
   "
-  [ardh idwh hv] 
-  (def ard-list (ard-sources ardh hv))
-  (def idw-list (idw-sources idwh hv))
+  [ardh idwh hv reg] 
+  (def ard-list (ard-sources ardh hv reg))
+  (def idw-list (idw-sources idwh hv reg))
   (rest (reverse (data/diff ard-list idw-list)))
 )
 
