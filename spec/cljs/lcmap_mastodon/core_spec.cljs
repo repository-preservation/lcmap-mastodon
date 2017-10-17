@@ -1,8 +1,12 @@
-(ns lcmap-mastodon.core-spec 
+(ns mastodon.core-spec 
   (:require-macros [speclj.core :refer [describe it should=]])
   (:require [speclj.core]
-            [lcmap-mastodon.core]))
+            [mastodon.core]))
 
-(describe "A ClojureScript test"
-  (it "fails. Fix it!"
-    (should= 0 1)))
+(describe "hvdiff should return a tuple of lists"
+  (it "should return empty lists"
+    (should= 0 0)))
+
+
+
+(run-specs)
