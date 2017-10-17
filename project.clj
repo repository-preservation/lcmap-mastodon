@@ -6,26 +6,22 @@
 
   :dependencies [[org.clojure/clojure "1.7.0-RC2"]
                  [org.clojure/core.async "0.3.443"]
+                 [org.clojure/clojurescript "0.0-3308"]
                  [cljs-http "0.1.43"]]
-
-  :profiles {:dev {:dependencies [[org.clojure/clojurescript "0.0-3308"]]}}
 
   :plugins [[lein-cljsbuild "1.0.5"]]
 
-  :cljsbuild {:builds        {:dev  {:source-paths   ["src/cljs"]
-                                     :compiler       {:output-to     "js/lcmap-mastodon_dev.js"
-                                                      :optimizations :whitespace
-                                                      :pretty-print  true}
-                                     ;;:notify-command ["js/lcmap-mastodon_dev.js"]
-                                     }
-
-                              :prod {:source-paths ["src/cljs"]
-                                     :compiler     {:output-to     "js/lcmap-mastodon.js"
-                                                    :optimizations :simple}}}
-              ;;:test-commands {"test" ["phantomjs" "bin/speclj" "js/lcmap-mastodon_dev.js"]}
-              }
-
   :source-paths ["src/cljs"]
-  ;;:test-paths ["spec/cljs"]
+
+  :cljsbuild {:builds  {:dev  {:source-paths ["src/cljs"]
+                               :compiler     {:output-to     "js/lcmap-mastodon_dev.js"
+                                              :optimizations :whitespace
+                                              :pretty-print  true}}
+
+                        :prod {:source-paths ["src/cljs"]
+                               :compiler     {:output-to     "js/lcmap-mastodon.js"
+                                              :optimizations :simple}}}}
+
+  :profiles {:test {:resource-paths ["test" "test/resources"]} }
 
   :aliases {"cljs" ["do" "clean," "cljsbuild" "once" "dev"]})
