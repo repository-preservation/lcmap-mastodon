@@ -4,7 +4,8 @@
   :license {:name "Unlicense"
             :url  ""}
 
-  :dependencies [[org.clojure/clojure "1.7.0-RC2"]]
+  :dependencies [[org.clojure/clojure "1.7.0-RC2"]
+                 [cljs-http "0.1.43"]]
 
   :profiles {:dev {:dependencies [[org.clojure/clojurescript "0.0-3308"]
                                   [speclj "3.3.1"]]}}
