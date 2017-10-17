@@ -1,5 +1,5 @@
 build:
-	java -cp ~/bin/clojurescript/cljs.jar:src:libs/* clojure.main build.clj
+	lein cljsbuild once
 
 repl:
-	java -cp ~/bin/clojurescript/cljs.jar:src:libs/* clojure.main repl.clj
+	lein repl	
