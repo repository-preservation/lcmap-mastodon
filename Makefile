@@ -1,5 +1,5 @@
 build: clean
-	lein cljsbuild once
+	lein cljsbuild once dev prod
 
 repl:
 	lein repl
