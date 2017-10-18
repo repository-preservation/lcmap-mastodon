@@ -11,6 +11,8 @@
 
   :plugins [[lein-cljsbuild "1.0.5"]]
 
+  :hooks [leiningen.cljsbuild]
+
   :source-paths ["src/cljs"]
 
   :cljsbuild {:builds  {:dev  {:source-paths ["src/cljs"]
@@ -25,3 +27,4 @@
   :profiles {:test {:resource-paths ["test" "test/resources"]} }
 
   :aliases {"cljs" ["do" "clean," "cljsbuild" "once" "dev"]})
+
