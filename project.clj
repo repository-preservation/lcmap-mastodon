@@ -9,20 +9,28 @@
                  [org.clojure/clojurescript "0.0-3308"]
                  [cljs-http "0.1.43"]]
 
-  :plugins [[lein-cljsbuild "1.0.5"]]
+  :plugins [[lein-cljsbuild "1.0.5"]
+            [lein-doo "0.1.8"]
+            [lein-figwheel "0.5.13"]]
 
-  :hooks [leiningen.cljsbuild]
+  ;;:hooks [leiningen.cljsbuild]
 
-  :source-paths ["src/cljs"]
+  :source-paths ["src"]
 
-  :cljsbuild {:builds  {:dev  {:source-paths ["src/cljs"]
-                               :compiler     {:output-to     "js/lcmap-mastodon_dev.js"
-                                              :optimizations :whitespace
-                                              :pretty-print  true}}
+  :cljsbuild {:builds {:dev {:source-paths ["src"]
+                             :compiler     {:output-to "js/lcmap-mastodon_dev.js"
+                                            :optimizations :whitespace
+                                            :pretty-print  true}}
 
-                        :prod {:source-paths ["src/cljs"]
+                        :prod {:source-paths ["src"]
                                :compiler     {:output-to     "js/lcmap-mastodon.js"
-                                              :optimizations :simple}}}}
+                                              :optimizations :simple}}
+                        :test {:source-paths ["src" "test"]
+                               :compiler {:main lcmap.mastodon.test-runner
+                                          :output-to "js/compiled/mastodon_test.js"
+                                          :optimizations :none}
+                               }
+                       }}
 
   :profiles {:test {:resource-paths ["test" "test/resources"]} }
 
