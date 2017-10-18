@@ -1,6 +1,6 @@
-(ns mastodon.core
+(ns lcmap.mastodon.core
   (:require [clojure.data :as data]
-            [mastodon.http :as http]))
+            [lcmap.mastodon.http :as http]))
 
 
 (defn ard-sources

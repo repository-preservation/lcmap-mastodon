@@ -5,4 +5,10 @@ repl:
 	lein repl
 
 clean:
-	rm -rf js	
+	rm -rf js
+
+unittest:
+	lein doo phantom test once
+
+
+	
