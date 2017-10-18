@@ -52,8 +52,8 @@
    Returns tuple (things only in IDW, things only in ARD)
   "
   [ardh idwh hv reg] 
-  (def ard-list (ard-sources ardh hv reg))
-  (def idw-list (idw-sources idwh hv reg))
+  (def ard-list (ard-sources ardh hv reg http/get-request))
+  (def idw-list (idw-sources idwh hv reg http/get-request))
   (rest (reverse (data/diff ard-list idw-list)))
 )
 
