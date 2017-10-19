@@ -1,14 +1,15 @@
-build: clean
-	lein cljsbuild once dev prod
+build:
+	echo "cljs alias is defined in project.clj"
+	lein cljs
 
 repl:
-	lein repl
+	echo "point browser at http://127.0.0.1:9000 ; and open console"
+	lein trampoline cljsbuild repl-listen
 
 clean:
-	rm -rf js
+	lein do clean
 
-unittest:
+runtests:
 	lein doo phantom test once
 
 
-	
