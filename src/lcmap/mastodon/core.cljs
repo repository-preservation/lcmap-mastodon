@@ -2,6 +2,15 @@
   (:require [clojure.data :as data]
             [lcmap.mastodon.http :as http]))
 
+(enable-console-print!)
+(println "Hello from LCMAP Mastodon!")
+
+(defn on-js-reload []
+  ;; optionally touch your app-state to force rerendering depending on
+  ;; your application
+  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+)
+
 
 (defn ard-sources
   "Reporting function, provides list of source files available
