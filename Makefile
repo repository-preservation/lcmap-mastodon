@@ -1,13 +1,8 @@
-build:
-	echo "cljs alias is defined in project.clj"
-	lein cljs
+checkdeps:
+	lein deps
 
 repl:
-	echo "point browser at http://127.0.0.1:9000 ; and open console"
-	lein trampoline cljsbuild repl-listen
-
-clean:
-	lein do clean
+	echo "use 'lein figwheel'"
 
 runtests:
 	lein doo phantom test once
