@@ -13,14 +13,7 @@
   ^Hash Map :params: Query parameters
  "
  [url]
- (go
-    ;; (let
-    ;;     [response (<! (http-client/get url {:with-credentials? false}))]
-    ;;     (js/alert (:body response))
-    ;;     (:body response)
-    ;; )
-   (def response (<! (http-client/get url {:with-credentials? false})))
- )
+ (go (def response (<! (http-client/get url {:with-credentials? false}))))
  (:body response)
 )
 
