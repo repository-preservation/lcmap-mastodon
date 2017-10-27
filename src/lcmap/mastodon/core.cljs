@@ -12,7 +12,7 @@
   ;; (swap! app-state update-in [:__figwheel_counter] inc)
 )
 
-(defn hvmap
+(defn hv-map
   "Helper function.
    Return map for :h and :v given
    a tileid of hhhvvv e.g 052013
@@ -26,19 +26,19 @@
             :v (last  (re-seq (or regx #"[0-9]{3}") id)))
 )
 
-(defn hvrest
+(defn tile-id-rest
   "Helper function.
    Takes a 6 digit tileid, and returns a
    string splitting the H and V values so
    they may be used in generating a URL
    for an inventory request.
-   ^String :hvid: 6 character string representing a tileid
+   ^String :tile-id: 6 character string representing a tileid
 
    Returns a string with a forward slash separating H and V values
    e.g. /hhh/vvv/
   "
-  [hvid]
-  (string/join "/" [(:h (hvmap hvid)) (:v (hvmap hvid)) ""])
+  [tile-id]
+  (string/join "/" [(:h (hv-map tile-id)) (:v (hv-map tile-id)) ""])
 )
 
 (defn get-map-val
@@ -46,18 +46,18 @@
    Return particular value for a map,
    for the conditional key and value
 
-   ^Keyword :dkey: Desired key
-   ^Keyword :ckey: Conditional key
-   ^String  :cval: Conditional key val
-   ^Map     :mobj: Map object
+   ^Keyword :desired-key:     Desired key
+   ^Keyword :conditional-key: Conditional key
+   ^String  :conditional-val: Conditional key val
+   ^Map     :map-obj: Map object
   "
-  [dkey ckey cval mobj]
-  (if (= cval (ckey mobj))
-    (dkey mobj)
+  [desired-key conditional-key conditional-val map-obj]
+  (if (= conditional-val (conditional-key map-obj))
+    (desired-key map-obj)
   )
 )
 
-(defn ardlist
+(defn collect-map-values
   "Data organization function.
    Takes a list of maps and returns
    a collection of values for specified
@@ -70,31 +70,33 @@
    ^String  :cv: Conditional value to check value of
 
    Returns list of dk values from ard-response"
-  [inmaps dk ck cv]
+  [map-list desired-key conditional-key conditional-value]
   
-  (def rcount (count inmaps))
+  (def rcount (count map-list))
   (map get-map-val
-       (repeat rcount dk) 
-       (repeat rcount ck) 
-       (repeat rcount cv) 
-       inmaps)
+       (repeat rcount desired-key) 
+       (repeat rcount conditional-key) 
+       (repeat rcount conditional-value) 
+       map-list)
 )
 
-(defn ard-sources
+(defn ard-inventory
   "Reporting function, provides list of source files available
    from the ARD host for a give Tile
 
-   ^String :host: ARD Host
-   ^String :hv:   Tile ID
+   ^String   :host:    ARD Host
+   ^String   :tile-id: Tile ID
+   ^String   :region:  Region (conus, etc)
+   ^Function :req-fn:  Function used for making request to ARD Host
 
    Returns list of ARD source files for an individual tile
   "
-  [host hv reg get_req]
-  (def url (string/join "/" [host (hvrest hv)]))
-  (ardlist (get_req url) :name :type "file")
+  [host tile-id region req-fn]
+  (def url (string/join "/" [host (tile-id-rest tile-id)]))
+  (collect-map-values (req-fn url) :name :type "file")
 )
 
-(defn idw-sources
+(defn idw-inventory
   "Reporting function, provides list of source files available
    from the ID, host, and region for a given Tile
 
@@ -103,17 +105,12 @@
 
    Returns list of ARD source files for an individual tile
   "
-  [host hv reg get_req]
-  ;; construct GET request to correct chipmunk instance
-  ;; make request
-  ;; return hash-map constructed from response
-  ;; if success {"sources": '(filea fileb)}
-  ;; else {"error": "message"}
+  [host tile-id region req-fn]
   (list "foo.tar.gz" "bar.tar.gz" "baz.tar.gz")
 )
 
 
-(defn hvdiff
+(defn inventory-diff
   "Diff function, comparing what source files the ARD source has available, 
    and what sources have been ingested into the data warehouse for a specific tile
 
@@ -124,9 +121,9 @@
 
    Returns tuple (things only in IDW, things only in ARD)
   "
-  [ardh idwh hv reg] 
-  (def ard-list (ard-sources ardh hv reg http/get-request))
-  (def idw-list (idw-sources idwh hv reg http/get-request))
+  [ard-host idw-host tile-id region] 
+  (def ard-list (ard-inventory ard-host tile-id region http/get-request))
+  (def idw-list (idw-inventory idw-host tile-id region http/get-request))
   (rest (reverse (data/diff ard-list idw-list)))
 )
 
