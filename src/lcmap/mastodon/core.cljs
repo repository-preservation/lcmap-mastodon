@@ -1,6 +1,7 @@
 (ns lcmap.mastodon.core
   (:require [clojure.data :as data]
             [clojure.string :as string]
+            [clojure.set :as set]
             [lcmap.mastodon.http :as http]))
 
 (enable-console-print!)
@@ -51,9 +52,11 @@
    ^String  :conditional-val: Conditional key val
    ^Map     :map-obj: Map object
   "
-  [desired-key conditional-key conditional-val map-obj]
-  (if (= conditional-val (conditional-key map-obj))
-    (desired-key map-obj)
+  [map-obj desired-key & [conditional-key conditional-val]]
+  (let [ck (or conditional-key :nil)]
+    (if (= conditional-val (ck map-obj))
+      (desired-key map-obj)
+    )
   )
 )
 
@@ -70,45 +73,36 @@
    ^String  :cv: Conditional value to check value of
 
    Returns list of dk values from ard-response"
-  [map-list desired-key conditional-key conditional-value]
-  
-  (def rcount (count map-list))
-  (map get-map-val
-       (repeat rcount desired-key) 
-       (repeat rcount conditional-key) 
-       (repeat rcount conditional-value) 
-       map-list)
+  [map-list desired-key & [conditional-key conditional-value]]
+  (let [rcount (count map-list)]
+    (set (map get-map-val
+             map-list
+             (repeat rcount desired-key) 
+             (repeat rcount conditional-key) 
+             (repeat rcount conditional-value)))
+    )
 )
 
-(defn ard-inventory
-  "Reporting function, provides list of source files available
-   from the ARD host for a give Tile
+(defn ard-url-format
+  "URL generation function for requests to an ARD file access server
 
-   ^String   :host:    ARD Host
-   ^String   :tile-id: Tile ID
-   ^String   :region:  Region (conus, etc)
-   ^Function :req-fn:  Function used for making request to ARD Host
-
-   Returns list of ARD source files for an individual tile
+   ^String :host:    Host name
+   ^String :tile-id: Tile ID
   "
-  [host tile-id region req-fn]
-  (def url (string/join "/" [host (tile-id-rest tile-id)]))
-  (collect-map-values (req-fn url) :name :type "file")
+  [host tile-id]
+  (string/join "/" [host (tile-id-rest tile-id)])
 )
 
-(defn idw-inventory
-  "Reporting function, provides list of source files available
-   from the ID, host, and region for a given Tile
+(defn idw-url-format
+  "URL generation function for requests to an LCMAP-Chipmunk instance
 
-   ^String :host: IDW Host
-   ^String :hv:   Tile ID
-
-   Returns list of ARD source files for an individual tile
+   ^String :host:    lcmap-chipmunk instance host
+   ^String :tile-id: Tile ID
   "
-  [host tile-id region req-fn]
-  (list "foo.tar.gz" "bar.tar.gz" "baz.tar.gz")
+  ;; $ curl -XGET http://localhost:5656/inventory?tile=027009
+  [host tile-id]
+  (str host "/inventory?tile=" tile-id)
 )
-
 
 (defn inventory-diff
   "Diff function, comparing what source files the ARD source has available, 
@@ -119,11 +113,16 @@
    ^String :hv:   Tile ID
    ^String :reg:  Region
 
-   Returns tuple (things only in IDW, things only in ARD)
+   Returns vector (things only in ARD, things only in IDW)
   "
-  [ard-host idw-host tile-id region] 
-  (def ard-list (ard-inventory ard-host tile-id region http/get-request))
-  (def idw-list (idw-inventory idw-host tile-id region http/get-request))
-  (rest (reverse (data/diff ard-list idw-list)))
+  [ard-host idw-host tile-id region & [req-fn]]
+  (let [requestor (or req-fn http/get-request)
+        ard-url   (ard-url-format ard-host tile-id)
+        ard-list  (collect-map-values (requestor ard-url) :name :type "file")
+        idw-url   (idw-url-format idw-host tile-id)        
+        idw-list  (collect-map-values (:result (requestor idw-url)) :source)
+]
+        
+        [(set/difference ard-list idw-list) (set/difference idw-list ard-list)]
+  )
 )
-
