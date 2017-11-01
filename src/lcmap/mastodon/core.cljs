@@ -2,7 +2,8 @@
   (:require [clojure.data :as data]
             [clojure.string :as string]
             [clojure.set :as set]
-            [lcmap.mastodon.http :as http]))
+            [lcmap.mastodon.http :as http]
+            [lcmap.mastodon.ard-maps :as ard-maps]))
 
 (enable-console-print!)
 (println "Hello from LCMAP Mastodon!")
@@ -120,9 +121,71 @@
         ard-url   (ard-url-format ard-host tile-id)
         ard-list  (collect-map-values (requestor ard-url) :name :type "file")
         idw-url   (idw-url-format idw-host tile-id)        
-        idw-list  (collect-map-values (:result (requestor idw-url)) :source)
-]
+        idw-list  (collect-map-values (:result (requestor idw-url)) :source)]
         
         [(set/difference ard-list idw-list) (set/difference idw-list ard-list)]
   )
+)
+
+
+(defn key-for-value
+  "Convenience Function
+   Return the key from provided map whose value object
+   includes the provided value"
+  [in-map in-value]
+  (let [matching-key-list
+        (map (fn [kv] (when (string/includes? (val kv) in-value) (key kv)))
+             in-map)]
+    ;; is there a better way? there should only be one match
+    (first (remove nil? matching-key-list)))
+)
+
+
+(defn tar-name
+  "Derive an ARD tif files original containing Tar file name"
+  [tif-name]
+  ;; LC08_CU_027009_20130701_20170729_C01_V01_PIXELQA.tif
+  ;; LC08_CU_027009_20130701_20170729_C01_V01_QA.tar
+  ;; (name :var_name) (keyword "str_name")
+  (let [tname (string/replace tif-name ".tif" "")
+        tlst  (string/split tname "_")
+        tval  (last tlst)
+        tkey  (name (key-for-value ard-maps/tar-map tval))]
+       (str (string/replace tname tval tkey) ".tar") 
+  )
+)
+
+(defn ard-manifest
+  "From a list of ARD tar files, generate a map 
+   keyed by tar file name of its expected contents"
+  [ard-tar]
+  (let [tname (string/replace ard-tar ".tar" "")
+        tlst  (string/split tname "_")
+        tval  (last tlst)
+        tkey  (keyword tval)
+        tifs  (tkey ard-maps/tar-map)]
+      (map (fn [x] (str (string/replace tname tval x) ".tif")) tifs)
+  )
+)
+
+(defn real-diff
+  [ard-list idw-list]
+;; you can data/diff or set/difference maps
+;;
+;; so we need to be able to take a list of tif files
+;; assemble them into a map, keyed by what their
+;; source tarfile name "should" be
+;;
+;; we then need to be able to take a list of tar files
+;; and create a map, keyed by tar file name
+;; with a list value of its contents *that we care about*
+;;
+;; then we need to diff those objects, or the lists of keys?
+;; what if the list of tar tiffs is missing one (coming from 
+;; the IDW source (say tif missed on ingest)
+
+  (let [idw-map (group-by tar-name idw-list)
+        ard-map (into {} (map ard-manifest ard-list))]
+  )
+
 )

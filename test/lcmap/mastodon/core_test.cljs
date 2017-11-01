@@ -1,7 +1,8 @@
 (ns lcmap.mastodon.core-test
   (:require [cljs.test :refer-macros [deftest is]]
             [clojure.string :as string]
-            [lcmap.mastodon.core :as mc]))
+            [lcmap.mastodon.core :as mc]
+            [lcmap.mastodon.http :as mhttp]))
 
 (def xmap (hash-map :a "a" :b "b" :c "c" :d "foo"))
 (def xmaplist [(hash-map :a "a" :b "b" :c "c" :d "foo")
@@ -11,12 +12,12 @@
 (defn httpget
   [url]
   (if (string/includes? url "ardhost")
-    ;; faux ard request
+    ;; faux ard response
     (list {:name "baz.tar" :type "file"} 
           {:name "boo.tar" :type "file"} 
           {:name "foo.tar" :type "file"} 
           {:name "now.tar" :type "file"})
-    ;; faux idw request
+    ;; faux idw response
     (hash-map :result (list {:source "foo.tar"} 
                             {:source "baz.tar"} 
                             {:source "bar.tar"}))
