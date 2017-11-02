@@ -76,11 +76,11 @@
    Returns list of dk values from ard-response"
   [map-list desired-key & [conditional-key conditional-value]]
   (let [rcount (count map-list)]
-    (set (map get-map-val
-             map-list
-             (repeat rcount desired-key) 
-             (repeat rcount conditional-key) 
-             (repeat rcount conditional-value)))
+       (map get-map-val
+           map-list
+           (repeat rcount desired-key) 
+           (repeat rcount conditional-key) 
+           (repeat rcount conditional-value))
     )
 )
 
@@ -104,29 +104,6 @@
   [host tile-id]
   (str host "/inventory?tile=" tile-id)
 )
-
-(defn inventory-diff
-  "Diff function, comparing what source files the ARD source has available, 
-   and what sources have been ingested into the data warehouse for a specific tile
-
-   ^String :ardh: ARD Host
-   ^String :idwh: IDW Host
-   ^String :hv:   Tile ID
-   ^String :reg:  Region
-
-   Returns vector (things only in ARD, things only in IDW)
-  "
-  [ard-host idw-host tile-id region & [req-fn]]
-  (let [requestor (or req-fn http/get-request)
-        ard-url   (ard-url-format ard-host tile-id)
-        ard-list  (collect-map-values (requestor ard-url) :name :type "file")
-        idw-url   (idw-url-format idw-host tile-id)        
-        idw-list  (collect-map-values (:result (requestor idw-url)) :source)]
-        
-        [(set/difference ard-list idw-list) (set/difference idw-list ard-list)]
-  )
-)
-
 
 (defn key-for-value
   "Convenience Function
@@ -168,24 +145,27 @@
   )
 )
 
-(defn real-diff
-  [ard-list idw-list]
-;; you can data/diff or set/difference maps
-;;
-;; so we need to be able to take a list of tif files
-;; assemble them into a map, keyed by what their
-;; source tarfile name "should" be
-;;
-;; we then need to be able to take a list of tar files
-;; and create a map, keyed by tar file name
-;; with a list value of its contents *that we care about*
-;;
-;; then we need to diff those objects, or the lists of keys?
-;; what if the list of tar tiffs is missing one (coming from 
-;; the IDW source (say tif missed on ingest)
+(defn inventory-diff
+  "Diff function, comparing what source files the ARD source has available, 
+   and what sources have been ingested into the data warehouse for a specific tile
 
-  (let [idw-map (group-by tar-name idw-list)
-        ard-map (into {} (map ard-manifest ard-list))]
+   ^String :ardh: ARD Host
+   ^String :idwh: IDW Host
+   ^String :hv:   Tile ID
+   ^String :reg:  Region
+
+   Returns vector (things only in ARD, things only in IDW)
+  "
+  [ard-host idw-host tile-id region & [req-fn]]
+  (let [rqstr    (or req-fn http/get-request)
+        ard-url  (ard-url-format ard-host tile-id)
+        ard-list (collect-map-values (rqstr ard-url) :name :type "file")
+        idw-url  (idw-url-format idw-host tile-id)        
+        idw-list (collect-map-values (:result (rqstr idw-url)) :source)
+        ard-flat (flatten (map ard-manifest ard-list))]
+
+     (hash-map "ard-only" (set/difference (set ard-flat) (set idw-list)) 
+               "idw-only" (set/difference (set idw-list) (set ard-flat))) 
   )
-
 )
+

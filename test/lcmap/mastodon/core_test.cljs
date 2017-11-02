@@ -13,14 +13,13 @@
   [url]
   (if (string/includes? url "ardhost")
     ;; faux ard response
-    (list {:name "baz.tar" :type "file"} 
-          {:name "boo.tar" :type "file"} 
-          {:name "foo.tar" :type "file"} 
-          {:name "now.tar" :type "file"})
+    (list {:name "LC08_CU_027009_20130701_20170729_C01_V01_SR.tar" :type "file"} 
+          {:name "LC08_CU_027009_20130701_20170729_C01_V01_TA.tar" :type "file"})
     ;; faux idw response
-    (hash-map :result (list {:source "foo.tar"} 
-                            {:source "baz.tar"} 
-                            {:source "bar.tar"}))
+    (hash-map :result (list {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB6.tif"} 
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB7.tif"} 
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB1.tif"}
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB2.tif"}))
   )
 )
 
@@ -55,14 +54,14 @@
 
 (deftest collect-map-values-test
   (is
-    (= #{"foo" "bar" "baz"}
+    (= '("foo" "bar" "baz")
        (mc/collect-map-values xmaplist :d :c "c"))
   )
 )
 
 (deftest collect-map-values-nil-conditional-test
   (is
-    (= #{"foo" "bar" "baz"}
+    (= '("foo" "bar" "baz")
        (mc/collect-map-values xmaplist :d))
   )
 )
@@ -83,7 +82,20 @@
 
 (deftest inventory-diff-test
   (is
-    (= [#{"boo.tar" "now.tar"} #{"bar.tar"}]
+    (= {"ard-only"
+        #{"LC08_CU_027009_20130701_20170729_C01_V01_TAB8.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_SRB4.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_SRB1.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB7.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB3.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_SRB3.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB5.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_SRB5.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB4.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB9.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_SRB2.tif"
+          "LC08_CU_027009_20130701_20170729_C01_V01_TAB6.tif"},
+        "idw-only" #{}}
        (mc/inventory-diff "http://ardhost.com" "http://idwhost.com" "043029" "CONUS" httpget)
     )
   )
