@@ -156,12 +156,13 @@
 
    Returns vector (things only in ARD, things only in IDW)
   "
-  [ard-host idw-host tile-id region & [req-fn]]
-  (let [rqstr    (or req-fn http/get-request)
+  [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn]]
+  (let [ard-rqt  (or ard-req-fn http/get-request)
+        idw-rqt  (or idw-req-fn http/get-request)
         ard-url  (ard-url-format ard-host tile-id)
-        ard-list (collect-map-values (rqstr ard-url) :name :type "file")
+        ard-list (collect-map-values (ard-rqt ard-url) :name :type "file")
         idw-url  (idw-url-format idw-host tile-id)        
-        idw-list (collect-map-values (:result (rqstr idw-url)) :source)
+        idw-list (collect-map-values (:result (idw-rqt idw-url)) :source)
         ard-flat (flatten (map ard-manifest ard-list))]
 
      (hash-map "ard-only" (set/difference (set ard-flat) (set idw-list)) 
