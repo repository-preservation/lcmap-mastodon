@@ -1,0 +1,21 @@
+language: clojure
+
+jdk:
+- openjdk8
+
+services:
+- docker
+
+sudo: required
+
+before_install:
+  - make checkdeps
+  - make runtests
+
+after_success:
+  - ./bin/build
+
+notifications:
+  slack:
+    rooms:
+      - lcmap:UTqlh9PfPVomfpli10WKyZoh#cicd
