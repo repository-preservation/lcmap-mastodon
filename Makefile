@@ -13,3 +13,5 @@ build-min:
 clean:
 	rm -rf resources/public/js
 
+docker-build:
+	docker build -t usgseros/lcmap-mastodon
