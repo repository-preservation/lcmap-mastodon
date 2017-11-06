@@ -59,7 +59,7 @@
                {:id "test"
                 :source-paths ["src" "test"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
-                           :output-dir "resources/public/js/compiiled/out/test"
+                           :output-dir "resources/public/js/compiled/out/test"
                            :main lcmap.mastodon.test-runner}}
 
                ]}
