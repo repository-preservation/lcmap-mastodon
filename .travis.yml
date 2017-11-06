@@ -1,21 +1,19 @@
 language: clojure
-
 jdk:
 - openjdk8
-
 services:
 - docker
-
 sudo: required
-
 before_install:
-  - make checkdeps
-  - make runtests
-
+- make checkdeps
+- make runtests
 after_success:
-  - ./bin/build
-
+- "./bin/build"
 notifications:
   slack:
     rooms:
-      - lcmap:UTqlh9PfPVomfpli10WKyZoh#cicd
+    - lcmap:UTqlh9PfPVomfpli10WKyZoh#cicd
+env:
+  global:
+  - secure: R/915q9yPGobPfTd/M3LwErh6ailrFbASZHZONMsB2bF71sy7XLOa7a6T1cP6eP2VWtZn2sGpvnCWqeFp5PTG1cIynO4XGL2ZLS1pgmNe0pFayzsv+uHw3z+2NCJYRoiSRVCcxETEtkQ0PGTRz6jc4h1Shms8IgvYSFEb1xqGh8S5BjxulBDWtly+t7WHXBJaphnkthqGytlNDC+JlovKFnBak1IkHGOoruReokoVlEGPkmU98fliTkdqdfPFMR3YZ8oG41vm4S73Go7w3Vzln4gazcQffXCJzYLIR7Def43Oly06OOfU+NrliCQi8VV5XS0vI7XxYn0NIwwXqMCDQY5IZ/sjZVwBi65jGCJz1/UV82Fu+a2fLF+o9QHevVbrIee1FHjf5o/IYHXpNKWDGuPurZacJIG4PFkopKMoZ+jBgb/TelXa7iatflkkRoyDTMtsxT1ozsgkDBAmmJDfcQIg3akvMm7G9JY+t8iIYNcf+Llma1PrnRshBpWKr98Js3CjmKerkJDE4GKPR1A/C4ccBWVAkNe+x5f3H9zDltbJeiMhPs76klgFlbBX/xAYFzwXCb3/HXglBhqzla2/13GXBsU7LA8J9rxD8adVcZHPdZLTZeDixbCkOQ2FVlY+BU5xLSXEwjpW4qL247z2BfrQAuD8PvcszQDGnsELNI=
+  - secure: Ew6VcTJn+HDrkNXJR9Srio0jStTAuTiMNs0Ihd0K8YMruwLXyW370Kqs3ecE/cHmbg9O2VrTR5DG13KQ8infNXA+s0k2iRoONhsnW9FyI2etQoBQ5IV3FHaOD/tHVCRhjfawtP++f56DjA13yaIr2F+vQU8xZkhjcUnAegpcI+8uErydEXChICz8IbCHZSYtBgKEKnrJjp3syIHppMHYcGKt2FP5LQOAfqB0j6e5xkSnx5OWdYD1OFrG7KHsMHYcXWb2iXHtbjY1u4hgLSQrgEk4ZmUzCvi6PjP7Cl1vSfnhJzccnMGRJI8qiIRLBLNKK1Zis0zryK3duNjGqmPihomOjFDQzIVuMHnNOSCEboZqTK6xBbJ9D/0bh7v+7RVCacIpwNXIARUGVC9Tox7OgjFppDO4xaxr4ScU0tAIDWaOTMfPdssfeHZPGATigCfijcGWOXR0AMr3MTq6CDBg6SN6G29CGRC5EGzxvFIAzq/RqXt0q2vlH2duFwf1MqPJVkJwYYZXwcZRqHG/HYqWouyZQMYrsb61cW3aI+L7OdbmVgOx7U5yhPB7Zpk++ocoC7P9mu+bSKs8PH8oXkBPfKy712h5s8kXT7a7PDOOOcd4Ots7dD+TpFBwNDc4Yu1uU2eoHea8mt0iFVbq4U4ZSt35eERLRTWeIbRMEf4gC50=
