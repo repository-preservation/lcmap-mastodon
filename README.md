@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/USGS-EROS/lcmap-mastodon.svg?branch=develop)](https://travis-ci.org/USGS-EROS/lcmap-mastodon)
+
 # lcmap-mastodon
 Helpful functions for LCMAP data curation
 
