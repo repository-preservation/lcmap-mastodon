@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> <!-- load jquery via CDN -->
 
-    <script src="js/compiled/mastodon.js" type="text/javascript"></script>
+    <script src="js/compiled/mastodon_min.js" type="text/javascript"></script>
 
     <script>
 
@@ -20,8 +20,7 @@
               var idwhost = $("#idwshost").val();
               var tile_id = $("#tileid").val();             
               var region  = $("#region").val();
-              alert(ardhost);
-              /*lcmap.mastodon.core.hvdiff(ardhost, idwhost, tile_id, region);*/
+              lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
           });
 
       });
@@ -49,7 +48,7 @@
         <!-- IDWS -->
         <div id="idws-group" class="form-group">
           <label for="idwshost">IDWS Host</label>
-          <input type="text" class="form-control" id="idwshost" name="idwshost" placeholder="http://localhost:8080">
+          <input type="text" class="form-control" id="idwshost" name="idwshost" value="http://localhost:5656">
           <!-- errors will go here -->
         </div>
 
