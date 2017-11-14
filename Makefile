@@ -15,3 +15,7 @@ clean:
 
 docker-build:
 	docker build -t usgseros/lcmap-mastodon
+
+faux-ard-container:
+	cd resources/nginx; docker build -t faux-ard .
+
