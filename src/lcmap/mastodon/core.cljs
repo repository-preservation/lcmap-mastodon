@@ -1,12 +1,18 @@
 (ns lcmap.mastodon.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [clojure.data :as data]
             [clojure.string :as string]
             [clojure.set :as set]
             [lcmap.mastodon.http :as http]
-            [lcmap.mastodon.ard-maps :as ard-maps]))
+            [lcmap.mastodon.ard-maps :as ard-maps]
+            [cljs.core.async :refer [<!]]))
 
 (enable-console-print!)
 (println "Hello from LCMAP Mastodon!")
+
+(def ard-atom (atom []))
+(def idw-atom (atom []))
+
 
 (defn on-js-reload []
   ;; optionally touch your app-state to force rerendering depending on
@@ -157,16 +163,35 @@
    Returns vector (things only in ARD, things only in IDW)
   "
   [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn]]
-  (let [ard-rqt  (or ard-req-fn http/get-request)
-        idw-rqt  (or idw-req-fn http/get-request)
-        ard-url  (ard-url-format ard-host tile-id)
-        ard-list (collect-map-values (ard-rqt ard-url) :name :type "file")
-        idw-url  (idw-url-format idw-host tile-id)        
-        idw-list (collect-map-values (:result (idw-rqt idw-url)) :source)
-        ard-flat (flatten (map ard-manifest ard-list))]
 
-     (hash-map "ard-only" (set/difference (set ard-flat) (set idw-list)) 
-               "idw-only" (set/difference (set idw-list) (set ard-flat))) 
+  (go 
+    (let [ard-rqt  (or ard-req-fn http/get-request)
+          idw-rqt  (or idw-req-fn http/get-request)
+          ard-url  (ard-url-format ard-host tile-id)
+          idw-url  (idw-url-format idw-host tile-id)
+          ard-resp (<! (ard-rqt ard-url))
+          idw-resp (<! (idw-rqt idw-url))];; ard-resp & idw-resp are core.async channels
+
+          (swap! ard-atom
+            (fn [current-state]
+              (merge-with + current-state (hash-map (keyword tile-id) (<! ard-resp)))))
+
+          (swap! idw-atom
+            (fn [current-state]
+              (merge-with + current-state (hash-map (keyword tile-id) (<! idw-resp)))))
+    ) ;; let
+  ) ;; go
+
+  (let [ard-list (collect-map-values (tile-id @ard-atom) :name :type "file")
+        ard-flat (flatten (map ard-manifest ard-list))
+        idw-list (collect-map-values (:result (tile-id @idw-atom)) :source)]
+
+
+    (hash-map "ard-only" (set/difference (set ard-flat) (set idw-list)) 
+              "idw-only" (set/difference (set idw-list) (set ard-flat)))
+
   )
+
+
 )
 
