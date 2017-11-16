@@ -14,10 +14,10 @@
  "
  [url & [resp]]
  (if (nil? resp)
-     (do   
-       (go (def response (<! (http-client/get url {:with-credentials? false}))))
-       (:body response))
-     (do resp)) 
+    (do (go (let [response (<! (http-client/get url {:with-credentials? false}))]
+               (:body response)))) 
+    (do resp)
+ ) 
 )
 
 
