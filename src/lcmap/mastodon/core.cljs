@@ -1,18 +1,27 @@
 (ns lcmap.mastodon.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.data :as data]
             [clojure.string :as string]
             [clojure.set :as set]
             [lcmap.mastodon.http :as http]
             [lcmap.mastodon.ard-maps :as ard-maps]
-            [cljs.core.async :refer [<!]]))
+            [cljs.core.async :refer [<! >! chan pipeline]]
+            [cljs.reader :refer [read-string]]
+)
+  (:import goog.dom))
 
 (enable-console-print!)
 (println "Hello from LCMAP Mastodon!")
 
-(def ard-atom (atom []))
-(def idw-atom (atom []))
+(def ard-chan (chan 1))
+(def idw-chan (chan 1))
+(def ard-miss-chan (chan 1))
+(def idw-miss-chan (chan 1))
+(def ard-ingst-chan (chan 1))
 
+(defn log [msg]
+  (.log js/console msg)
+)
 
 (defn on-js-reload []
   ;; optionally touch your app-state to force rerendering depending on
@@ -151,6 +160,54 @@
   )
 )
 
+(defn inc-counter-div [divid]
+  (let [div (dom.getElement divid)
+        val (read-string (dom.getTextContent div))
+        ival (inc val)]
+    (dom.setTextContent div ival)
+   )
+)
+
+(defn channeltran [fromchan tochan]
+  (go
+    (let [filtr-list (collect-map-values (<! fromchan) :name :type "file")]
+       (doseq [name filtr-list]
+           (>! tochan name)))
+  )
+)
+
+(defn checkardtars [idw-url idw-rqt]
+  (log "in checkardtars...")
+  (go-loop []
+    (let [t (<! ard-chan)
+          tifs (ard-manifest t)
+          idw-resp (:result (<! (idw-rqt idw-url))) 
+          idw-tifs (collect-map-values idw-resp :source)]
+       ;; dom counter ids: ardmissing-counter ardingested-counter
+       ;; park function on ard-miss-chan to update missing dom element
+       ;; park function on ard-ingst-chan to update ingested dom element
+
+       ;; check with chipmunk whether its ingested each tif
+       ;; if it has, add that tif to ard-ingst-chan
+      ;;  if not, add that tiff to the ard-miss-chan
+      (log (str tifs))
+      (doseq [i tifs]
+        (if (contains? (set idw-tifs) i)
+          (inc-counter-div "ardingested-counter")
+          (inc-counter-div "ardmissing-counter")
+        )       
+      )
+    )
+  )
+)
+
+(defn ingest-check [ardc idw-url idw-rqt]
+  ;; 1 func to act on item put in ard-chan
+  (checkardtars idw-url idw-rqt)
+  ;; 2 func to take items off of ardc and put on ard-chan  
+  (channeltran ardc ard-chan)
+)
+
 (defn inventory-diff
   "Diff function, comparing what source files the ARD source has available, 
    and what sources have been ingested into the data warehouse for a specific tile
@@ -164,34 +221,18 @@
   "
   [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn]]
 
-  (go 
     (let [ard-rqt  (or ard-req-fn http/get-request)
           idw-rqt  (or idw-req-fn http/get-request)
           ard-url  (ard-url-format ard-host tile-id)
           idw-url  (idw-url-format idw-host tile-id)
-          ard-resp (<! (ard-rqt ard-url))
-          idw-resp (<! (idw-rqt idw-url))];; ard-resp & idw-resp are core.async channels
+          ard-resp (go (<! (ard-rqt ard-url))) 
+          ];; ard-resp & idw-resp are core.async channels
 
-          (swap! ard-atom
-            (fn [current-state]
-              (merge-with + current-state (hash-map (keyword tile-id) (<! ard-resp)))))
 
-          (swap! idw-atom
-            (fn [current-state]
-              (merge-with + current-state (hash-map (keyword tile-id) (<! idw-resp)))))
+
+      (ingest-check ard-resp idw-url idw-rqt)
+
     ) ;; let
-  ) ;; go
-
-  (let [ard-list (collect-map-values (tile-id @ard-atom) :name :type "file")
-        ard-flat (flatten (map ard-manifest ard-list))
-        idw-list (collect-map-values (:result (tile-id @idw-atom)) :source)]
-
-
-    (hash-map "ard-only" (set/difference (set ard-flat) (set idw-list)) 
-              "idw-only" (set/difference (set idw-list) (set ard-flat)))
-
-  )
-
-
 )
+
 
