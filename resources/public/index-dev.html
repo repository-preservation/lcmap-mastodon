@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/style.css" rel="stylesheet" type="text/css">
+    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet" type="text/css">
     <link rel="icon" href="https://clojurescript.org/images/cljs-logo-icon-32.png">
 
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
@@ -12,8 +13,12 @@
 
     <script src="js/compiled/mastodon.js" type="text/javascript"></script>
 
-    <script>
+    <script type="text/javascript">
 
+      window.hello = function() {
+          alert("hello");
+      }
+      globalObject = {};
       $(document).ready(function () {
 
           $("#frmsubmit").click(function() {
@@ -27,7 +32,10 @@
       });
 
     </script>
-    
+    <style>
+      .counter-div {padding:2px;overflow:hidden; }
+      .ard-wrapper {width:33%; text-align:center; float: right;}
+    </style>
 
   </head>
   <body>
@@ -69,7 +77,25 @@
       </form>
       <!-- find better solution to preventing form submission -->
       <button id="frmsubmit" type="submit" class="btn btn-success">Submit <span class="fa fa-arrow-right"></span></button>
-    </div>
 
+      <div id="counters-container" class="counter-div">
+
+        <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Missing
+          <div id="ardmissing-counter" class="counter-div">0</div>
+        </div>
+
+        <div id="ardingested" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Ingested
+          <div id="ardingested-counter" class="counter-div">0</div>
+        </div>
+
+        <div id="ardinprogress" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          In Progress
+          <div id="ardinprogress-counter" class="counter-div">0</div>
+        </div>
+     </div>
+
+    </div>
   </body>
 </html>

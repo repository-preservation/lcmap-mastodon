@@ -1,17 +1,27 @@
-(ns lcmap.mastodon.data)
+(ns lcmap.mastodon.data
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [cljs.core.async :refer [>! chan]])
+)
 
 (def xmap (hash-map :a "a" :b "b" :c "c" :d "foo"))
 (def xmaplist [(hash-map :a "a" :b "b" :c "c" :d "foo")
                (hash-map :a "a" :b "b" :c "c" :d "bar")
                (hash-map :a "a" :b "b" :c "c" :d "baz")])
 
-(def ard-resp (list {:name "LC08_CU_027009_20130701_20170729_C01_V01_SR.tar" :type "file"} 
-                    {:name "LC08_CU_027009_20130701_20170729_C01_V01_TA.tar" :type "file"}))
+(defn ard-resp [] 
+  (go
+    (list {:name "LC08_CU_027009_20130701_20170729_C01_V01_SR.tar" :type "file"} 
+          {:name "LC08_CU_027009_20130701_20170729_C01_V01_TA.tar" :type "file"})
 
-(def idw-resp (hash-map :result (list {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB6.tif"} 
-                                      {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB7.tif"} 
-                                      {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB1.tif"}
-                                      {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB2.tif"})))
+))
+
+(defn idw-resp []
+  (go
+    (hash-map :result (list {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB6.tif"} 
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB7.tif"} 
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB1.tif"}
+                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB2.tif"}))
+))
 
 (def diff-resp-a
   {"ard-only"
@@ -28,6 +38,5 @@
      "LC08_CU_027009_20130701_20170729_C01_V01_SRB2.tif"
      "LC08_CU_027009_20130701_20170729_C01_V01_TAB6.tif"},
    "idw-only" 
-   #{}
-  }
-)
+   #{}})
+
