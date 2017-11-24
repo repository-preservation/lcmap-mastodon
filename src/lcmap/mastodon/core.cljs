@@ -15,9 +15,7 @@
 
 (def ard-chan (chan 1))
 (def idw-chan (chan 1))
-(def ard-miss-chan (chan 1))
-(def idw-miss-chan (chan 1))
-(def ard-ingst-chan (chan 1))
+(def ard-miss-atom (atom []))
 
 (defn log [msg]
   (.log js/console msg)
@@ -132,7 +130,6 @@
     (first (remove nil? matching-key-list)))
 )
 
-
 (defn tar-name
   "Derive an ARD tif files original containing Tar file name"
   [tif-name]
@@ -148,8 +145,10 @@
 )
 
 (defn ard-manifest
-  "From a list of ARD tar files, generate a map 
-   keyed by tar file name of its expected contents"
+  "From a ARD tar file name, generate a map 
+   keyed by tar file name of its expected contents.
+
+   ^String :ard-tar:"
   [ard-tar]
   (let [tname (string/replace ard-tar ".tar" "")
         tlst  (string/split tname "_")
@@ -160,7 +159,11 @@
   )
 )
 
-(defn inc-counter-div [divid]
+(defn inc-counter-div
+  "Increment by 1 the value within a div.
+
+   ^String :divid:"
+  [divid]
   (let [div (dom.getElement divid)
         val (read-string (dom.getTextContent div))
         ival (inc val)]
@@ -168,44 +171,43 @@
    )
 )
 
-(defn channeltran [fromchan tochan]
+(defn chan-transfer
+  "Transfer elements from one channel to another.
+
+   ^core.async.chan :fromchan:
+   ^core.async.chan :tochan:"
+  [fromchan tochan filtr]
   (go
-    (let [filtr-list (collect-map-values (<! fromchan) :name :type "file")]
-       (doseq [name filtr-list]
-           (>! tochan name)))
-  )
-)
-
-(defn checkardtars [idw-url idw-rqt]
-  (log "in checkardtars...")
-  (go-loop []
-    (let [t (<! ard-chan)
-          tifs (ard-manifest t)
-          idw-resp (:result (<! (idw-rqt idw-url))) 
-          idw-tifs (collect-map-values idw-resp :source)]
-       ;; dom counter ids: ardmissing-counter ardingested-counter
-       ;; park function on ard-miss-chan to update missing dom element
-       ;; park function on ard-ingst-chan to update ingested dom element
-
-       ;; check with chipmunk whether its ingested each tif
-       ;; if it has, add that tif to ard-ingst-chan
-      ;;  if not, add that tiff to the ard-miss-chan
-      (log (str tifs))
-      (doseq [i tifs]
-        (if (contains? (set idw-tifs) i)
-          (inc-counter-div "ardingested-counter")
-          (inc-counter-div "ardmissing-counter")
-        )       
-      )
+    (let [filtr-list (collect-map-values (<! fromchan) (:dkey filtr) (:ckey filtr) (:cval filtr))]
+      (doseq [name filtr-list] (>! tochan name))
     )
   )
 )
 
-(defn ingest-check [ardc idw-url idw-rqt]
-  ;; 1 func to act on item put in ard-chan
-  (checkardtars idw-url idw-rqt)
-  ;; 2 func to take items off of ardc and put on ard-chan  
-  (channeltran ardc ard-chan)
+(defn ard-status-check 
+  "Check whether available ARD has been ingested. If it hasn't
+   place it in the requested Atom.
+
+   ^ core.async.chan :ard-c:
+   ^ String :idw-url:
+   ^ Func :idw-rqt:"
+  [ard-c idw-url idw-rqt]
+  (log "in checkardtars...")
+  (go-loop []
+    (let [t (<! ard-c)
+          tifs (ard-manifest t)
+          idw-resp (:result (<! (idw-rqt idw-url))) 
+          idw-tifs (collect-map-values idw-resp :source)]
+      (doseq [i tifs]
+        (if (contains? (set idw-tifs) i)
+          (inc-counter-div "ardingested-counter")
+          (do (inc-counter-div "ardmissing-counter") 
+              (log (str "missing: " i))
+              (swap! ard-miss-atom conj i))       
+        )       
+      )
+    )
+  )
 )
 
 (defn inventory-diff
@@ -225,12 +227,13 @@
           idw-rqt  (or idw-req-fn http/get-request)
           ard-url  (ard-url-format ard-host tile-id)
           idw-url  (idw-url-format idw-host tile-id)
-          ard-resp (go (<! (ard-rqt ard-url))) 
-          ];; ard-resp & idw-resp are core.async channels
+          ard-resp (go (<! (ard-rqt ard-url)))];; ard-resp is a core.async channel
 
-
-
-      (ingest-check ard-resp idw-url idw-rqt)
+     ;; park functions on ard-chan and ard-miss-chan
+     (ard-status-check ard-chan idw-url idw-rqt)
+     ;; transfer items to ard-chan
+     (chan-transfer ard-resp ard-chan {:dkey :name :ckey :type :cval "file"})
+     ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
 
     ) ;; let
 )
