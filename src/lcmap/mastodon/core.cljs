@@ -171,19 +171,6 @@
    )
 )
 
-(defn chan-transfer
-  "Transfer elements from one channel to another.
-
-   ^core.async.chan :fromchan:
-   ^core.async.chan :tochan:"
-  [fromchan tochan filtr]
-  (go
-    (let [filtr-list (collect-map-values (<! fromchan) (:dkey filtr) (:ckey filtr) (:cval filtr))]
-      (doseq [name filtr-list] (>! tochan name))
-    )
-  )
-)
-
 (defn ard-status-check 
   "Check whether available ARD has been ingested. If it hasn't
    place it in the requested Atom.
@@ -226,16 +213,18 @@
     (let [ard-rqt  (or ard-req-fn http/get-request)
           idw-rqt  (or idw-req-fn http/get-request)
           ard-url  (ard-url-format ard-host tile-id)
-          idw-url  (idw-url-format idw-host tile-id)
-          ard-resp (go (<! (ard-rqt ard-url)))];; ard-resp is a core.async channel
+          idw-url  (idw-url-format idw-host tile-id)];; ard-resp is a core.async channel
 
      ;; park functions on ard-chan and ard-miss-chan
      (ard-status-check ard-chan idw-url idw-rqt)
      ;; transfer items to ard-chan
-     (chan-transfer ard-resp ard-chan {:dkey :name :ckey :type :cval "file"})
+     (go
+       (doseq [i (<! (ard-rqt ard-url))]
+         (when (= (:type i) "file")
+           (>! ard-chan (:name i)))
+         )
+       )
      ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
-
     ) ;; let
 )
-
 
