@@ -5,6 +5,7 @@
             [clojure.set :as set]
             [lcmap.mastodon.http :as http]
             [lcmap.mastodon.ard-maps :as ard-maps]
+            [lcmap.mastodon.data :as mdata]
             [cljs.core.async :refer [<! >! chan pipeline]]
             [cljs.reader :refer [read-string]]
 )
@@ -171,6 +172,36 @@
    )
 )
 
+(defn reset-counter-divs [divs]
+  (doseq [d divs]
+    (let [i (dom.getElement d)]
+      (dom.setTextContent i "0")
+    )
+  )
+)
+
+(defn show-div [divid]
+  (let [div (dom.getElement divid)]
+    (dom.setProperties div (js-obj "style" "display: block"))
+  )
+)
+
+(defn hide-div [divid]
+  (let [div (dom.getElement divid)]
+    (dom.setProperties div (js-obj "style" "display: none"))
+  )
+)
+
+(defn fresh-includes [coll i]
+  (if (contains? (set coll) i)
+    (do (log (str "already accounted for: " i))
+        coll)
+    (do (log (str "new item: " i))
+        (conj coll i)
+    )
+  )
+)
+
 (defn ard-status-check 
   "Check whether available ARD has been ingested. If it hasn't
    place it in the requested Atom.
@@ -179,22 +210,19 @@
    ^ String :idw-url:
    ^ Func :idw-rqt:"
   [ard-c idw-url idw-rqt]
-  (log "in checkardtars...")
+  (reset-counter-divs ["ardingested-counter" "ardmissing-counter"])
   (go-loop []
-    (let [t (<! ard-c)
-          tifs (ard-manifest t)
-          idw-resp (:result (<! (idw-rqt idw-url))) 
+    (let [tifs (ard-manifest (<! ard-c))
+          idw-resp (:result (<! (idw-rqt idw-url)))
           idw-tifs (collect-map-values idw-resp :source)]
-      (doseq [i tifs]
-        (if (contains? (set idw-tifs) i)
-          (inc-counter-div "ardingested-counter")
-          (do (inc-counter-div "ardmissing-counter") 
-              (log (str "missing: " i))
-              (swap! ard-miss-atom conj i))       
-        )       
-      )
+          ;; run through the tifs, checking if they're included in the IDWS response
+          (doseq [i tifs]
+            (if (contains? (set idw-tifs) i)
+              (inc-counter-div "ardingested-counter")
+              (do (inc-counter-div "ardmissing-counter") 
+                  (swap! ard-miss-atom fresh-includes i))))
     )
-  )
+    (recur))
 )
 
 (defn inventory-diff
@@ -213,18 +241,35 @@
     (let [ard-rqt  (or ard-req-fn http/get-request)
           idw-rqt  (or idw-req-fn http/get-request)
           ard-url  (ard-url-format ard-host tile-id)
-          idw-url  (idw-url-format idw-host tile-id)];; ard-resp is a core.async channel
+          idw-url  (idw-url-format idw-host tile-id)
+          busy-div "busydiv"]
 
-     ;; park functions on ard-chan and ard-miss-chan
-     (ard-status-check ard-chan idw-url idw-rqt)
-     ;; transfer items to ard-chan
-     (go
-       (doseq [i (<! (ard-rqt ard-url))]
-         (when (= (:type i) "file")
-           (>! ard-chan (:name i)))
-         )
-       )
-     ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
-    ) ;; let
+         ;; turn on busy signal
+         (show-div busy-div)
+         ;; park functions on ard-chan
+         (ard-status-check ard-chan idw-url idw-rqt)
+         ;; transfer items to ard-chan
+         (go
+           (doseq [i (<! (ard-rqt ard-url))]
+             (when (= (:type i) "file")
+               (>! ard-chan (:name i))))
+           (hide-div busy-div))
+         ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
+    )
 )
+
+(defn inventory-mock []
+  (inventory-diff "ardhost.com" "idwshost.com" "023023" "CU" 
+                  #(http/get-request % (mdata/ard-resp)) 
+                  #(http/get-request % (mdata/idw-resp)))
+)
+
+
+(defn ingest-req []
+
+  (doseq [i @ard-miss-atom]
+    (log (str "ingest: " i)))
+
+)
+
 

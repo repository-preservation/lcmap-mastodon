@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/style.css" rel="stylesheet" type="text/css">
-    <link href="https://www.w3schools.com/w3css/4/w3.css" rel="stylesheet" type="text/css">
     <link rel="icon" href="https://clojurescript.org/images/cljs-logo-icon-32.png">
 
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
@@ -21,12 +20,22 @@
       globalObject = {};
       $(document).ready(function () {
 
+         $("#devcheck").prop("checked", "checked");
+
           $("#frmsubmit").click(function() {
               var ardhost = $("#ardhost").val();
               var idwhost = $("#idwshost").val();
               var tile_id = $("#tileid").val();             
               var region  = $("#region").val();
-              lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
+              var dev     = $("#devcheck").prop("checked");
+              if (dev == true) {
+                 lcmap.mastodon.core.inventory_mock();
+              } else {
+                 lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
+              };
+              
+
+
           });
 
       });
@@ -51,33 +60,38 @@
         <div id="ard-group" class="form-group">
           <label for="ardhost">ARD Host</label>
           <input type="text" class="form-control" id="ardhost" name="ardhost" placeholder="http://localhost:9000">
-          <!-- errors will go here -->
         </div>
-
         <!-- IDWS -->
         <div id="idws-group" class="form-group">
           <label for="idwshost">IDWS Host</label>
           <input type="text" class="form-control" id="idwshost" name="idwshost" value="http://localhost:5656">
-          <!-- errors will go here -->
         </div>
 
         <!-- Region -->
         <div id="reg-group" class="form-group">
           <label for="region">Region</label>
-          <input type="text" class="form-control" id="region" name="region" placeholder="conus">
-          <!-- errors will go here -->
+          <input type="text" class="form-control" id="region" name="region" placeholder="conus" size="5">
         </div>
 
         <!-- H & V -->
         <div id="tile-group" class="form-group">
           <label for="tileid">Tile ID</label>
           <input type="text" class="form-control" id="tileid" name="tileid" placeholder="111555">
-          <!-- errors will go here -->
         </div>
+
+        <!-- dev -->
+        <div id="dev-group" class="form-group">
+          <label for="devcheck">Test
+            <input type="checkbox" class="form-control" id="devcheck" name="devcheck">
+          </label>
+        </div>
+       
+
+
       </form>
       <!-- find better solution to preventing form submission -->
       <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
-
+      <div id="busydiv" style="display: none;"><img src="images/turningIndicator.gif"></img></div>
       <div id="counters-container" class="counter-div">
 
         <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
