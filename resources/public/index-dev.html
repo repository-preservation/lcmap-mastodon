@@ -19,7 +19,7 @@
       }
       globalObject = {};
       $(document).ready(function () {
-          lcmap.mastodon.core.disable_btn("chpsubmit");
+          lcmap.mastodon.dom.disable_btn("chpsubmit");
           $("#devcheck").prop("checked", "checked");
           $("#frmsubmit").click(function() {
               var ardhost = $("#ardhost").val();
@@ -28,7 +28,7 @@
               var region  = $("#region").val();
               var dev     = $("#devcheck").prop("checked");
               if (dev == true) {
-                 lcmap.mastodon.core.inventory_mock();
+                 lcmap.mastodon.core.inventory_diff("ardhost.com", "idwhost.com", "029043", "CU", lcmap.mastodon.util.mock_ard(), lcmap.mastodon.util.mock_idw());
               } else {
                  lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
               };
