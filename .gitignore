@@ -1,5 +1,6 @@
 pom.xml
 pom.xml.asc
+figwheel_server.log
 *.jar
 *.class
 /lib/
@@ -11,6 +12,7 @@ pom.xml.asc
 .lein-plugins/
 .lein-failures
 .nrepl-port
+/resources/nginx/.ipynb_checkpoints
 /js
 /out
 /resources/public/js/compiled
