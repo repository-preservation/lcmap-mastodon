@@ -19,9 +19,8 @@
       }
       globalObject = {};
       $(document).ready(function () {
-
-         $("#devcheck").prop("checked", "checked");
-
+          lcmap.mastodon.core.disable_btn("chpsubmit");
+          $("#devcheck").prop("checked", "checked");
           $("#frmsubmit").click(function() {
               var ardhost = $("#ardhost").val();
               var idwhost = $("#idwshost").val();
@@ -33,9 +32,6 @@
               } else {
                  lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
               };
-              
-
-
           });
 
       });
@@ -91,6 +87,7 @@
       </form>
       <!-- find better solution to preventing form submission -->
       <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
+      <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
       <div id="busydiv" style="display: none;"><img src="images/turningIndicator.gif"></img></div>
       <div id="counters-container" class="counter-div">
 
