@@ -192,6 +192,18 @@
   )
 )
 
+(defn enable-btn [btnid]
+  (let [btn (dom.getElement btnid)]
+    (dom.setProperties btn (js-obj "disabled" false))
+  )
+)
+
+(defn disable-btn [btnid]
+  (let [btn (dom.getElement btnid)]
+    (dom.setProperties btn (js-obj "disabled" true))
+  )
+)
+
 (defn fresh-includes [coll i]
   (if (contains? (set coll) i)
     (do (log (str "already accounted for: " i))
@@ -253,7 +265,8 @@
            (doseq [i (<! (ard-rqt ard-url))]
              (when (= (:type i) "file")
                (>! ard-chan (:name i))))
-           (hide-div busy-div))
+           (hide-div busy-div)
+           )
          ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
     )
 )
