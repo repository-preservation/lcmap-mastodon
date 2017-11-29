@@ -57,19 +57,19 @@
   [ard-c idw-url idw-rqt busy-div ingest-btn]
   (dom/reset-counter-divs ["ardingested-counter" "ardmissing-counter"])
   (go
-    (let [tars (<! ard-c)
-          tifs (set (flatten (map ard/ard-manifest tars))) 
+    (let [ard-tars (<! ard-c)
+          ard-tifs (set (flatten (map ard/ard-manifest ard-tars))) 
           idw-resp (:result (<! (idw-rqt idw-url)))
           idw-tifs (set (util/collect-map-values idw-resp :source)) 
-          ard-only (set/difference tifs idw-tifs)
-          idw-only (set/difference idw-tifs tifs)
-          ingested (set/intersection tifs idw-tifs)]
+          ard-only (set/difference ard-tifs idw-tifs)
+          idw-only (set/difference idw-tifs ard-tifs)
+          ingested (set/intersection ard-tifs idw-tifs)]
 
           (swap! ard-miss-atom conj ard-only)
           (swap! idw-miss-atom conj idw-only)
           (dom/inc-counter-div "ardingested-counter" (count ingested))
           (dom/inc-counter-div "ardmissing-counter" (count ard-only))
-          (util/log (str "missing count: "  (count (first (deref ard-miss-atom)))))
+          (util/log (str "missing count: " (count (first (deref ard-miss-atom)))))
           (dom/hide-div busy-div)
           (dom/enable-btn ingest-btn)))
 )
