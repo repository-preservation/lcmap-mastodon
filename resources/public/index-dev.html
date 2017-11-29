@@ -20,6 +20,11 @@
       globalObject = {};
       $(document).ready(function () {
           lcmap.mastodon.dom.disable_btn("chpsubmit");
+          $("#chpsubmit").click(function() {
+            lcmap.mastodon.core.ingest_req();
+          });
+
+
           $("#devcheck").prop("checked", "checked");
           $("#frmsubmit").click(function() {
               var ardhost = $("#ardhost").val();
