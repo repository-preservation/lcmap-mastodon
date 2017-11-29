@@ -5,7 +5,7 @@
             [lcmap.mastodon.http :as mhttp]
             [lcmap.mastodon.data :as testdata]
             [lcmap.mastodon.util :as util]
-            [lcmap.mastodon.ard-maps :as ard-maps]))
+            [lcmap.mastodon.ard :as ard]))
 
 (deftest hv-map-test
   (is 
@@ -44,8 +44,8 @@
        (mc/idw-url-format "http://magichost.org" "043999"))))
 
 (deftest key-for-value-test
-  (is (= :SR (util/key-for-value ard-maps/tar-map "SRB1")))
-  (is (= :TA (util/key-for-value ard-maps/tar-map "TAB4")))
-  (is (= :QA (util/key-for-value ard-maps/tar-map "PIXELQA")))
-  (is (= :BT (util/key-for-value ard-maps/tar-map "BTB10"))))
+  (is (= :SR (util/key-for-value ard/tar-map "SRB1")))
+  (is (= :TA (util/key-for-value ard/tar-map "TAB4")))
+  (is (= :QA (util/key-for-value ard/tar-map "PIXELQA")))
+  (is (= :BT (util/key-for-value ard/tar-map "BTB10"))))
 

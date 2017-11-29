@@ -33,7 +33,7 @@
   "
   [host tile-id]
   (let [hvm (hv-map tile-id)]
-    (str "/" host "/" (:h hvm) "/" (:v hvm) "/"))
+    (str host "/" (:h hvm) "/" (:v hvm) "/"))
 )
 
 (defn idw-url-format
