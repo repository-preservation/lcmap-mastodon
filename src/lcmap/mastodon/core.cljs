@@ -17,6 +17,8 @@
 (def ard-chan (chan 1))
 (def idw-chan (chan 1))
 (def ard-miss-atom (atom []))
+(def idw-miss-atom (atom []))
+
 
 (defn log [msg]
   (.log js/console msg)
@@ -164,10 +166,11 @@
   "Increment by 1 the value within a div.
 
    ^String :divid:"
-  [divid]
+  [divid & [amt]]
   (let [div (dom.getElement divid)
         val (read-string (dom.getTextContent div))
-        ival (inc val)]
+        imt (or amt 1)
+        ival (+ imt val)]
     (dom.setTextContent div ival)
    )
 )
@@ -221,20 +224,27 @@
    ^ core.async.chan :ard-c:
    ^ String :idw-url:
    ^ Func :idw-rqt:"
-  [ard-c idw-url idw-rqt]
+  [ard-c idw-url idw-rqt busy-div ingest-btn]
   (reset-counter-divs ["ardingested-counter" "ardmissing-counter"])
-  (go-loop []
-    (let [tifs (ard-manifest (<! ard-c))
+  (go
+    (let [tars (<! ard-c)
+          tifs (set (flatten (map ard-manifest tars))) 
           idw-resp (:result (<! (idw-rqt idw-url)))
-          idw-tifs (collect-map-values idw-resp :source)]
-          ;; run through the tifs, checking if they're included in the IDWS response
-          (doseq [i tifs]
-            (if (contains? (set idw-tifs) i)
-              (inc-counter-div "ardingested-counter")
-              (do (inc-counter-div "ardmissing-counter") 
-                  (swap! ard-miss-atom fresh-includes i))))
+          idw-tifs (set (collect-map-values idw-resp :source)) 
+          ard-only (set/difference tifs idw-tifs)
+          idw-only (set/difference idw-tifs tifs)
+          ingested (set/intersection tifs idw-tifs)]
+
+          (swap! ard-miss-atom conj ard-only)
+          (swap! idw-miss-atom conj idw-only)
+          (inc-counter-div "ardingested-counter" (count ingested))
+          (inc-counter-div "ardmissing-counter" (count ard-only))
+          (log (str "missing count: "  (count (first (deref ard-miss-atom)))))
+          (hide-div busy-div)
+          (enable-btn ingest-btn)
+
     )
-    (recur))
+  )
 )
 
 (defn inventory-diff
@@ -249,24 +259,20 @@
    Returns vector (things only in ARD, things only in IDW)
   "
   [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn]]
-
-    (let [ard-rqt  (or ard-req-fn http/get-request)
-          idw-rqt  (or idw-req-fn http/get-request)
-          ard-url  (ard-url-format ard-host tile-id)
-          idw-url  (idw-url-format idw-host tile-id)
-          busy-div "busydiv"]
+    (let [ard-rqt (or ard-req-fn http/get-request)
+          idw-rqt (or idw-req-fn http/get-request)
+          ard-url (ard-url-format ard-host tile-id)
+          idw-url (idw-url-format idw-host tile-id)
+          bsy-div "busydiv"
+          ing-btn "chpsubmit"]
 
          ;; turn on busy signal
-         (show-div busy-div)
+         (show-div bsy-div)
          ;; park functions on ard-chan
-         (ard-status-check ard-chan idw-url idw-rqt)
-         ;; transfer items to ard-chan
-         (go
-           (doseq [i (<! (ard-rqt ard-url))]
-             (when (= (:type i) "file")
-               (>! ard-chan (:name i))))
-           (hide-div busy-div)
-           )
+         (ard-status-check ard-chan idw-url idw-rqt bsy-div ing-btn)
+         ;; put items on ard-chan
+         (go                 
+           (>! ard-chan (collect-map-values (<! (ard-rqt ard-url)) :name :type "file")))
          ;; tifs not yet ingested into the IWDS are now listed in the ard-miss-atom atom
     )
 )
