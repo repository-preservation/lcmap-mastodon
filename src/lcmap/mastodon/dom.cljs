@@ -46,3 +46,10 @@
     (dom.setProperties btn (js-obj "disabled" true))
   )
 )
+
+(defn update-for-ard-check [params]
+  (inc-counter-div (:ing-ctr params) (:ing-cnt params))
+  (inc-counter-div (:mis-ctr params) (:mis-cnt params))
+  (hide-div   (:bsy-div params))
+  (enable-btn (:ing-btn params))
+)

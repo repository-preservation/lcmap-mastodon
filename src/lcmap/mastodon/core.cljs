@@ -54,7 +54,7 @@
    ^ core.async.chan :ard-c:
    ^ String :idw-url:
    ^ Func :idw-rqt:"
-  [ard-c idw-url idw-rqt busy-div ingest-btn]
+  [ard-c idw-url idw-rqt busy-div ingest-btn & [dom-func]]
   (dom/reset-counter-divs ["ardingested-counter" "ardmissing-counter"])
   (go
     (let [ard-tars (<! ard-c)
@@ -63,15 +63,18 @@
           idw-tifs (set (util/collect-map-values idw-resp :source)) 
           ard-only (set/difference ard-tifs idw-tifs)
           idw-only (set/difference idw-tifs ard-tifs)
-          ingested (set/intersection ard-tifs idw-tifs)]
+          ingested (set/intersection ard-tifs idw-tifs)
+          dom-updt (or dom-func dom/update-for-ard-check)]
 
           (swap! ard-miss-atom conj ard-only)
           (swap! idw-miss-atom conj idw-only)
-          (dom/inc-counter-div "ardingested-counter" (count ingested))
-          (dom/inc-counter-div "ardmissing-counter" (count ard-only))
           (util/log (str "missing count: " (count (first (deref ard-miss-atom)))))
-          (dom/hide-div busy-div)
-          (dom/enable-btn ingest-btn)))
+          (dom-updt {:ing-ctr "ardingested-counter"
+                     :mis-ctr "ardmissing-counter"
+                     :ing-cnt (count ingested)
+                     :mis-cnt (count ard-only)
+                     :bsy-div busy-div
+                     :ing-btn ingest-btn})))
 )
 
 (defn inventory-diff
@@ -85,16 +88,17 @@
 
    Returns vector (things only in ARD, things only in IDW)
   "
-  [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn]]
+  [ard-host idw-host tile-id region & [ard-req-fn idw-req-fn div-fnc]]
     (let [ard-rqt (or ard-req-fn http/get-request)
           idw-rqt (or idw-req-fn http/get-request)
           ard-url (ard-url-format ard-host tile-id)
           idw-url (idw-url-format idw-host tile-id)
+          bsy-fnc (or div-fnc dom/show-div)
           bsy-div "busydiv"
           ing-btn "chpsubmit"]
 
          ;; turn on busy signal
-         (dom/show-div bsy-div)
+         (bsy-fnc bsy-div)
          ;; park functions on ard-chan
          (ard-status-check ard-chan idw-url idw-rqt bsy-div ing-btn)
          ;; put items on ard-chan
