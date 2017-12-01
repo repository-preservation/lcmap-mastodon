@@ -4,36 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="css/style.css" rel="stylesheet" type="text/css">
-    <link rel="icon" href="https://clojurescript.org/images/cljs-logo-icon-32.png">
+    <link rel="icon" href="images/cljs-logo-icon-32.png">
 
-    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script> <!-- load jquery via CDN -->
+    <link rel="stylesheet" href="css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
+    <script src="js/jquery.min.js"></script> <!-- load jquery via CDN -->
 
 
     <script src="js/compiled/mastodon.js" type="text/javascript"></script>
 
     <script type="text/javascript">
-
-      window.hello = function() {
-          alert("hello");
-      }
-      globalObject = {};
-      $(document).ready(function () {
-          lcmap.mastodon.dom.disable_btn("chpsubmit");
-          $("#chpsubmit").click(function() {
+      $(document).ready(function() {
+         lcmap.mastodon.dom.disable_btn("chpsubmit");
+         $("#chpsubmit").click(function() {
             lcmap.mastodon.core.ingest_req();
           });
-
-
+         
           $("#devcheck").prop("checked", "checked");
           $("#frmsubmit").click(function() {
+              lcmap.mastodon.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
               var ardhost = $("#ardhost").val();
               var idwhost = $("#idwshost").val();
               var tile_id = $("#tileid").val();             
               var region  = $("#region").val();
               var dev     = $("#devcheck").prop("checked");
               if (dev == true) {
-                 lcmap.mastodon.core.inventory_diff("ardhost.com", "idwhost.com", "029043", "CU", lcmap.mastodon.util.mock_ard(), lcmap.mastodon.util.mock_idw());
+                 lcmap.mastodon.core.inventory_diff("ardhost.com", "idwhost.com", "029043", "CU", 
+                                                    "busydiv", "chpsubmit",
+                                                    "ardingested-counter", "ardmissing-counter",
+                                                    lcmap.mastodon.util.mock_ard(), lcmap.mastodon.util.mock_idw());
               } else {
                  lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
               };
