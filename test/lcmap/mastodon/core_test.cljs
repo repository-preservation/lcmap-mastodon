@@ -1,11 +1,13 @@
 (ns lcmap.mastodon.core-test
-  (:require [cljs.test :refer-macros [deftest is]]
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [cljs.test :refer-macros [deftest is async]]
             [clojure.string :as string]
             [lcmap.mastodon.core :as mc]
             [lcmap.mastodon.http :as mhttp]
             [lcmap.mastodon.data :as testdata]
             [lcmap.mastodon.util :as util]
-            [lcmap.mastodon.ard :as ard]))
+            [lcmap.mastodon.ard :as ard]
+            [cljs.core.async :as async]))
 
 (deftest hv-map-test
   (is 
@@ -49,3 +51,22 @@
   (is (= :QA (util/key-for-value ard/tar-map "PIXELQA")))
   (is (= :BT (util/key-for-value ard/tar-map "BTB10"))))
 
+(defn test-async
+  "Asynchronous test awaiting ch to produce a value or close."
+  [ch]
+    (let [done (fn [] (prn "done with async test"))]
+      (async done
+        (async/take! ch (fn [_] (done)))))
+)
+
+(deftest ard-status-check-test
+  (let [achan (async/chan 1)
+        rchan (async/chan 1)]
+    (go 
+      (async/>! achan (util/collect-map-values (async/<! (testdata/ard-resp)) :name :type "file"))
+      (mc/ard-status-check achan "idw.com" (util/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan))
+
+    (test-async
+      (go (is (= 12 (:mis-cnt (async/<! rchan))))))
+  ) 
+)
