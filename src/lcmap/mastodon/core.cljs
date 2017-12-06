@@ -1,5 +1,5 @@
 (ns lcmap.mastodon.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.set :as set]
             [lcmap.mastodon.http :as http]
             [lcmap.mastodon.ard  :as ard]
@@ -7,10 +7,17 @@
             [lcmap.mastodon.util :as util]
             [cljs.core.async :refer [<! >! chan]]))
 
-(def ard-chan (chan 1))
-(def rpt-chan (chan 1))
-(def ard-miss-atom (atom []))
-(def idw-miss-atom (atom []))
+
+(def ard-chan (chan 1)) ;; channel used for determing ARD status
+(def rpt-chan (chan 1)) ;; channel used for reporting ARD status
+(def ing-chan (chan 1)) ;; channel used to handle ARD to ingest
+(def sts-chan (chan 1)) ;; channel used to handle ingest status
+
+(def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
+(def idw-miss-atom (atom {})) ;; atom containing list of ARD only found in IDWS
+
+(def ard-host-atom (atom {:path ""})) ;; atom containing ARD host
+(def idw-host-atom (atom {:path ""})) ;; atom containing IDW host
 
 (defn hv-map
   "Helper function.
@@ -34,7 +41,7 @@
   "
   [host tile-id]
   (let [hvm (hv-map tile-id)]
-    (str host "/" (:h hvm) "/" (:v hvm) "/"))
+    (str host "/" (:h hvm) (:v hvm) "/"))
 )
 
 (defn idw-url-format
@@ -73,9 +80,9 @@
                              :bsy-div busy-div
                              :ing-btn ingest-btn)]
 
-          (swap! ard-miss-atom conj ard-only)
-          (swap! idw-miss-atom conj idw-only)
-          (util/log (str "missing count: " (count (first (deref ard-miss-atom)))))
+          (swap! ard-miss-atom assoc :tifs ard-only)
+          (swap! idw-miss-atom assoc :tifs idw-only)
+          (util/log (str "missing count: " (count (:tifs (deref ard-miss-atom)))))
           (dom-updt rptr-map)
           (>! rptr-chn rptr-map)))
 )
@@ -100,18 +107,54 @@
 
          ;; turn on busy signal
          (bsy-fnc bsy-div)
+         ;; put ard and idw resource paths on atoms
+         (swap! ard-host-atom assoc :path ard-url)
+         (swap! idw-host-atom assoc :path (str idw-host "/inventory"))
          ;; park functions on ard-chan
          (ard-status-check ard-chan idw-url idw-rqt bsy-div ing-btn ing-ctr mis-ctr)
          ;; put items on ard-chan
          (go                 
-           (>! ard-chan (util/collect-map-values (<! (ard-rqt ard-url)) :name :type "file"))))
+           (>! ard-chan (-> (<! (ard-rqt ard-url))
+                            (util/collect-map-values :name :type "file")
+                            (util/with-suffix "tar")))))
+)
+
+(defn ingest-handler 
+  [ing-c idw-path sts-c]
+  (go
+    (let [tifs (<! ing-c)]
+      (doseq [t tifs]
+        (>! sts-c  (<! (http/post-request idw-path {"url" t}))))))
+)
+
+(defn status-handler 
+  [sts-c]
+  (go-loop []
+    (let [resp (<! sts-c)]
+      (util/log (str "response status" (:status resp)))
+    )
+  )
+)
+
+(defn ingest-fmt [tif rpath]
+  (let [tar (ard/tar-name tif)]
+    (str rpath tar "/" tif))
 )
 
 (defn ingest-req []
+  (let [ard-path (:path @ard-host-atom)
+        idw-path (:path @idw-host-atom)
+        paths (map #(ingest-fmt % ard-path) (:tifs @ard-miss-atom))] 
+    
+    ;; park ingest func on ingest channel (ing-chan)
+    (ingest-handler ing-chan idw-path sts-chan)
+    ;; park status func on status channel (sts-chan)
+    (status-handler sts-chan)
+    ;; put list of ard to ingest on ingest channel
+    (go (>! ing-chan paths))
 
-  (doseq [i @ard-miss-atom]
-    (util/log (str "ingest: " i)))
-
+    (doseq [i paths]
+      (util/log (str "some paths: " i))))
 )
 
 

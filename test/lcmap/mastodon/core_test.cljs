@@ -9,6 +9,9 @@
             [lcmap.mastodon.ard :as ard]
             [cljs.core.async :as async]))
 
+
+
+
 (deftest hv-map-test
   (is 
     (= {:h "002" :v "999"} 
@@ -37,7 +40,7 @@
 
 (deftest ard-url-format-test
   (is
-    (= "http://magichost.org/043/999/"
+    (= "http://magichost.org/043999/"
        (mc/ard-url-format "http://magichost.org" "043999"))))
 
 (deftest idw-url-format-test
@@ -64,7 +67,8 @@
         rchan (async/chan 1)]
     (go 
       (async/>! achan (util/collect-map-values (async/<! (testdata/ard-resp)) :name :type "file"))
-      (mc/ard-status-check achan "idw.com" (util/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan))
+      (mc/ard-status-check achan "idw.com" (mhttp/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan)
+      )
 
     (test-async
       (go (is (= 12 (:mis-cnt (async/<! rchan))))))
