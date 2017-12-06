@@ -66,7 +66,7 @@
   (go
     (let [ard-tars (<! ard-c)
           ard-tifs (set (flatten (map ard/ard-manifest ard-tars))) 
-          idw-resp (:result (<! (idw-rqt idw-url)))
+          idw-resp (<! (idw-rqt idw-url))   
           idw-tifs (set (util/collect-map-values idw-resp :source)) 
           ard-only (set/difference ard-tifs idw-tifs)
           idw-only (set/difference idw-tifs ard-tifs)
@@ -79,7 +79,9 @@
                              :mis-cnt (count ard-only)
                              :bsy-div busy-div
                              :ing-btn ingest-btn)]
-
+          (util/log (str "ard-tifs: " ard-tifs))
+          (util/log (str "idw-tifs: " idw-tifs))
+          (util/log (str "ard-only: " ard-only))
           (swap! ard-miss-atom assoc :tifs ard-only)
           (swap! idw-miss-atom assoc :tifs idw-only)
           (util/log (str "missing count: " (count (:tifs (deref ard-miss-atom)))))
