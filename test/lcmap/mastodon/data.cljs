@@ -1,7 +1,5 @@
 (ns lcmap.mastodon.data
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [>! chan]])
-)
+  (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def xmap (hash-map :a "a" :b "b" :c "c" :d "foo"))
 (def xmaplist [(hash-map :a "a" :b "b" :c "c" :d "foo")
@@ -39,4 +37,5 @@
      "LC08_CU_027009_20130701_20170729_C01_V01_TAB6.tif"},
    "idw-only" 
    #{}})
+
 

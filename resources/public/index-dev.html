@@ -11,7 +11,7 @@
 
 
     <script src="js/compiled/mastodon.js" type="text/javascript"></script>
-
+    <!--script src="js/compiled/mastodon_tst.js" type="text/javascript"></script-->
     <script type="text/javascript">
       $(document).ready(function() {
          lcmap.mastodon.dom.disable_btn("chpsubmit");
@@ -28,12 +28,12 @@
               var region  = $("#region").val();
               var dev     = $("#devcheck").prop("checked");
               if (dev == true) {
-                 lcmap.mastodon.core.inventory_diff("ardhost.com", "idwhost.com", "029043", "CU", 
+                 lcmap.mastodon.core.inventory_diff(ardhost, idwhost, "029043", "CU", 
                                                     "busydiv", "chpsubmit",
                                                     "ardingested-counter", "ardmissing-counter",
-                                                    lcmap.mastodon.util.mock_ard(), lcmap.mastodon.util.mock_idw());
+                                                    lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
               } else {
-                 lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region);
+                 lcmap.mastodon.core.inventory_diff(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
               };
           });
 

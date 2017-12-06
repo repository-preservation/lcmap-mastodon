@@ -1,7 +1,5 @@
 (ns lcmap.mastodon.util
-  (:require [clojure.string :as string]
-            [lcmap.mastodon.http :as http]
-            [lcmap.mastodon.data :as mdata]))
+  (:require [clojure.string :as string]))
 
 (defn log [msg]
   (.log js/console msg)
@@ -39,13 +37,7 @@
 
    Returns list of dk values from ard-response"
   [map-list desired-key & [conditional-key conditional-value]]
-  (let [rcount (count map-list)]
-       (map get-map-val
-           map-list
-           (repeat rcount desired-key) 
-           (repeat rcount conditional-key) 
-           (repeat rcount conditional-value))
-    )
+  (map #(get-map-val % desired-key conditional-key conditional-value) map-list)
 )
 
 (defn key-for-value
@@ -60,7 +52,6 @@
     (first (remove nil? matching-key-list)))
 )
 
-
 (defn fresh-includes [coll i]
   (if (contains? (set coll) i)
     (do coll)
@@ -69,8 +60,6 @@
   )
 )
 
-(defn mock-ard []
-  #(http/get-request % (mdata/ard-resp)))
+(defn with-suffix [lst sfx]
+  (filter #(string/ends-with? % sfx) lst))
 
-(defn mock-idw []
-  #(http/get-request % (mdata/idw-resp)))
