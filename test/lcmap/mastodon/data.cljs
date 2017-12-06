@@ -15,11 +15,10 @@
 
 (defn idw-resp []
   (go
-    (hash-map :result (list {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB6.tif"} 
-                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB7.tif"} 
-                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB1.tif"}
-                            {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB2.tif"}))
-))
+    (list {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB6.tif"} 
+          {:source "LC08_CU_027009_20130701_20170729_C01_V01_SRB7.tif"} 
+          {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB1.tif"}
+          {:source "LC08_CU_027009_20130701_20170729_C01_V01_TAB2.tif"})))
 
 (def diff-resp-a
   {"ard-only"
