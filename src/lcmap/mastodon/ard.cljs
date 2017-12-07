@@ -37,3 +37,18 @@
       (map (fn [x] (str (string/replace tname tval x) ".tif")) tifs)
   )
 )
+
+(defn expand-tars
+  "Return set of tifs from list of tars"
+  [tars]
+  (set (flatten (map ard-manifest tars)))
+)
+
+(defn iwds-tifs
+  "Return set of tifs from list of maps"
+  [iwds-map & [map-key]]
+  (let [mkey (or map-key :source)]
+    (-> iwds-map 
+        (util/collect-map-values mkey)
+        (set)))
+)
