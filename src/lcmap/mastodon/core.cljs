@@ -5,20 +5,23 @@
             [lcmap.mastodon.ard  :as ard]
             [lcmap.mastodon.dom  :as dom]
             [lcmap.mastodon.util :as util]
-            [cljs.core.async :refer [<! >! chan]]))
+            [cljs.core.async :refer [<! >! chan pipe]]))
 
 
-(def ard-chan (chan 30)) ;; channel used for determing ARD status
-(def idw-chan (chan 30)) ;; random channel 
+(def ard-reqt-chan (chan 1)) ;; channel used for holding ARD request response
+(def ard-data-chan (chan 1)) ;; channel holding formatted ARD data 
+
+
+
 (def rpt-chan (chan 30)) ;; channel used for reporting ARD status
 (def ing-chan (chan 30)) ;; channel used to handle ARD to ingest
 (def sts-chan (chan 30)) ;; channel used to handle ingest status
 
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
-(def idw-miss-atom (atom {})) ;; atom containing list of ARD only found in IDWS
+(def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IDWS
 
 (def ard-host-atom (atom {:path ""})) ;; atom containing ARD host
-(def idw-host-atom (atom {:path ""})) ;; atom containing IDW host
+(def iwd-host-atom (atom {:path ""})) ;; atom containing IDW host
 
 (defn hv-map
   "Helper function.
@@ -56,47 +59,28 @@
   (str host "/inventory?tile=" tile-id)
 )
 
-(defn idw-handler [idw-c idw-url idw-rqt busy-div ingest-btn ing-ctr mis-ctr & [dom-func rchan]]
+(defn diff-handler [idw-c idw-url idw-rqt busy-div ingest-btn ing-ctr mis-ctr & [dom-func rchan]]
   (go
     (let [ard-tifs (<! idw-c)
-          idw-resp (<! (idw-rqt idw-url))
-          idw-tifs (set (util/collect-map-values idw-resp :source))
-          ard-only (set/difference ard-tifs idw-tifs)
-          idw-only (set/difference idw-tifs ard-tifs)
-          ingested (set/intersection ard-tifs idw-tifs)
+          iwd-tifs (ard/iwds-tifs (<! (idw-rqt idw-url)))
+          ard-only (set/difference ard-tifs iwd-tifs)
+          iwd-only (set/difference iwd-tifs ard-tifs)
+          ingested (set/intersection ard-tifs iwd-tifs)
           dom-updt (or dom-func dom/update-for-ard-check)
           rptr-chn (or rchan rpt-chan)
           rptr-map (hash-map :ing-ctr ing-ctr
                              :mis-ctr mis-ctr
                              :ing-cnt (count ingested)
                              :mis-cnt (count ard-only)
+                             :iwd-cnt (count iwd-only)     
                              :bsy-div busy-div
                              :ing-btn ingest-btn)]
-          (util/log (str "ard-tifs: " ard-tifs))
-          (util/log (str "idw-tifs: " idw-tifs))
-          (util/log (str "ard-only: " ard-only))
+          (util/log (str "rptr-map: " ard-tifs))
           (swap! ard-miss-atom assoc :tifs ard-only)
-          (swap! idw-miss-atom assoc :tifs idw-only)
-          (util/log (str "missing count: " (count (:tifs (deref ard-miss-atom)))))
+          (swap! iwd-miss-atom assoc :tifs iwd-only)
           (dom-updt rptr-map)
-          (>! rptr-chn rptr-map)
-    )
-  )
-
-)
-
-(defn ard-status-check
-  [ard-c idw-c]
-  (go
-    (let [ard-tars (<! ard-c)
-          ard-tifs (set (flatten (map ard/ard-manifest ard-tars)))]
-
-        ;; put idw response on idw-chan, make sure theres a func parked on idw-c
-        ;; that handles the diff work of the original ard-status-check
-        (>! idw-c ard-tifs)
-        ;;(util/log (str "ard-tifs: " ard-tifs))
-        )
-  )
+          ;;(>! rptr-chn rptr-map)
+    ))
 )
 
 (defn inventory-diff
@@ -121,16 +105,15 @@
          (bsy-fnc bsy-div)
          ;; put ard and idw resource paths on atoms
          (swap! ard-host-atom assoc :path ard-url)
-         (swap! idw-host-atom assoc :path (str idw-host "/inventory"))
-         ;; park func on idw-chan, when an item is put on this chan, doe the diff work
-         (idw-handler idw-chan idw-url idw-rqt bsy-div ing-btn ing-ctr mis-ctr)
-         ;; park func on ard-chan, when an ard response is received, put it on the idw-chan
-         (ard-status-check ard-chan idw-chan)
-         ;; put items on ard-chan
-         (go                 
-           (>! ard-chan (-> (<! (ard-rqt ard-url))
-                            (util/collect-map-values :name :type "file")
-                            (util/with-suffix "tar")))))
+         (swap! iwd-host-atom assoc :path (str idw-host "/inventory"))
+         ;; park func on ard-data-chan, when an item is put on this chan, do the diff work
+         (diff-handler ard-data-chan idw-url idw-rqt bsy-div ing-btn ing-ctr mis-ctr)
+         (pipe ard-reqt-chan ard-data-chan)
+         ;; make the call for ARD, put filtered response on ard-reqt-chan
+         (go (>! ard-reqt-chan (-> (<! (ard-rqt ard-url))
+                                   (util/collect-map-values :name :type "file")
+                                   (util/with-suffix "tar")
+                                   (ard/expand-tars)))))
 )
 
 (defn ingest-handler 
@@ -159,11 +142,11 @@
 
 (defn ingest-req []
   (let [ard-path (:path @ard-host-atom)
-        idw-path (:path @idw-host-atom)
+        iwd-path (:path @iwd-host-atom)
         paths (map #(ingest-fmt % ard-path) (:tifs @ard-miss-atom))] 
     
     ;; park ingest func on ingest channel (ing-chan)
-    (ingest-handler ing-chan idw-path sts-chan)
+    (ingest-handler ing-chan iwd-path sts-chan)
     ;; park status func on status channel (sts-chan)
     (status-handler sts-chan)
     ;; put list of ard to ingest on ingest channel
