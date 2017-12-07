@@ -62,15 +62,15 @@
         (async/take! ch (fn [_] (done)))))
 )
 
-(deftest ard-status-check-test
-  (let [achan (async/chan 1)
-        rchan (async/chan 1)]
-    (go 
-      (async/>! achan (util/collect-map-values (async/<! (testdata/ard-resp)) :name :type "file"))
-      (mc/ard-status-check achan "idw.com" (mhttp/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan)
-      )
+;; (deftest ard-status-check-test
+;;   (let [achan (async/chan 1)
+;;         rchan (async/chan 1)]
+;;     (go 
+;;       (async/>! achan (util/collect-map-values (async/<! (testdata/ard-resp)) :name :type "file"))
+;;       (mc/ard-status-check achan "idw.com" (mhttp/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan)
+;;       )
 
-    (test-async
-      (go (is (= 12 (:mis-cnt (async/<! rchan))))))
-  ) 
-)
+;;     (test-async
+;;       (go (is (= 12 (:mis-cnt (async/<! rchan))))))
+;;   ) 
+;; )
