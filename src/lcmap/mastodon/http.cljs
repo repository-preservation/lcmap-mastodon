@@ -37,7 +37,6 @@
                                                   :json-params data
                                                   :headers {"Content-Type" "application/json"
                                                             "Accept" "application/json"}}))]
-        (log (str "response keys: " (keys response) ))
         response)))
 
     (do resp))
