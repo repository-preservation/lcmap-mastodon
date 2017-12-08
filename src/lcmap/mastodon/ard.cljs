@@ -1,5 +1,6 @@
 (ns lcmap.mastodon.ard
   (:require [clojure.string :as string]
+            [clojure.set :as set]
             [lcmap.mastodon.util :as util]))
 
 (def tar-map
@@ -51,4 +52,17 @@
     (-> iwds-map 
         (util/collect-map-values mkey)
         (set)))
+)
+
+(defn ard-iwds-report
+  "Return hash map of set differences for ARD and IWDS holdings"
+  [ard-tifs iwds-tifs]
+  (hash-map :ard-only (set/difference ard-tifs iwds-tifs)
+            :iwd-only (set/difference iwds-tifs ard-tifs)
+            :ingested (set/intersection ard-tifs iwds-tifs))
+)
+
+(defn tif-path [tif rpath]
+  (let [tar (tar-name tif)]
+    (str rpath tar "/" tif))
 )
