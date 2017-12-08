@@ -15,27 +15,29 @@
     <script type="text/javascript">
       $(document).ready(function() {
          lcmap.mastodon.dom.disable_btn("chpsubmit");
+         $("#devcheck").prop("checked", "checked");
          $("#chpsubmit").click(function() {
-            lcmap.mastodon.core.ingest();
-          });
-         
-          $("#devcheck").prop("checked", "checked");
+            lcmap.mastodon.dom.show_div("busydiv");
+            lcmap.mastodon.dom.disable_btn("chpsubmit");
+            lcmap.mastodon.core.ingest("ardinprogress-counter");
+          });   
+
           $("#frmsubmit").click(function() {
-              lcmap.mastodon.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
-              lcmap.mastodon.dom.show_div("busydiv");
-              var ardhost = $("#ardhost").val();
-              var idwhost = $("#idwshost").val();
-              var tile_id = $("#tileid").val();             
-              var region  = $("#region").val();
-              var dev     = $("#devcheck").prop("checked");
-              if (dev == true) {
-                 lcmap.mastodon.core.construct_diff(ardhost, idwhost, "029043", "CU", 
-                                                    "busydiv", "chpsubmit",
-                                                    "ardingested-counter", "ardmissing-counter",
-                                                    lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
-              } else {
-                 lcmap.mastodon.core.construct_diff(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
-              };
+            lcmap.mastodon.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
+            lcmap.mastodon.dom.show_div("busydiv");
+            var ardhost = $("#ardhost").val();
+            var idwhost = $("#idwshost").val();
+            var tile_id = $("#tileid").val();             
+            var region  = $("#region").val();
+            var dev     = $("#devcheck").prop("checked");
+            if (dev == true) {
+               lcmap.mastodon.core.construct_diff(ardhost, idwhost, "029043", "CU", 
+                                                  "busydiv", "chpsubmit",
+                                                  "ardingested-counter", "ardmissing-counter",
+                                                  lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
+            } else {
+               lcmap.mastodon.core.construct_diff(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
+            };
           });
 
       });
