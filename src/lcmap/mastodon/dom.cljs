@@ -48,8 +48,8 @@
 )
 
 (defn update-for-ard-check [params]
-  (inc-counter-div (:ing-ctr params) (:ing-cnt params))
-  (inc-counter-div (:mis-ctr params) (:mis-cnt params))
-  (hide-div   (:bsy-div params))
-  (enable-btn (:ing-btn params))
+  (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
+  (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
+  (hide-div   (:bsy-div (:dom-map params)))
+  (enable-btn (:ing-btn (:dom-map params)))
 )
