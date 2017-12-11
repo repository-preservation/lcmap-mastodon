@@ -102,14 +102,14 @@
    ^String :hv:   Tile ID
    ^String :reg:  Region
 
-   Returns vector (things only in ARD, things only in IDW)
+   Returns vector (things only in ARD, things only in IWDS)
   "
-  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr & [ard-req-fn idw-req-fn]]
+  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-ctr & [ard-req-fn idw-req-fn]]
     (let [ard-request-handler  (or ard-req-fn http/get-request)
           iwds-request-handler (or idw-req-fn http/get-request)
           ard-resource  (ard-url-format ard-host  tile-id)
           iwds-resource (idw-url-format iwds-host tile-id)
-          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn )]
+          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-ctr iwds-miss-ctr)]
 
          (keep-host-info ard-resource iwds-resource)
          (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map) ;; park compare-iwds on ard-data-chan
@@ -120,9 +120,9 @@
 )
 
 (defn make-chipmunk-requests 
-  "Function which makes the requests to a Chipmunk instance for ARD ingest. This
-   is parked on the ard-to-ingest-chan Channel, waiting for a list of URLs for
-   at ARD to be placed on that channel.
+  "Function which makes the requests to an lcmap-chipmunk instance for ARD ingest. This
+   is parked on the ard-to-ingest-chan channel, waiting for a list of URLs for ARD to 
+   be placed on that channel.
 
    ^Core.Async Channel :ingest-channel:
    ^String             :iwds-resource:
@@ -139,12 +139,12 @@
 )
 
 (defn ingest-status-handler 
-  "Function parked on the ingest-status-chan Channel. Handles successful and
+  "Function parked on the ingest-status-chan channel. Handles successful and
    unsuccessful ingest responses from an lcmap-chipmunk instance.
 
    ^Core.Async Channel :status-channel:
 
-   Returns a Core.Async Channel. Logging to the Developer Console in the browser
+   Returns a Core.Async Channel. Logging to the browser developer console
    and updating the DOM to reflect ingest actions."
   [status-channel counter-map]
   (go-loop []
@@ -153,13 +153,14 @@
       (if (= 200 status)
           (do (util/log "status is 200")
               (dom/update-for-ingest-success counter-map))
-          (do (util/log (str "status is NOT 200, ingest failed. message: " (:body response))))))
+          (do (util/log (str "status is NOT 200, ingest failed. message: " (:body response)))
+              (dom/inc-counter-div (:error counter-map)))))
     (recur))
 )
 
 (defn ingest 
   "Top level function for initiating the ARD ingest process.  Pulls list of ARD to ingest
-   from the ard-miss-atom Atom, updates the DOM to reflect work to be done, parks the 
+   from the ard-miss-atom atom, updates the DOM to reflect work to be done, parks the 
    make-chipmunk-requests function on the ard-to-ingest-chan, and then puts the list
    of ARD onto the ard-to-ingest-chan.
 
@@ -170,11 +171,11 @@
 
    Returns Core.Async channel
   "
-  [inprogress-div missing-div ingested-div busy-div]
+  [inprogress-div missing-div ingested-div busy-div error-div]
   (let [ard-resource-path  (:path @ard-resource-atom)
         iwds-resource-path (:path @iwds-resource-atom)
         ard-sources        (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
-        counter-map        (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div)
+        counter-map        (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count          (count ard-sources)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count)
