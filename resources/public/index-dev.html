@@ -21,7 +21,7 @@
          $("#chpsubmit").click(function() {
             lcmap.mastodon.dom.show_div("busydiv");
             lcmap.mastodon.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv");
+            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter");
           });   
 
           $("#frmsubmit").click(function() {
@@ -38,7 +38,9 @@
                                                   "ardingested-counter", "ardmissing-counter",
                                                   lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
             } else {
-               lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
+               lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                                         "ardmissing-counter", 
+                                                                                                         "iwdsmissing-counter");
             };
           });
 
@@ -99,20 +101,37 @@
       <div id="busydiv" style="display: none;"><img src="images/turningIndicator.gif"></img></div>
       <div id="counters-container" class="counter-div">
 
-        <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
-          Missing
-          <div id="ardmissing-counter" class="counter-div">0</div>
-        </div>
 
-        <div id="ardingested" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
-          Ingested
-          <div id="ardingested-counter" class="counter-div">0</div>
+        <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Missing from IWDS
+          <div id="ardmissing-counter" class="counter-div">0</div>
         </div>
 
         <div id="ardinprogress" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
           In Progress
           <div id="ardinprogress-counter" class="counter-div">0</div>
         </div>
+
+
+        <div id="ardingested" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Ingested
+          <div id="ardingested-counter" class="counter-div">0</div>
+        </div>
+
+        <div id="iwdsmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Missing from ARD
+          <div id="iwdsmissing-counter" class="counter-div">0</div>
+        </div>
+
+        <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          Errored on ingest
+          <div id="arderror-counter" class="counter-div">0</div>
+        </div>
+
+        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+          <div class="counter-div"></div>
+        </div>
+
      </div>
 
     </div>
