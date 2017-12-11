@@ -15,11 +15,13 @@
     <script type="text/javascript">
       $(document).ready(function() {
          lcmap.mastodon.dom.disable_btn("chpsubmit");
+
          $("#devcheck").prop("checked", "checked");
+
          $("#chpsubmit").click(function() {
             lcmap.mastodon.dom.show_div("busydiv");
             lcmap.mastodon.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.core.ingest("ardinprogress-counter");
+            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv");
           });   
 
           $("#frmsubmit").click(function() {
@@ -31,12 +33,12 @@
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
             if (dev == true) {
-               lcmap.mastodon.core.construct_diff(ardhost, idwhost, "029043", "CU", 
+               lcmap.mastodon.core.assess_ard(ardhost, idwhost, "029043", "CU", 
                                                   "busydiv", "chpsubmit",
                                                   "ardingested-counter", "ardmissing-counter",
                                                   lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
             } else {
-               lcmap.mastodon.core.construct_diff(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
+               lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", "ardmissing-counter");
             };
           });
 
