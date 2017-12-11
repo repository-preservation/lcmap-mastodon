@@ -15,6 +15,19 @@
    )
 )
 
+(defn dec-counter-div
+  "Decrement by 1 the value within a div.
+
+  ^String :divid:"
+  [divid & [amt]]
+  (let [div (dom.getElement divid)
+        val (read-string (dom.getTextContent div))
+        imt (or amt 1)
+        ival (- val imt)]
+    (dom.setTextContent div ival)
+  )
+)
+
 (defn reset-counter-divs [divs]
   (doseq [d divs]
     (let [i (dom.getElement d)]
@@ -52,4 +65,15 @@
   (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
   (hide-div   (:bsy-div (:dom-map params)))
   (enable-btn (:ing-btn (:dom-map params)))
+)
+
+(defn update-for-ingest-success [params]
+  (dec-counter-div (:progress params))
+  (dec-counter-div (:missing params))
+  (inc-counter-div (:ingested params))
+)
+
+(defn update-for-ingest-start [div count]
+    (reset-counter-divs [div])
+    (inc-counter-div div count)
 )

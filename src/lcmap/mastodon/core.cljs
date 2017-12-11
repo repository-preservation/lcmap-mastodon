@@ -8,10 +8,10 @@
             [cljs.core.async :refer [<! >! chan pipe]]))
 
 
-(def ard-data-chan (chan 1)) ;; channel holding formatted ARD data 
-
-(def ard-to-ingest-chan (chan 1)) ;; channel used to handle ARD to ingest
-(def ingest-status-chan (chan 10000)) ;; channel used to handle ingest status
+(def ard-data-chan (chan 1))         ;; channel holding ARD resource locations
+(def ard-to-ingest-chan (chan 1))    ;; channel used to handle ARD to ingest
+(def ingest-status-chan (chan 100))  ;; channel used to handle ingest status
+(def ingest-error-chan  (chan 1000)) ;; channel used to handle ingest errors
 
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
 (def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IDWS
@@ -63,7 +63,20 @@
   (str host "/inventory?tile=" tile-id)
 )
 
-(defn compare-contrast [ard-channel iwds-url iwds-request dom-map & [dom-func]]
+(defn compare-iwds 
+  "Compare the available ARD resources against whats available from IWDS. This
+   function is parked on the ard-data-chan channel. When an ARD request response
+   lands on the ard-data-chan, make an inventory request to the IWDS. Categorize
+   the results, put them in Atoms, and update the DOM.
+
+   ^Core.Async Channel :ard-channel:
+   ^String             :iwds-url:
+   ^Function           :iwds-request:
+   ^Hash Map           :dom-map:
+
+   Returns a Core.Async channel. Organizes ARD by status, placing lists
+   in appropriate Atoms."
+  [ard-channel iwds-url iwds-request dom-map & [dom-func]]
   (go
     (let [ard-tifs   (<! ard-channel)
           iwds-tifs  (ard/iwds-tifs (<! (iwds-request iwds-url)))
@@ -77,11 +90,10 @@
           (util/log (str "ARD Status Report: " report-map))
           (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
           (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          (dom-update report-map)
-    ))
+          (dom-update report-map)))
 )
 
-(defn construct-diff
+(defn assess-ard
   "Diff function, comparing what source files the ARD source has available, 
    and what sources have been ingested into the data warehouse for a specific tile
 
@@ -100,51 +112,77 @@
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn )]
 
          (keep-host-info ard-resource iwds-resource)
-         (compare-contrast ard-data-chan iwds-resource iwds-request-handler dom-map) ;; park compare-contrast on ard-data-chan
-         (go (>! ard-data-chan (-> (<! (ard-request-handler ard-resource))           ;; request ard resources, place formatted and 
-                                   (util/collect-map-values :name :type "file")      ;; filtered response on ard-data-chan
+         (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map) ;; park compare-iwds on ard-data-chan
+         (go (>! ard-data-chan (-> (<! (ard-request-handler ard-resource))       ;; request ard resources, place formatted 
+                                   (util/collect-map-values :name :type "file")  ;; response on ard-data-chan
                                    (util/with-suffix "tar")
                                    (ard/expand-tars)))))
 )
 
 (defn make-chipmunk-requests 
-  [ingest-channel iwds-resource status-channel]
+  "Function which makes the requests to a Chipmunk instance for ARD ingest. This
+   is parked on the ard-to-ingest-chan Channel, waiting for a list of URLs for
+   at ARD to be placed on that channel.
+
+   ^Core.Async Channel :ingest-channel:
+   ^String             :iwds-resource:
+   ^Core.Async Channel :status-channel:
+
+   Returns Core.Async Channel. Request responses are placed on the status-channel"
+  [ingest-channel iwds-resource status-channel busy-div]
   (go
     (let [tifs (<! ingest-channel)]
-      (dom/inc-counter-div "ardinprogress-counter" (count tifs))
-      (util/log (str "tifs: " tifs))
       (doseq [t tifs]
-        (util/log (str "ingest tif: " t))
+        (util/log (str "ingest ard: " t))
         (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
-      ;; turn off busy div
-      (dom/hide-div "busydiv")
-))
+      (dom/hide-div busy-div)))
 )
 
 (defn ingest-status-handler 
-  [status-channel]
+  "Function parked on the ingest-status-chan Channel. Handles successful and
+   unsuccessful ingest responses from an lcmap-chipmunk instance.
+
+   ^Core.Async Channel :status-channel:
+
+   Returns a Core.Async Channel. Logging to the Developer Console in the browser
+   and updating the DOM to reflect ingest actions."
+  [status-channel counter-map]
   (go-loop []
-    (let [response (<! status-channel)]
-      (util/log (str "response status: " (:status response))))
-    (recur)
-  )
+    (let [response (<! status-channel)
+          status (:status response)]
+      (if (= 200 status)
+          (do (util/log "status is 200")
+              (dom/update-for-ingest-success counter-map))
+          (do (util/log (str "status is NOT 200, ingest failed. message: " (:body response))))))
+    (recur))
 )
 
 (defn ingest 
-  [counter-div]
-  (let [ard-resource-path   (:path @ard-resource-atom)
-        iwds-resource-path  (:path @iwds-resource-atom)
-        ard-sources         (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))] 
-    ;; set in-progress to number of ard to be ingested
-    (util/log (str "made it here: " (str counter-div ) ))
-    (dom/reset-counter-divs ["ardinprogress-counter"])
-    ;; (util/log (str "ard-sources count: " (count ard-sources)))
-    ;; (dom/inc-counter-div counter-div (count ard-sources))
-    (ingest-status-handler ingest-status-chan)
-    ;; have func parked on ingest-status-chan do the following:
-    ;; 1 - decrement the value in the in-progress div
-    ;; 2 - increment the value in the ingested div   
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan)
+  "Top level function for initiating the ARD ingest process.  Pulls list of ARD to ingest
+   from the ard-miss-atom Atom, updates the DOM to reflect work to be done, parks the 
+   make-chipmunk-requests function on the ard-to-ingest-chan, and then puts the list
+   of ARD onto the ard-to-ingest-chan.
+
+   ^String :inprogress-div:
+   ^String :missing-div:
+   ^String :ingested-div:
+   ^String :busy-div:
+
+   Returns Core.Async channel
+  "
+  [inprogress-div missing-div ingested-div busy-div]
+  (let [ard-resource-path  (:path @ard-resource-atom)
+        iwds-resource-path (:path @iwds-resource-atom)
+        ard-sources        (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
+        counter-map        (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div)
+        ard-count          (count ard-sources)]
+
+    (dom/update-for-ingest-start (:progress counter-map) ard-count)
+    ;; park ingest-status-handler on ingest-status-chan
+    (ingest-status-handler ingest-status-chan counter-map) 
+    ;; park make-chipmunk-requests on ard-to-ingest-chan
+    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div)
+    ;; put ard-sources on ard-to-ingest-chan
     (go (>! ard-to-ingest-chan ard-sources)))
 )
 
