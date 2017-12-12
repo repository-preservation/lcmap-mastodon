@@ -9,14 +9,7 @@
             [lcmap.mastodon.ard :as ard]
             [cljs.core.async :as async]))
 
-
-
-
-(deftest hv-map-test
-  (is 
-    (= {:h "002" :v "999"} 
-       (mc/hv-map "002999"))))
-
+;; util tests
 (deftest get-map-val-test
   (is
     (= "foo" 
@@ -38,6 +31,12 @@
     (= '("foo" "bar" "baz")
        (util/collect-map-values testdata/xmaplist :d))))
 
+;; core tests
+(deftest hv-map-test
+  (is 
+    (= {:h "002" :v "999"} 
+       (mc/hv-map "002999"))))
+
 (deftest ard-url-format-test
   (is
     (= "http://magichost.org/043999/"
@@ -48,11 +47,58 @@
     (= "http://magichost.org/inventory?tile=043999"
        (mc/idw-url-format "http://magichost.org" "043999"))))
 
+;; ard tests
 (deftest key-for-value-test
-  (is (= :SR (util/key-for-value ard/tar-map "SRB1")))
-  (is (= :TA (util/key-for-value ard/tar-map "TAB4")))
-  (is (= :QA (util/key-for-value ard/tar-map "PIXELQA")))
-  (is (= :BT (util/key-for-value ard/tar-map "BTB10"))))
+  (is (= :SR (util/key-for-value ard/L8-ard-map "SRB1")))
+  (is (= :TA (util/key-for-value ard/L8-ard-map "TAB9")))
+  (is (= :TA (util/key-for-value ard/L457-ard-map "TAB7")))
+  (is (= :QA (util/key-for-value ard/L8-ard-map "SRAEROSOLQA")))
+  (is (= :QA (util/key-for-value ard/L457-ard-map "SRATMOSOPACITYQA")))
+  (is (= :BT (util/key-for-value ard/L8-ard-map "BTB10")))
+  (is (= :BT (util/key-for-value ard/L457-ard-map "BTB6")))
+)
+
+(deftest ard-manifest-test
+  (let [l5resp '("LT05_CU_022010_19841204_20170912_C01_V01_LINEAGEQA.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_PIXELQA.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_RADSATQA.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRATMOSOPACITYQA.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRCLOUDQA.tif")
+        l8resp '("LC08_CU_022010_20131211_20171016_C01_V01_LINEAGEQA.tif"
+                 "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
+                 "LC08_CU_022010_20131211_20171016_C01_V01_RADSATQA.tif"
+                 "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif")]
+    (is (= l5resp (ard/ard-manifest "LT05_CU_022010_19841204_20170912_C01_V01_QA.tar")))
+    (is (= l8resp (ard/ard-manifest "LC08_CU_022010_20131211_20171016_C01_V01_QA.tar"))))
+)
+
+(deftest ard-tar-name-test
+  (let [tif-name "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"
+        tar-name "LC08_CU_022010_20131211_20171016_C01_V01_QA.tar"]
+    (is (= tar-name (ard/tar-name tif-name))))
+)
+
+(deftest iwds-tifs-test
+  (let [inputs '({:foo "bar" :source "baz.tif"} {:bo "jenkins" :source "maz.tif"})]
+    (is (= #{"baz.tif" "maz.tif"} (ard/iwds-tifs inputs))))
+)
+
+(deftest ard-iwds-report-test
+  (let [ard-tifs #{:a :b :c}
+        iwds-tifs #{:a :d :e}
+        resp (ard/ard-iwds-report ard-tifs iwds-tifs)]
+      (is (= (:ard-only resp) #{:b :c}))
+      (is (= (:iwd-only resp) #{:d :e}))
+      (is (= (:ingested resp) #{:a})))
+)
+
+(deftest tif-path-test
+  (let [tif "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"
+        pth "http://foobar.cr.usgs.gov/ard/"
+        rsp (ard/tif-path tif pth)]
+    (is (= rsp "http://foobar.cr.usgs.gov/ard/LC08_CU_022010_20131211_20171016_C01_V01_QA.tar/LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"))
+  )
+)
 
 (defn test-async
   "Asynchronous test awaiting ch to produce a value or close."
