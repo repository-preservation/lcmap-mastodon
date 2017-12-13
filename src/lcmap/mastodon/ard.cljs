@@ -5,7 +5,7 @@
 
 (def L457-ard-map
   (hash-map :QA '("LINEAGEQA" "PIXELQA" "RADSATQA" "SRATMOSOPACITYQA" "SRCLOUDQA")
-            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB6" "SRB7" )
+            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7" )
             :BT '("BTB6")
             :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB7"))
 )
@@ -14,7 +14,7 @@
   (hash-map :QA '("LINEAGEQA" "PIXELQA" "RADSATQA" "SRAEROSOLQA")
             :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB6" "SRB7" )
             :BT '("BTB10" "BTB11")
-            :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB6" "TAB7" "TAB8" "TAB9")))
+            :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB6" "TAB7" "TAB9")))
 
 (def tar-map
   (hash-map :LC08 L8-ard-map
@@ -30,8 +30,7 @@
         base_suffix (last base_list)
         base_prefix (keyword (first base_list))
         tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
-      (str (string/replace base_name base_suffix tar_suffix) ".tar")
-    )
+      (str (string/replace base_name base_suffix tar_suffix) ".tar"))
 )
 
 (defn ard-manifest
