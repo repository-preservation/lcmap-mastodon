@@ -90,7 +90,7 @@
           (util/log (str "ARD Status Report: " report-map))
           (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
           (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          (dom-update report-map)))
+          (dom-update report-map (count (:ard-only ard-report)))))
 )
 
 (defn assess-ard
@@ -104,12 +104,12 @@
 
    Returns vector (things only in ARD, things only in IWDS)
   "
-  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-ctr & [ard-req-fn idw-req-fn]]
+  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-ctr error-ctr & [ard-req-fn idw-req-fn]]
     (let [ard-request-handler  (or ard-req-fn http/get-request)
           iwds-request-handler (or idw-req-fn http/get-request)
           ard-resource  (ard-url-format ard-host  tile-id)
           iwds-resource (idw-url-format iwds-host tile-id)
-          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-ctr iwds-miss-ctr)]
+          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-ctr iwds-miss-ctr :error-ctr error-ctr)]
 
          (keep-host-info ard-resource iwds-resource)
          (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map) ;; park compare-iwds on ard-data-chan

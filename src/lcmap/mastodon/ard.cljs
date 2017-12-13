@@ -5,7 +5,7 @@
 
 (def L457-ard-map
   (hash-map :QA '("LINEAGEQA" "PIXELQA" "RADSATQA" "SRATMOSOPACITYQA" "SRCLOUDQA")
-            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7" )
+            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7")
             :BT '("BTB6")
             :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB7"))
 )

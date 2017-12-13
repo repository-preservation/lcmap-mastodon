@@ -35,12 +35,13 @@
             if (dev == true) {
                lcmap.mastodon.core.assess_ard(ardhost, idwhost, "029043", "CU", 
                                                   "busydiv", "chpsubmit",
-                                                  "ardingested-counter", "ardmissing-counter",
+                                                  "ardingested-counter", "ardmissing-counter", "arderror-counter",
                                                   lcmap.mastodon.http.mock_ard(), lcmap.mastodon.http.mock_idw());
             } else {
                lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
                                                                                                          "ardmissing-counter", 
-                                                                                                         "iwdsmissing-counter");
+                                                                                                         "iwdsmissing-counter",
+                                                                                                         "arderror-counter");
             };
           });
 
@@ -98,7 +99,9 @@
       <!-- find better solution to preventing form submission -->
       <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
       <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
-      <div id="busydiv" style="display: none;"><img src="images/turningIndicator.gif"></img></div>
+      <div id="busy-container" style="height:65px;">
+        <div id="busydiv" style="display:none;float:right;"><img src="images/Blocks.gif"></img></div>
+      </div>
       <div id="counters-container" class="counter-div">
 
 
@@ -118,17 +121,18 @@
           <div id="ardingested-counter" class="counter-div">0</div>
         </div>
 
-        <div id="iwdsmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+
+        <div id="iwdsmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           Missing from ARD
           <div id="iwdsmissing-counter" class="counter-div">0</div>
         </div>
 
-        <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+        <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           Errored on ingest
           <div id="arderror-counter" class="counter-div">0</div>
         </div>
 
-        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
+        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           <div class="counter-div"></div>
         </div>
 
