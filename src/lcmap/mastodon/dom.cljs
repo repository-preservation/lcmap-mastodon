@@ -28,6 +28,12 @@
   )
 )
 
+(defn reset-counter-div
+  [divid]
+  (let [div (dom.getElement divid)]
+    (dom.setTextContent div 0))
+)
+
 (defn reset-counter-divs [divs]
   (doseq [d divs]
     (let [i (dom.getElement d)]
@@ -60,12 +66,14 @@
   )
 )
 
-(defn update-for-ard-check [params]
+(defn update-for-ard-check [params missing-count]
   (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
   (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
   (inc-counter-div (:iwds-miss-ctr (:dom-map params)) (:iwds-missing-count params))
+  (reset-counter-div (:error-ctr (:dom-map params)))
   (hide-div   (:bsy-div (:dom-map params)))
-  (enable-btn (:ing-btn (:dom-map params)))
+  (when (> missing-count 0)
+    (enable-btn (:ing-btn (:dom-map params))))
 )
 
 (defn update-for-ingest-success [params]
