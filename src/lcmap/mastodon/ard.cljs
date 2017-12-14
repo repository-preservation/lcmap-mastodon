@@ -4,17 +4,12 @@
             [lcmap.mastodon.util :as util]))
 
 (def L457-ard-map
-  (hash-map :QA '("LINEAGEQA" "PIXELQA" "RADSATQA" "SRATMOSOPACITYQA" "SRCLOUDQA")
-            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7")
-            :BT '("BTB6")
-            :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB7"))
-)
+  (hash-map :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7" "PIXELQA")
+            :BT '("BTB6")))
 
 (def L8-ard-map
-  (hash-map :QA '("LINEAGEQA" "PIXELQA" "RADSATQA" "SRAEROSOLQA")
-            :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB6" "SRB7" )
-            :BT '("BTB10" "BTB11")
-            :TA '("TAB1" "TAB2" "TAB3" "TAB4" "TAB5" "TAB6" "TAB7" "TAB9")))
+  (hash-map :SR '("SRB2" "SRB3" "SRB4" "SRB5" "SRB6" "SRB7" "PIXELQA")
+            :BT '("BTB10")))
 
 (def tar-map
   (hash-map :LC08 L8-ard-map
