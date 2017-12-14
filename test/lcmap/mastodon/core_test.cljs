@@ -49,32 +49,36 @@
 
 ;; ard tests
 (deftest key-for-value-test
-  (is (= :SR (util/key-for-value ard/L8-ard-map "SRB1")))
-  (is (= :TA (util/key-for-value ard/L8-ard-map "TAB9")))
-  (is (= :TA (util/key-for-value ard/L457-ard-map "TAB7")))
-  (is (= :QA (util/key-for-value ard/L8-ard-map "SRAEROSOLQA")))
-  (is (= :QA (util/key-for-value ard/L457-ard-map "SRATMOSOPACITYQA")))
+  (is (= :SR (util/key-for-value ard/L8-ard-map "SRB2")))
+  (is (= :SR (util/key-for-value ard/L8-ard-map "PIXELQA")))
   (is (= :BT (util/key-for-value ard/L8-ard-map "BTB10")))
+  (is (= :SR (util/key-for-value ard/L457-ard-map "SRB1")))
+  (is (= :SR (util/key-for-value ard/L457-ard-map "PIXELQA")))
   (is (= :BT (util/key-for-value ard/L457-ard-map "BTB6")))
 )
 
 (deftest ard-manifest-test
-  (let [l5resp '("LT05_CU_022010_19841204_20170912_C01_V01_LINEAGEQA.tif"
-                 "LT05_CU_022010_19841204_20170912_C01_V01_PIXELQA.tif"
-                 "LT05_CU_022010_19841204_20170912_C01_V01_RADSATQA.tif"
-                 "LT05_CU_022010_19841204_20170912_C01_V01_SRATMOSOPACITYQA.tif"
-                 "LT05_CU_022010_19841204_20170912_C01_V01_SRCLOUDQA.tif")
-        l8resp '("LC08_CU_022010_20131211_20171016_C01_V01_LINEAGEQA.tif"
-                 "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
-                 "LC08_CU_022010_20131211_20171016_C01_V01_RADSATQA.tif"
-                 "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif")]
-    (is (= l5resp (ard/ard-manifest "LT05_CU_022010_19841204_20170912_C01_V01_QA.tar")))
-    (is (= l8resp (ard/ard-manifest "LC08_CU_022010_20131211_20171016_C01_V01_QA.tar"))))
+  (let [l5resp '("LT05_CU_022010_19841204_20170912_C01_V01_SRB1.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRB2.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRB3.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRB4.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRB5.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_SRB7.tif"
+                 "LT05_CU_022010_19841204_20170912_C01_V01_PIXELQA.tif")
+        l8resp '("LC08_CU_022010_19841204_20170912_C01_V01_SRB2.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_SRB3.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_SRB4.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_SRB5.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_SRB6.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_SRB7.tif"
+                 "LC08_CU_022010_19841204_20170912_C01_V01_PIXELQA.tif")]
+    (is (= l5resp (ard/ard-manifest "LT05_CU_022010_19841204_20170912_C01_V01_SR.tar")))
+    (is (= l8resp (ard/ard-manifest "LC08_CU_022010_19841204_20170912_C01_V01_SR.tar"))))
 )
 
 (deftest ard-tar-name-test
-  (let [tif-name "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"
-        tar-name "LC08_CU_022010_20131211_20171016_C01_V01_QA.tar"]
+  (let [tif-name "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
+        tar-name "LC08_CU_022010_20131211_20171016_C01_V01_SR.tar"]
     (is (= tar-name (ard/tar-name tif-name))))
 )
 
@@ -93,10 +97,10 @@
 )
 
 (deftest tif-path-test
-  (let [tif "LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"
+  (let [tif "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
         pth "http://foobar.cr.usgs.gov/ard/"
         rsp (ard/tif-path tif pth)]
-    (is (= rsp "http://foobar.cr.usgs.gov/ard/LC08_CU_022010_20131211_20171016_C01_V01_QA.tar/LC08_CU_022010_20131211_20171016_C01_V01_SRAEROSOLQA.tif"))
+    (is (= rsp "http://foobar.cr.usgs.gov/ard/LC08_CU_022010_20131211_20171016_C01_V01_SR.tar/LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"))
   )
 )
 
