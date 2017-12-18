@@ -28,13 +28,7 @@
   )
 )
 
-(defn reset-counter-div
-  [divid]
-  (let [div (dom.getElement divid)]
-    (dom.setTextContent div 0))
-)
-
-(defn reset-counter-divs [divs]
+(defn ^:export reset-counter-divs [divs]
   (doseq [d divs]
     (let [i (dom.getElement d)]
       (dom.setTextContent i "0")
@@ -42,7 +36,7 @@
   )
 )
 
-(defn show-div [divid]
+(defn ^:export show-div [divid]
   (let [div (dom.getElement divid)]
     (dom.setProperties div (js-obj "style" "display: block"))
   )
@@ -60,7 +54,7 @@
   )
 )
 
-(defn disable-btn [btnid]
+(defn ^:export disable-btn [btnid]
   (let [btn (dom.getElement btnid)]
     (dom.setProperties btn (js-obj "disabled" true))
   )
@@ -70,7 +64,7 @@
   (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
   (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
   (inc-counter-div (:iwds-miss-ctr (:dom-map params)) (:iwds-missing-count params))
-  (reset-counter-div (:error-ctr (:dom-map params)))
+  (reset-counter-divs [(:error-ctr (:dom-map params))])
   (hide-div   (:bsy-div (:dom-map params)))
   (when (> missing-count 0)
     (enable-btn (:ing-btn (:dom-map params))))

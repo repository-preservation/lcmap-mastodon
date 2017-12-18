@@ -19,8 +19,15 @@ clean:
 	rm -rf resources/public/js
 
 docker-build:
-	docker build -t usgseros/lcmap-mastodon
+	docker build -t usgseros/lcmap-mastodon:0.1.0 .
+
+docker-push:
+	docker push usgseros/lcmap-mastodon:0.1.0
 
 faux-ard-container:
 	cd resources/nginx; docker build -t faux-ard .
+
+chipmunkip:
+	docker inspect -f "{{ .NetworkSettings.Networks.resources_lcmap_chipmunk.IPAddress }}" ${NAME}
+
 

@@ -93,7 +93,7 @@
           (dom-update report-map (count (:ard-only ard-report)))))
 )
 
-(defn assess-ard
+(defn ^:export assess-ard
   "Diff function, comparing what source files the ARD source has available, 
    and what sources have been ingested into the data warehouse for a specific tile
 
@@ -158,7 +158,7 @@
     (recur))
 )
 
-(defn ingest 
+(defn ^:export ingest 
   "Top level function for initiating the ARD ingest process.  Pulls list of ARD to ingest
    from the ard-miss-atom atom, updates the DOM to reflect work to be done, parks the 
    make-chipmunk-requests function on the ard-to-ingest-chan, and then puts the list
