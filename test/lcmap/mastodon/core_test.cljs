@@ -44,7 +44,7 @@
 
 (deftest idw-url-format-test
   (is
-    (= "http://magichost.org/inventory?tile=043999"
+    (= "http://magichost.org/inventory?only=source&tile=043999"
        (mc/idw-url-format "http://magichost.org" "043999"))))
 
 ;; ard tests
