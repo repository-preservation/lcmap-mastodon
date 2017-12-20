@@ -60,7 +60,7 @@
   "
   ;; $ curl -XGET http://localhost:5656/inventory?tile=027009
   [host tile-id]
-  (str host "/inventory?tile=" tile-id)
+  (str host "/inventory?only=source&tile=" tile-id)
 )
 
 (defn compare-iwds 
