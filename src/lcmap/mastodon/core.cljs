@@ -49,7 +49,7 @@
   "
   [host tile-id]
   (let [hvm (hv-map tile-id)]
-    (str host "/" (:h hvm) (:v hvm) "/"))
+    (str host "/" (:h hvm) (:v hvm)))
 )
 
 (defn idw-url-format
@@ -105,18 +105,18 @@
    Returns vector (things only in ARD, things only in IWDS)
   "
   [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-ctr error-ctr & [ard-req-fn idw-req-fn]]
-    (let [ard-request-handler  (or ard-req-fn http/get-request)
-          iwds-request-handler (or idw-req-fn http/get-request)
-          ard-resource  (ard-url-format ard-host  tile-id)
-          iwds-resource (idw-url-format iwds-host tile-id)
+    (let [ard-request-handler    (or ard-req-fn http/get-request)
+          iwds-request-handler   (or idw-req-fn http/get-request)
+          ard-inventory-resource (ard-url-format ard-host  tile-id)
+          ard-download-resource  (str ard-host "tars")
+          iwds-resource          (idw-url-format iwds-host tile-id)
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-ctr iwds-miss-ctr :error-ctr error-ctr)]
 
-         (keep-host-info ard-resource iwds-resource)
-         (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map) ;; park compare-iwds on ard-data-chan
-         (go (>! ard-data-chan (-> (<! (ard-request-handler ard-resource))       ;; request ard resources, place formatted 
-                                   (util/collect-map-values :name :type "file")  ;; response on ard-data-chan
-                                   (util/with-suffix "tar")
-                                   (ard/expand-tars)))))
+          (keep-host-info ard-download-resource iwds-resource)
+          (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     ;; park compare-iwds on ard-data-chan
+          (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource)) ;; request ard resources, place formatted 
+                                    (util/with-suffix "tar")                          ;; response on ard-data-chan
+                                    (ard/expand-tars)))))
 )
 
 (defn make-chipmunk-requests 
