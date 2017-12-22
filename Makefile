@@ -19,10 +19,10 @@ clean:
 	rm -rf resources/public/js
 
 docker-build:
-	docker build -t usgseros/lcmap-mastodon:0.1.2 .
+	docker build -t usgseros/lcmap-mastodon:0.1.3 .
 
 docker-push:
-	docker push usgseros/lcmap-mastodon:0.1.2
+	docker push usgseros/lcmap-mastodon:0.1.3
 
 faux-ard-container:
 	cd resources/nginx; docker build -t faux-ard .
