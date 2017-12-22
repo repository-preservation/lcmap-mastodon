@@ -64,7 +64,20 @@
             :ingested (set/intersection ard-tifs iwds-tifs))
 )
 
+(defn tar-path [tar]
+  ;; /tm/ARD_Tile/2011/CU/015/005/LT05_CU_015005_20111110_20170926_C01_V01_SR.tar
+  (let [mission-map {"LT04" "tm" "LT05" "tm" "LE07" "etm" "LC08" "oli_tirs"}
+        parts-list (-> tar (string/replace ".tar" "") (string/split "_"))
+        mission  (get mission-map (nth parts-list 0)) 
+        year (-> (nth parts-list 3) (subs 0 4))
+        location (nth parts-list 1)
+        hhh  (-> (nth parts-list 2) (subs 0 3))
+        vvv  (-> (nth parts-list 2) (subs 3 6))]
+      (str mission "/ARD_Tile/" year "/" location "/" hhh "/" vvv))  
+)
+
 (defn tif-path [tif rpath]
-  (let [tar (tar-name tif)]
-    (str rpath tar "/" tif))
+  (let [tar (tar-name tif)
+        tarpath (tar-path tar)]    
+    (str rpath tarpath "/" tar "/" tif))
 )
