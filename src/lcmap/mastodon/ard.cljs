@@ -79,5 +79,5 @@
 (defn tif-path [tif rpath]
   (let [tar (tar-name tif)
         tarpath (tar-path tar)]    
-    (str rpath tarpath "/" tar "/" tif))
+    (str rpath "/" tarpath "/" tar "/" tif))
 )
