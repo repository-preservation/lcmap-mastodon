@@ -63,3 +63,10 @@
 (defn with-suffix [lst sfx]
   (filter #(string/ends-with? % sfx) lst))
 
+(defn trailing-slash
+  [input]
+
+  (if (string/ends-with? input "/")
+    input
+    (str input "/"))
+)
