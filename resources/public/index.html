@@ -31,7 +31,7 @@
             var dev     = $("#devcheck").prop("checked");
                lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
                                                                                                          "ardmissing-counter", 
-                                                                                                         "iwdsmissing-counter",
+                                                                                                         "iwdsmissing-list",
                                                                                                          "arderror-counter");
           });
 
@@ -84,8 +84,6 @@
         <div id="busydiv" style="display:none;float:right;"><img src="images/Blocks.gif"></img></div>
       </div>
       <div id="counters-container" class="counter-div">
-
-
         <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
           Missing from IWDS
           <div id="ardmissing-counter" class="counter-div">0</div>
@@ -102,11 +100,8 @@
           <div id="ardingested-counter" class="counter-div">0</div>
         </div>
 
-
-        <div id="iwdsmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
-          Missing from ARD
-          <div id="iwdsmissing-counter" class="counter-div">0</div>
-        </div>
+        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
+          <div class="counter-div"></div>
 
         <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           Errored on ingest
@@ -116,8 +111,13 @@
         <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           <div class="counter-div"></div>
         </div>
-
      </div>
+
+        <div id="iwdsmissing">
+          Ingested and now Missing ARD
+          <div id="iwdsmissing-list"></div>
+        </div>
+
 
     </div>
   </body>
