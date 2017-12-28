@@ -84,7 +84,7 @@
           dom-update (or dom-func dom/update-for-ard-check)
           report-map (hash-map :ingested-count     (count (:ingested ard-report))
                                :ard-missing-count  (count (:ard-only ard-report))
-                               :iwds-missing-count (count (:iwd-only ard-report))
+                               :iwds-missing       (:iwd-only ard-report)
                                :dom-map dom-map)]
 
           (util/log (str "ARD Status Report: " report-map))
@@ -104,13 +104,13 @@
 
    Returns vector (things only in ARD, things only in IWDS)
   "
-  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-ctr error-ctr & [ard-req-fn idw-req-fn]]
+  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr & [ard-req-fn idw-req-fn]]
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or idw-req-fn http/get-request)
           ard-inventory-resource (ard-url-format ard-host  tile-id)
           ard-download-resource  (str ard-host "tars")
           iwds-resource          (idw-url-format iwds-host tile-id)
-          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-ctr iwds-miss-ctr :error-ctr error-ctr)]
+          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr)]
 
           (keep-host-info ard-download-resource iwds-resource)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     ;; park compare-iwds on ard-data-chan

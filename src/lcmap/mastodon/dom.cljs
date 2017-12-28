@@ -1,6 +1,18 @@
 (ns lcmap.mastodon.dom
-  (:require [cljs.reader :refer [read-string]])
+  (:require [cljs.reader :refer [read-string]]
+            [clojure.string :as string])
   (:import goog.dom))
+
+(defn set-div-content
+  "Set the text contents of a div
+
+   ^String :divid:
+   ^List   :values:"
+  [divid values]
+  (let [div (dom.getElement divid)
+        content (string/join ", " values)]
+      (dom.setTextContent div content))
+)
 
 (defn inc-counter-div
   "Increment by 1 the value within a div.
@@ -63,7 +75,7 @@
 (defn update-for-ard-check [params missing-count]
   (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
   (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
-  (inc-counter-div (:iwds-miss-ctr (:dom-map params)) (:iwds-missing-count params))
+  (set-div-content (:iwds-miss-list (:dom-map params)) (:iwds-missing params))
   (reset-counter-divs [(:error-ctr (:dom-map params))])
   (hide-div   (:bsy-div (:dom-map params)))
   (when (> missing-count 0)
