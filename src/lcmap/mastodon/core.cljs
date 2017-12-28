@@ -48,8 +48,9 @@
    ^String :tile-id: Tile ID
   "
   [host tile-id]
-  (let [hvm (hv-map tile-id)]
-    (str host "/" (:h hvm) (:v hvm)))
+  (let [hvm (hv-map tile-id)
+        host-fmt (util/trailing-slash host)]
+    (str host-fmt (:h hvm) (:v hvm)))
 )
 
 (defn idw-url-format
@@ -60,7 +61,8 @@
   "
   ;; $ curl -XGET http://localhost:5656/inventory?tile=027009
   [host tile-id]
-  (str host "/inventory?only=source&tile=" tile-id)
+  (let [host-fmt (util/trailing-slash host)]
+    (str host-fmt "inventory?only=source&tile=" tile-id))
 )
 
 (defn compare-iwds 
