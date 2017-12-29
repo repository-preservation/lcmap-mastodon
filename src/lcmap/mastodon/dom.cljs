@@ -88,6 +88,11 @@
   (inc-counter-div (:ingested params))
 )
 
+(defn update-for-ingest-fail [params]
+   (inc-counter-div (:error params))
+   (dec-counter-div (:progress params))
+)
+
 (defn update-for-ingest-start [div count]
     (reset-counter-divs [div])
     (inc-counter-div div count)
