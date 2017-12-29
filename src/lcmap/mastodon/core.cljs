@@ -1,6 +1,7 @@
 (ns lcmap.mastodon.core
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [clojure.set :as set]
+            [clojure.string :as string]
             [lcmap.mastodon.http :as http]
             [lcmap.mastodon.ard  :as ard]
             [lcmap.mastodon.dom  :as dom]
@@ -151,12 +152,13 @@
   [status-channel counter-map]
   (go-loop []
     (let [response (<! status-channel)
-          status (:status response)]
+          status   (:status response)
+          body     (:body response)]
       (if (= 200 status)
           (do (util/log "status is 200")
               (dom/update-for-ingest-success counter-map))
-          (do (util/log (str "status is NOT 200, ingest failed. message: " (:body response)))
-              (dom/inc-counter-div (:error counter-map)))))
+          (do (util/log (str "status is NOT 200, ingest failed. message: " body))
+              (dom/update-for-ingest-fail counter-map))))
     (recur))
 )
 
