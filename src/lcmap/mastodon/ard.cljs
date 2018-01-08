@@ -49,14 +49,13 @@
 
 (defn iwds-tifs
   [iwds-response & [map-key]]
-  (let [status (:status iwds-response)
-        body   (:body iwds-response)
+  (let [errors (string/includes? iwds-response "errors")
         mkey   (or map-key :source)
         tifs   (-> iwds-response
                    (util/collect-map-values mkey)
                    (set))]
-    (if (= 500 status)
-      (hash-map :errors body :tifs #{})
+    (if errors
+      (hash-map :errors [iwds-response] :tifs #{})
       (hash-map :errors nil :tifs tifs))))
 
 

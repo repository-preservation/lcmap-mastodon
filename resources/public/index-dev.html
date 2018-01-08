@@ -25,6 +25,7 @@
           $("#frmsubmit").click(function() {
             lcmap.mastodon.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
             lcmap.mastodon.dom.show_div("busydiv");
+            lcmap.mastodon.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
             var idwhost = $("#idwshost").val();
             var tile_id = $("#tileid").val();             
