@@ -39,14 +39,14 @@
 
 (deftest ard-url-format-test
   (is
-    (= "http://magichost.org/043999"
+    (= "http://magichost.org/ard/043999"
        (mc/ard-url-format "http://magichost.org" "043999"))))
 
 
-(deftest idw-url-format-test
+(deftest iwds-url-format-test
   (is
     (= "http://magichost.org/inventory?only=source&tile=043999"
-       (mc/idw-url-format "http://magichost.org" "043999"))))
+       (mc/iwds-url-format "http://magichost.org" "043999"))))
 
 ;; ard tests
 (deftest key-for-value-test
@@ -85,7 +85,7 @@
 
 (deftest iwds-tifs-test
   (let [inputs '({:foo "bar" :source "baz.tif"} {:bo "jenkins" :source "maz.tif"})]
-    (is (= #{"baz.tif" "maz.tif"} (ard/iwds-tifs inputs))))
+    (is (= #{"baz.tif" "maz.tif"}  (:tifs (ard/iwds-tifs inputs)))))
 )
 
 (deftest ard-iwds-report-test

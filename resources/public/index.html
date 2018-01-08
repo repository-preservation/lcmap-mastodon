@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -9,7 +11,6 @@
     <link rel="stylesheet" href="css/bootstrap.min.css"> <!-- load bootstrap via CDN -->
     <script src="js/jquery.min.js"></script> <!-- load jquery via CDN -->
 
-
     <script src="js/compiled/mastodon_min.js" type="text/javascript"></script>
     <script type="text/javascript">
       $(document).ready(function() {
@@ -18,7 +19,7 @@
          $("#chpsubmit").click(function() {
             lcmap.mastodon.dom.show_div("busydiv");
             lcmap.mastodon.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter");
+            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
           });   
 
           $("#frmsubmit").click(function() {
@@ -29,19 +30,16 @@
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-               lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                                         "ardmissing-counter", 
-                                                                                                         "iwdsmissing-list",
-                                                                                                         "arderror-counter");
+            lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                                      "ardmissing-counter",
+                                                                                                      "iwdsmissing-list",
+                                                                                                      "arderror-counter",
+                                                                                                      "error-container");
           });
 
       });
 
     </script>
-    <style>
-      .counter-div {padding:2px;overflow:hidden; }
-      .ard-wrapper {width:33%; text-align:center; float: right;}
-    </style>
 
   </head>
   <body>
@@ -56,20 +54,13 @@
         <!-- ARD -->
         <div id="ard-group" class="form-group">
           <label for="ardhost">ARD Host</label>
-          <input type="text" class="form-control" id="ardhost" name="ardhost" placeholder="http://localhost:9000">
+          <input type="text" class="form-control" id="ardhost" name="ardhost">
         </div>
         <!-- IDWS -->
         <div id="idws-group" class="form-group">
           <label for="idwshost">IDWS Host</label>
-          <input type="text" class="form-control" id="idwshost" name="idwshost" value="http://localhost:5656">
+          <input type="text" class="form-control" id="idwshost" name="idwshost">
         </div>
-
-        <!-- Region -->
-        <div id="reg-group" class="form-group">
-          <label for="region">Region</label>
-          <input type="text" class="form-control" id="region" name="region" placeholder="conus" size="5">
-        </div>
-
         <!-- H & V -->
         <div id="tile-group" class="form-group">
           <label for="tileid">Tile ID</label>
@@ -80,9 +71,11 @@
       <!-- find better solution to preventing form submission -->
       <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
       <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
-      <div id="busy-container" style="height:65px;">
-        <div id="busydiv" style="display:none;float:right;"><img src="images/Blocks.gif"></img></div>
+      <div id="busy-container">
+        <div id="busydiv"><img src="images/Blocks.gif"></img></div>
+        <div id="ingesting-div"></div>
       </div>
+      <div id="error-container"></div>
       <div id="counters-container" class="counter-div">
         <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
           Missing from IWDS
@@ -94,7 +87,6 @@
           <div id="ardinprogress-counter" class="counter-div">0</div>
         </div>
 
-
         <div id="ardingested" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
           Ingested
           <div id="ardingested-counter" class="counter-div">0</div>
@@ -102,6 +94,7 @@
 
         <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           <div class="counter-div"></div>
+        </div>
 
         <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
           Errored on ingest
@@ -112,13 +105,12 @@
           <div class="counter-div"></div>
         </div>
      </div>
-
-        <div id="iwdsmissing">
-          Ingested and now Missing ARD
-          <div id="iwdsmissing-list"></div>
-        </div>
-
-
+     <div id="iwdsmissing">
+       Ingested and now Missing ARD
+       <div id="iwdsmissing-list"</div>
+     </div>
     </div>
   </body>
 </html>
+
+
