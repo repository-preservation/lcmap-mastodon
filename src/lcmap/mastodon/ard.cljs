@@ -48,13 +48,17 @@
 )
 
 (defn iwds-tifs
-  "Return set of tifs from list of maps"
-  [iwds-map & [map-key]]
-  (let [mkey (or map-key :source)]
-    (-> iwds-map 
-        (util/collect-map-values mkey)
-        (set)))
-)
+  [iwds-response & [map-key]]
+  (let [status (:status iwds-response)
+        body   (:body iwds-response)
+        mkey   (or map-key :source)
+        tifs   (-> iwds-response
+                   (util/collect-map-values mkey)
+                   (set))]
+    (if (= 500 status)
+      (hash-map :errors body :tifs #{})
+      (hash-map :errors nil :tifs tifs))))
+
 
 (defn ard-iwds-report
   "Return hash map of set differences for ARD and IWDS holdings"

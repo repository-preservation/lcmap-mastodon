@@ -5,3 +5,34 @@
 .w3-leftbar{border-left:6px solid #ccc}.w3-rightbar{border-right:6px solid #ccc}
 .w3-topbar{border-top:6px solid #ccc}.w3-rightbar{border-right:6px solid #ccc}
 .w3-border-blue,.w3-hover-border-blue:hover{border-color:#2196F3}
+
+.counter-div {padding:2px;overflow:hidden; }
+.ard-wrapper {width:33%; text-align:center; float: right;}
+
+#busy-container {
+  height:80px;
+/*  border:1px solid black; */
+}
+
+#busydiv {
+  display:none;
+  height:69px;
+  width:69px;
+  float:left;
+  position:relative;
+/*  border:1px solid black; */
+}
+
+#error-container {
+  height: 80px;
+/*  border: 1px solid black; */
+  color: red;
+}
+
+#ingesting {
+  height:64px;
+  width:450px;
+  float:left;
+  position:relative;
+ /* border:1px solid black; */
+}

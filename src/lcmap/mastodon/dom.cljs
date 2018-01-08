@@ -72,7 +72,7 @@
   )
 )
 
-(defn update-for-ard-check [params missing-count]
+(defn update-for-ard-check [params missing-count iwds-errors]
   (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
   (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
   (set-div-content (:iwds-miss-list (:dom-map params)) (:iwds-missing params))
@@ -80,7 +80,8 @@
   (hide-div   (:bsy-div (:dom-map params)))
   (when (> missing-count 0)
     (enable-btn (:ing-btn (:dom-map params))))
-)
+  (when iwds-errors
+    (set-div-content (:error-div (:dom-map params)) iwds-errors)))
 
 (defn update-for-ingest-success [params]
   (dec-counter-div (:progress params))
@@ -97,3 +98,9 @@
     (reset-counter-divs [div])
     (inc-counter-div div count)
 )
+
+(defn update-for-ingest-completion [busy-div ingesting-div]
+  (hide-div busy-div)
+  (set-div-content ingesting-div "")
+)
+

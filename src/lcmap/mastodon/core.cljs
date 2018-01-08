@@ -51,10 +51,10 @@
   [host tile-id]
   (let [hvm (hv-map tile-id)
         host-fmt (util/trailing-slash host)]
-    (str host-fmt (:h hvm) (:v hvm)))
+    (str host-fmt "ard/" (:h hvm) (:v hvm)))
 )
 
-(defn idw-url-format
+(defn iwds-url-format
   "URL generation function for requests to an LCMAP-Chipmunk instance
 
    ^String :host:    lcmap-chipmunk instance host
@@ -83,7 +83,7 @@
   (go
     (let [ard-tifs   (<! ard-channel)
           iwds-tifs  (ard/iwds-tifs (<! (iwds-request iwds-url)))
-          ard-report (ard/ard-iwds-report ard-tifs iwds-tifs)
+          ard-report (ard/ard-iwds-report ard-tifs (:tifs iwds-tifs))
           dom-update (or dom-func dom/update-for-ard-check)
           report-map (hash-map :ingested-count     (count (:ingested ard-report))
                                :ard-missing-count  (count (:ard-only ard-report))
@@ -93,8 +93,7 @@
           (util/log (str "ARD Status Report: " report-map))
           (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
           (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          (dom-update report-map (count (:ard-only ard-report)))))
-)
+          (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs)))))
 
 (defn ^:export assess-ard
   "Diff function, comparing what source files the ARD source has available, 
@@ -107,13 +106,13 @@
 
    Returns vector (things only in ARD, things only in IWDS)
   "
-  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr & [ard-req-fn idw-req-fn]]
+  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn idw-req-fn]]
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or idw-req-fn http/get-request)
           ard-inventory-resource (ard-url-format ard-host  tile-id)
-          ard-download-resource  (str ard-host "tars")
-          iwds-resource          (idw-url-format iwds-host tile-id)
-          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr)]
+          ard-download-resource  (str ard-host "/ardtars")
+          iwds-resource          (iwds-url-format iwds-host tile-id)
+          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
           (keep-host-info ard-download-resource iwds-resource)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     ;; park compare-iwds on ard-data-chan
@@ -132,13 +131,13 @@
    ^Core.Async Channel :status-channel:
 
    Returns Core.Async Channel. Request responses are placed on the status-channel"
-  [ingest-channel iwds-resource status-channel busy-div]
+  [ingest-channel iwds-resource status-channel busy-div ingesting-div]
   (go
     (let [tifs (<! ingest-channel)]
       (doseq [t tifs]
-        (util/log (str "ingest ard: " t))
+        (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
         (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
-      (dom/hide-div busy-div)))
+      (dom/update-for-ingest-completion busy-div ingesting-div)))
 )
 
 (defn ingest-status-handler 
@@ -175,7 +174,7 @@
 
    Returns Core.Async channel
   "
-  [inprogress-div missing-div ingested-div busy-div error-div]
+  [inprogress-div missing-div ingested-div busy-div error-div ingesting-div]
   (let [ard-resource-path  (:path @ard-resource-atom)
         iwds-resource-path (:path @iwds-resource-atom)
         ard-sources        (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
@@ -186,7 +185,7 @@
     ;; park ingest-status-handler on ingest-status-chan
     (ingest-status-handler ingest-status-chan counter-map) 
     ;; park make-chipmunk-requests on ard-to-ingest-chan
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div)
+    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
     ;; put ard-sources on ard-to-ingest-chan
     (go (>! ard-to-ingest-chan ard-sources)))
 )
