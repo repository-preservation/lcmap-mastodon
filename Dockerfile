@@ -6,3 +6,6 @@ COPY resources/public/js/jquery.min.js /usr/share/nginx/html/js/jquery.min.js
 COPY resources/public/css /usr/share/nginx/html/css/
 COPY resources/public/images /usr/share/nginx/html/images/
 COPY default.conf /etc/ningx/conf.d/default.conf
+COPY startup.sh /usr/local/bin/startup.sh
+
+CMD /usr/local/bin/startup.sh
