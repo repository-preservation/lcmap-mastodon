@@ -24,7 +24,7 @@
    ^String :iwds-host: name of IWDS host"
   [ard-host iwds-host]
   (swap! ard-resource-atom  assoc :path ard-host)
-  (swap! iwds-resource-atom assoc :path (str iwds-host "/inventory")))
+  (swap! iwds-resource-atom assoc :path iwds-host))
 
 (defn hv-map
   "Helper function.
@@ -116,9 +116,10 @@
           ard-inventory-resource (ard-url-format ard-host  tile-id)
           ard-download-resource  (str ard-host "/ardtars")
           iwds-resource          (iwds-url-format iwds-host tile-id)
+          iwds-post-url          (str iwds-host "/inventory")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
-          (keep-host-info ard-download-resource iwds-resource)
+          (keep-host-info ard-download-resource iwds-post-url)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     
           (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource))
                                     (util/with-suffix "tar")
