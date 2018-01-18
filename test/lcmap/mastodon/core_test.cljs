@@ -92,9 +92,9 @@
   (let [ard-tifs #{:a :b :c}
         iwds-tifs #{:a :d :e}
         resp (ard/ard-iwds-report ard-tifs iwds-tifs)]
-      (is (= (:ard-only resp) #{:b :c}))
-      (is (= (:iwd-only resp) #{:d :e}))
-      (is (= (:ingested resp) #{:a})))
+      (is (= (:ard-only resp) '(:b :c)))
+      (is (= (:iwd-only resp) '(:d :e)))
+      (is (= (:ingested resp) '(:a))))
 )
 
 (deftest tif-path-test

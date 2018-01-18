@@ -25,8 +25,7 @@
         base_suffix (last base_list)
         base_prefix (keyword (first base_list))
         tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
-      (str (string/replace base_name base_suffix tar_suffix) ".tar"))
-)
+      (str (string/replace base_name base_suffix tar_suffix) ".tar")))
 
 (defn ard-manifest
   "From a ARD tar file name, return a list of that tar
@@ -38,14 +37,12 @@
         key-last  (keyword (last tar-all))
         key-first (keyword (first tar-all))
         ard-files (key-last (key-first tar-map))]
-    (map (fn [i] (str tar-pre "_" i ".tif")) ard-files))
-)
+    (map (fn [i] (str tar-pre "_" i ".tif")) ard-files)))
 
 (defn expand-tars
   "Return set of tifs from list of tars"
   [tars]
-  (set (flatten (map ard-manifest tars)))
-)
+  (set (flatten (map ard-manifest tars))))
 
 (defn iwds-tifs
   [iwds-response & [map-key]]
@@ -58,14 +55,12 @@
       (hash-map :errors [iwds-response] :tifs #{})
       (hash-map :errors nil :tifs tifs))))
 
-
 (defn ard-iwds-report
   "Return hash map of set differences for ARD and IWDS holdings"
   [ard-tifs iwds-tifs]
-  (hash-map :ard-only (set/difference ard-tifs iwds-tifs)
-            :iwd-only (set/difference iwds-tifs ard-tifs)
-            :ingested (set/intersection ard-tifs iwds-tifs))
-)
+  (hash-map :ard-only (sort (vec (set/difference ard-tifs iwds-tifs)))    
+            :iwd-only (sort (vec (set/difference iwds-tifs ard-tifs)))    
+            :ingested (sort (vec (set/intersection ard-tifs iwds-tifs)))))
 
 (defn tar-path [tar]
   ;; /tm/ARD_Tile/2011/CU/015/005/LT05_CU_015005_20111110_20170926_C01_V01_SR.tar
@@ -76,11 +71,9 @@
         location (nth parts-list 1)
         hhh  (-> (nth parts-list 2) (subs 0 3))
         vvv  (-> (nth parts-list 2) (subs 3 6))]
-      (str mission "/ARD_Tile/" year "/" location "/" hhh "/" vvv))  
-)
+      (str mission "/ARD_Tile/" year "/" location "/" hhh "/" vvv)))
 
 (defn tif-path [tif rpath]
   (let [tar (tar-name tif)
         tarpath (tar-path tar)]    
-    (str rpath "/" tarpath "/" tar "/" tif))
-)
+    (str rpath "/" tarpath "/" tar "/" tif)))
