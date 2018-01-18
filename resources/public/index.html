@@ -28,14 +28,15 @@
             lcmap.mastodon.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
             var idwhost = $("#idwshost").val();
+            var ingesthost = $("#ingesthost").val();
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-            lcmap.mastodon.core.assess_ard(ardhost, idwhost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                                      "ardmissing-counter",
-                                                                                                      "iwdsmissing-list",
-                                                                                                      "arderror-counter",
-                                                                                                      "error-container");
+            lcmap.mastodon.core.assess_ard(ardhost, idwhost, ingesthost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                                                  "ardmissing-counter",
+                                                                                                                  "iwdsmissing-list",
+                                                                                                                  "arderror-counter",
+                                                                                                                  "error-container");
           });
 
       });
@@ -61,6 +62,11 @@
         <div id="idws-group" class="form-group">
           <label for="idwshost">IWDS Host</label> <IWDSHOST>
           <input type="hidden" class="form-control" id="idwshost" name="idwshost" value="<IWDSHOST>">
+        </div>
+        <!-- Ingest Host -->
+        <div id="idws-group" class="form-group">
+          <label for="ingesthost">Ingest Host</label> <INGESTHOST>
+          <input type="hidden" class="form-control" id="ingesthost" name="ingesthost" value="<INGESTHOST>">
         </div>
         <!-- H & V -->
         <div id="tile-group" class="form-group">
