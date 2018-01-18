@@ -14,17 +14,19 @@
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
 (def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IWDS
 
-(def ard-resource-atom  (atom {:path ""})) ;; atom containing ARD host
-(def iwds-resource-atom (atom {:path ""})) ;; atom containing IWDS host
+(def ard-resource-atom  (atom {:path ""}))   ;; atom containing ARD host
+(def iwds-resource-atom (atom {:path ""}))   ;; atom containing IWDS host
+(def ingest-resource-atom (atom {:path ""})) ;; atom containing Ingest host
 
 (defn keep-host-info
   "Function for persisting ARD and IWDS host information within Atoms
 
    ^String :ard-host: name of ARD host
    ^String :iwds-host: name of IWDS host"
-  [ard-host iwds-host]
+  [ard-host iwds-host ingest-host]
   (swap! ard-resource-atom  assoc :path ard-host)
-  (swap! iwds-resource-atom assoc :path iwds-host))
+  (swap! iwds-resource-atom assoc :path iwds-host)
+  (swap! ingest-resource-atom assoc :path ingest-host))
 
 (defn hv-map
   "Helper function.
@@ -98,6 +100,7 @@
 
    ^String :ard-host:       ARD Host
    ^String :iwds-host:      IWDS Host
+   ^String :ingest-host:    Ingest Host
    ^String :tile-id:        Tile ID
    ^String :region:         Region
    ^String :bsy-div:        busy image name
@@ -110,7 +113,7 @@
 
    Returns Core.Async Channel. Parks compare-iwds function on the ard-data-chan Channel,
    requests ARD inventory for a given tile."
-  [ard-host iwds-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn iwds-req-fn]]
+  [ard-host iwds-host ingest-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn iwds-req-fn]]
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or iwds-req-fn http/get-request)
           ard-inventory-resource (ard-url-format ard-host  tile-id)
@@ -119,7 +122,7 @@
           iwds-post-url          (str iwds-host "/inventory")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
-          (keep-host-info ard-download-resource iwds-post-url)
+          (keep-host-info ard-download-resource iwds-post-url ingest-host)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     
           (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource))
                                     (util/with-suffix "tar")
@@ -137,12 +140,13 @@
    ^String             :ingesting-div:  The name of the div displaying the ARD being ingested
 
    Returns Core.Async Channel. Request responses are placed on the status-channel"
-  [ingest-channel iwds-resource status-channel busy-div ingesting-div]
+  [ingest-channel iwds-resource ingest-resource status-channel busy-div ingesting-div]
   (go
-    (let [tifs (<! ingest-channel)]
+    (let [tifs (<! ingest-channel)
+          post-resource (if (empty? ingest-resource) iwds-resource ingest-resource)]
       (doseq [t tifs]
         (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
-        (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
+        (>! status-channel  (<! (http/post-request post-resource {"url" t}))))
       (dom/update-for-ingest-completion busy-div ingesting-div))))
 
 (defn ingest-status-handler 
@@ -182,14 +186,15 @@
    Parks make-chipmunk-requests on ard-to-ingest-chan, and puts ard-sources on the
    ard-to-ingest-chan."
   [inprogress-div missing-div ingested-div busy-div error-div ingesting-div]
-  (let [ard-resource-path  (:path @ard-resource-atom)
-        iwds-resource-path (:path @iwds-resource-atom)
-        ard-sources        (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
-        counter-map        (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
-        ard-count          (count ard-sources)]
+  (let [ard-resource-path    (:path @ard-resource-atom)
+        iwds-resource-path   (:path @iwds-resource-atom)
+        ingest-resource-path (:path @ingest-resource-atom)
+        ard-sources          (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
+        counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
+        ard-count            (count ard-sources)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count)
     (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
+    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-resource-path ingest-status-chan busy-div ingesting-div)
     (go (>! ard-to-ingest-chan ard-sources))))
 
