@@ -73,7 +73,8 @@
         vvv  (-> (nth parts-list 2) (subs 3 6))]
       (str mission "/ARD_Tile/" year "/" location "/" hhh "/" vvv)))
 
-(defn tif-path [tif rpath]
+(defn tif-path [tif rpath ingpath]
   (let [tar (tar-name tif)
-        tarpath (tar-path tar)]    
-    (str rpath "/" tarpath "/" tar "/" tif)))
+        tarpath (tar-path tar)
+        resource (if (empty? ingpath) rpath ingpath)]    
+    (str resource "/" tarpath "/" tar "/" tif)))

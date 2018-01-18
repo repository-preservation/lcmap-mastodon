@@ -100,8 +100,18 @@
 (deftest tif-path-test
   (let [tif "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
         pth "http://foobar.cr.usgs.gov/ard"
-        rsp (ard/tif-path tif pth)]
+        ipth ""
+        rsp (ard/tif-path tif pth ipth)]
     (is (= rsp "http://foobar.cr.usgs.gov/ard/oli_tirs/ARD_Tile/2013/CU/022/010/LC08_CU_022010_20131211_20171016_C01_V01_SR.tar/LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"))
+  )
+)
+
+(deftest tif-path-w-ingest-test
+  (let [tif "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
+        pth "http://foobar.cr.usgs.gov/ard"
+        ipth "http://barfoo.cr.usgs.gov/ardlinks"
+        rsp (ard/tif-path tif pth ipth)]
+    (is (= rsp "http://barfoo.cr.usgs.gov/ardlinks/oli_tirs/ARD_Tile/2013/CU/022/010/LC08_CU_022010_20131211_20171016_C01_V01_SR.tar/LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"))
   )
 )
 

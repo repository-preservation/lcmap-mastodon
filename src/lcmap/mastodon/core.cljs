@@ -140,13 +140,12 @@
    ^String             :ingesting-div:  The name of the div displaying the ARD being ingested
 
    Returns Core.Async Channel. Request responses are placed on the status-channel"
-  [ingest-channel iwds-resource ingest-resource status-channel busy-div ingesting-div]
+  [ingest-channel iwds-resource status-channel busy-div ingesting-div]
   (go
-    (let [tifs (<! ingest-channel)
-          post-resource (if (empty? ingest-resource) iwds-resource ingest-resource)]
+    (let [tifs (<! ingest-channel)]
       (doseq [t tifs]
         (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
-        (>! status-channel  (<! (http/post-request post-resource {"url" t}))))
+        (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
       (dom/update-for-ingest-completion busy-div ingesting-div))))
 
 (defn ingest-status-handler 
@@ -189,12 +188,12 @@
   (let [ard-resource-path    (:path @ard-resource-atom)
         iwds-resource-path   (:path @iwds-resource-atom)
         ingest-resource-path (:path @ingest-resource-atom)
-        ard-sources          (map #(ard/tif-path % ard-resource-path) (:tifs @ard-miss-atom))
+        ard-sources          (map #(ard/tif-path % ard-resource-path ingest-resource-path) (:tifs @ard-miss-atom))
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count)
     (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-resource-path ingest-status-chan busy-div ingesting-div)
+    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
     (go (>! ard-to-ingest-chan ard-sources))))
 
