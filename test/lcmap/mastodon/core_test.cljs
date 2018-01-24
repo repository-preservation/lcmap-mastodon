@@ -2,11 +2,11 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.test :refer-macros [deftest is async]]
             [clojure.string :as string]
-            [lcmap.mastodon.core :as mc]
-            [lcmap.mastodon.http :as mhttp]
+            [lcmap.mastodon.cljc.core :as mc]
+            [lcmap.mastodon.cljs.http :as mhttp]
             [lcmap.mastodon.data :as testdata]
-            [lcmap.mastodon.util :as util]
-            [lcmap.mastodon.ard :as ard]
+            [lcmap.mastodon.cljc.util :as util]
+            [lcmap.mastodon.cljc.ard :as ard]
             [cljs.core.async :as async]))
 
 ;; util tests

@@ -1,8 +1,11 @@
-(ns lcmap.mastodon.util
+(ns lcmap.mastodon.cljc.util
   (:require [clojure.string :as string]))
 
 (defn log [msg]
-  (.log js/console msg)
+  #? (:clj (println msg)
+      :cljs (.log js/console msg))
+
+  
 )
 
 (defn get-map-val
