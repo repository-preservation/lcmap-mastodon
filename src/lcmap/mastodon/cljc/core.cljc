@@ -1,10 +1,15 @@
-(ns lcmap.mastodon.core
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [lcmap.mastodon.http :as http]
-            [lcmap.mastodon.ard  :as ard]
-            [lcmap.mastodon.dom  :as dom]
-            [lcmap.mastodon.util :as util]
-            [cljs.core.async :refer [<! >! chan]]))
+(ns lcmap.mastodon.cljc.core
+  #? (:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
+  (:require #? (:clj  [lcmap.mastodon.cljc.http :as http]
+                :cljs [lcmap.mastodon.cljs.http :as http])
+            [lcmap.mastodon.cljc.ard  :as ard]
+            #? (:cljs [lcmap.mastodon.cljs.dom  :as dom]) 
+            [lcmap.mastodon.cljc.util :as util]
+            #? (:clj  [clojure.core.async :refer [<! >! chan go go-loop]]
+                :cljs [cljs.core.async :refer [<! >! chan]])
+
+            
+  ))
 
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
@@ -17,6 +22,8 @@
 (def ard-resource-atom  (atom {:path ""}))   ;; atom containing ARD host
 (def iwds-resource-atom (atom {:path ""}))   ;; atom containing IWDS host
 (def ingest-resource-atom (atom {:path ""})) ;; atom containing Ingest host
+
+(defn -main [] (prn "hey there"))
 
 (defn keep-host-info
   "Function for persisting ARD and IWDS host information within Atoms
@@ -83,7 +90,8 @@
     (let [ard-tifs   (<! ard-channel)
           iwds-tifs  (ard/iwds-tifs (<! (iwds-request iwds-url)))
           ard-report (ard/ard-iwds-report ard-tifs (:tifs iwds-tifs))
-          dom-update (or dom-func dom/update-for-ard-check)
+          dom-update #? (:cljs (or dom-func dom/update-for-ard-check) 
+                         :clj nil)
           report-map (hash-map :ingested-count     (count (:ingested ard-report))
                                :ard-missing-count  (count (:ard-only ard-report))
                                :iwds-missing       (:iwd-only ard-report)
@@ -92,7 +100,10 @@
           (util/log (str "ARD Status Report: " report-map))
           (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
           (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs)))))
+          
+          #? (:cljs (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs))) 
+
+)))
 
 (defn ^:export assess-ard
   "Diff function, comparing what source files the ARD source has available, 
@@ -144,9 +155,10 @@
   (go
     (let [tifs (<! ingest-channel)]
       (doseq [t tifs]
-        (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
+        #? (:cljs (dom/set-div-content ingesting-div [(str "Ingesting: " t)]))
         (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
-      (dom/update-for-ingest-completion busy-div ingesting-div))))
+      #? (:cljs (dom/update-for-ingest-completion busy-div ingesting-div)) 
+)))
 
 (defn ingest-status-handler 
   "Function parked on the ingest-status-chan channel. Handles successful and
@@ -163,9 +175,9 @@
           body     (:body response)]
       (if (= 200 status)
           (do (util/log "status is 200")
-              (dom/update-for-ingest-success counter-map))
+              #? (:cljs (dom/update-for-ingest-success counter-map)))
           (do (util/log (str "status is NOT 200, ingest failed. message: " body))
-              (dom/update-for-ingest-fail counter-map))))
+              #? (:cljs (dom/update-for-ingest-fail counter-map))  ) ))
     (recur)))
 
 (defn ^:export ingest 
@@ -192,7 +204,7 @@
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)]
 
-    (dom/update-for-ingest-start (:progress counter-map) ard-count)
+    #? (:cljs (dom/update-for-ingest-start (:progress counter-map) ard-count)) 
     (ingest-status-handler ingest-status-chan counter-map) 
     (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
     (go (>! ard-to-ingest-chan ard-sources))))

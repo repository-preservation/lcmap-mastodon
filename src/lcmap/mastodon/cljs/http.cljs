@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.http
+(ns lcmap.mastodon.cljs.http
    "HTTP Request functions"
    (:require-macros [cljs.core.async.macros :refer [go]])
    (:require [cljs-http.client :as http-client]
