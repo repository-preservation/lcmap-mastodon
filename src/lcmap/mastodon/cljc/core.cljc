@@ -1,6 +1,6 @@
 (ns lcmap.mastodon.cljc.core
   #? (:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
-  (:require #? (:clj  [lcmap.mastodon.cljc.http :as http]
+  (:require #? (:clj  [lcmap.mastodon.clj.http :as http]
                 :cljs [lcmap.mastodon.cljs.http :as http])
             [lcmap.mastodon.cljc.ard  :as ard]
             #? (:cljs [lcmap.mastodon.cljs.dom  :as dom]) 

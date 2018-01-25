@@ -21,39 +21,39 @@
   :source-paths ["src"]
 
   ;; https://github.com/emezeske/lein-cljsbuild#hooks
-  :hooks [leiningen.cljsbuild]
-
-  :cljsbuild {:builds
-              [{:id "dev"
-                :source-paths ["src" "test"]
-                ;; The presence of a :figwheel configuration here will cause figwheel 
-                ;; to inject the figwheel client into your build
-                :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
-
-                :compiler {:main lcmap.mastodon.cljc.core
-                           :asset-path "js/compiled/out"
-                           :output-to "resources/public/js/compiled/mastodon.js"
-                           :output-dir "resources/public/js/compiled/out"
-                           :source-map-timestamp true
-                           :preloads [devtools.preload]}}
-
-               ;; This next build is a compressed minified build for production. 
-               ;; You can build this with: lein cljsbuild once min
-               {:id "min"
-                :source-paths ["src"]
-                :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-                           :main lcmap.mastodon.cljc.core
-                           :optimizations :advanced
-                           :pretty-print true
-                           :externs ["resources/public/js/compiled/mastodon_min.js"]}}
-
-               ;; testing build
-               {:id "test"
-                :source-paths ["src" "test"]
-                :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
-                           :output-dir "resources/public/js/compiled/out/test"
-                           :main lcmap.mastodon.test-runner}}]}
-
+;;  :hooks [leiningen.cljsbuild]
+;;
+;;  :cljsbuild {:builds
+;;              [{:id "dev"
+;;                :source-paths ["src" "test"]
+;;                ;; The presence of a :figwheel configuration here will cause figwheel 
+;;                ;; to inject the figwheel client into your build
+;;                :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
+;;
+;;                :compiler {:main lcmap.mastodon.cljc.core
+;;                           :asset-path "js/compiled/out"
+;;                           :output-to "resources/public/js/compiled/mastodon.js"
+;;                           :output-dir "resources/public/js/compiled/out"
+;;                           :source-map-timestamp true
+;;                           :preloads [devtools.preload]}}
+;;
+;;               ;; This next build is a compressed minified build for production. 
+;;               ;; You can build this with: lein cljsbuild once min
+;;               {:id "min"
+;;                :source-paths ["src"]
+;;                :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
+;;                           :main lcmap.mastodon.cljc.core
+;;                           :optimizations :advanced
+;;                           :pretty-print true
+;;                           :externs ["resources/public/js/compiled/mastodon_min.js"]}}
+;;
+;;               ;; testing build
+;;               {:id "test"
+;;                :source-paths ["src" "test"]
+;;                :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
+;;                           :output-dir "resources/public/js/compiled/out/test"
+;;                           :main lcmap.mastodon.test-runner}}]}
+;;
   :figwheel {:css-dirs ["resources/public/css"] } ;; watch and update CSS
   ;; Setting up nREPL for Figwheel and ClojureScript dev
   ;; Please see:
@@ -67,6 +67,8 @@
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    ;; need to add the compliled assets to the :clean-targets
                    :clean-targets ^{:protect false} ["resources/public/js/compiled" :target-path]}
+             :repl    {:resource-paths ["dev"]
+:dependencies [[cider/cider-nrepl "0.15.1"]]}
              :uberjar {:omit-source true
                        :aot :all}} ;;profiles
   :main lcmap.mastodon.clj.main
