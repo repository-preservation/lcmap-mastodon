@@ -4,8 +4,6 @@
 (defn log [msg]
   #? (:clj (println msg)
       :cljs (.log js/console msg))
-
-  
 )
 
 (defn get-map-val
@@ -64,6 +62,8 @@
 )
 
 (defn with-suffix [lst sfx]
+ ;; (println "lst is  " lst)
+ ;; (println "sfx is " sfx)
   (filter #(string/ends-with? % sfx) lst))
 
 (defn trailing-slash

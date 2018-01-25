@@ -21,18 +21,23 @@
   "Derive an ARD tif files original containing Tar file name"
   [tif-name]
   (let [base_name   (string/replace tif-name ".tif" "")
-        base_list   (string/split base_name "_")
+        base_list   (string/split base_name #"_")
         base_suffix (last base_list)
         base_prefix (keyword (first base_list))
         tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
       (str (string/replace base_name base_suffix tar_suffix) ".tar")))
+
+(defn full-name 
+  [tif-name]
+  (str (tar-name tif-name) "/" tif-name)
+)
 
 (defn ard-manifest
   "From a ARD tar file name, return a list of that tar
    files expected contents.
    ^String :ard-tar:"
   [ard-tar]
-  (let [tar-all   (-> ard-tar (string/replace ".tar" "") (string/split "_"))
+  (let [tar-all   (-> ard-tar (string/trim) (string/replace ".tar" "") (string/split #"_"))
         tar-pre   (string/join "_" (take 7 tar-all))
         key-last  (keyword (last tar-all))
         key-first (keyword (first tar-all))
