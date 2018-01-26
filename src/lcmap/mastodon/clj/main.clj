@@ -40,6 +40,8 @@
 
     (let [iwds_resource (str iwds_host "/inventory?url=")
           ard_resource  (mcore/ard-url-format ard_host tileid)
+          ard_download  (str ard_host "/ardtars/")
+          ing_resource  (or ingest_host ard_host)
           {:keys [status headers body error] :as ard_resp} @(http/get ard_resource)
           ard_vec (-> body (http-body-to-list)
                            (util/with-suffix "tar")
@@ -48,8 +50,10 @@
       (doseq [i ard_vec]
         (let [iwdsresp (http/get (str iwds_resource "http://fauxhost.gov/" (ard/full-name i)))]
           (if (= (:body @iwdsresp) "[]")
-            (swap! ard-to-ingest-atom conj (ard/full-name i))
-            (swap! ingested-ard-atom conj (ard/full-name i))))))
+            (swap! ard-to-ingest-atom conj (ard/tif-path i ard_download ingest_host) ;(ard/full-name i)
+                   )
+            (swap! ingested-ard-atom conj i ;(ard/full-name i)
+                   )))))
 
       (println "Tile Status Report for: " tileid)
       (println "To be ingested: "   (count @ard-to-ingest-atom))
@@ -58,7 +62,7 @@
       (when (= action "ingest")
         (println "Ingesting! ")
         (doseq [i @ard-to-ingest-atom]
-          (println "ingest: " i)))
+          (println "ingest: " i "\r")))
   )
 )
 
