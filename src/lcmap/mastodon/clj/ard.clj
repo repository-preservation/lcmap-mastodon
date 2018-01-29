@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.cljc.ard
+(ns lcmap.mastodon.clj.ard
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [lcmap.mastodon.cljc.util :as util]))
