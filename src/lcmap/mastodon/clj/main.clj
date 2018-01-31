@@ -3,6 +3,7 @@
   (:require [lcmap.mastodon.cljc.core :as mcore]
             [lcmap.mastodon.cljc.util :as util]
             [lcmap.mastodon.clj.ard :as ard]
+            [cheshire.core :as json]
             [environ.core :as environ]
             [org.httpkit.client :as http]
             [clojure.string :as string]))
@@ -13,16 +14,31 @@
 (def ard-errored-on-ingest-atom (atom []))
 
 (defn http-body-to-list [inbody]
-  (-> inbody (string/replace "[" "") (string/replace "]" "") (string/replace "\"" "") (string/split #",")))
+  (if (nil? inbody)
+    []
+    (do (-> inbody (string/replace "[" "") 
+                   (string/replace "]" "") 
+                   (string/replace "\"" "") 
+                   (string/split #",")))))
 
-(defn ard_status_check [inard iwds_resource ard_download ingest_host]
-  (doseq [i inard]
-        (let [iwdsresp (http/get (str iwds_resource "http://fauxhost.gov/" (ard/full-name i)))]
-          (if (= (:body @iwdsresp) "[]")
-            (swap! ard-to-ingest-atom conj (ard/tif-path i ard_download ingest_host) ;(ard/full-name i)
-                   )
-            (swap! ingested-ard-atom conj i ;(ard/full-name i)
-                   ))))
+(defn ard_status_check [tif iwds_resource ing_resource]
+  (let [iwdsresp (http/get (str iwds_resource tif))
+        tar      (ard/tar-name tif)
+        tarpath  (ard/tar-path tar)]
+    (if (= (:body @iwdsresp) "[]")
+      (swap! ard-to-ingest-atom conj (str ing_resource "/" tarpath "/" tar "/" tif))
+      (swap! ingested-ard-atom conj tif)))
+  true)
+
+(defn ingest-ard [ard iwds_resource]
+ (let [iwds_path (str iwds_resource "/inventory")
+       post_opts {:body (json/encode {"url" ard})
+                  :headers {"Content-Type" "application/json"
+                            "Accept" "application/json"}}
+       {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)]
+   (if (= status 200)
+     (println "success\n")
+     (println "ingest fail\n")))
   true)
 
 (defn -main [& args]
@@ -48,51 +64,24 @@
       (println "ARD_HOST must be defined in your environment, exiting")
       (System/exit 0))
 
-    (let [iwds_resource (str iwds_host "/inventory?url=")
+    (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
           ard_resource  (mcore/ard-url-format ard_host tileid)
           ard_download  (str ard_host "/ardtars/")
-          ing_resource  (or ingest_host ard_host)
+          ing_resource  (or ingest_host ard_download)
           {:keys [status headers body error] :as ard_resp} @(http/get ard_resource)
-          ard_vec (-> body (http-body-to-list)
-                           (util/with-suffix "tar")
-                           (ard/expand-tars))
-          par_size (inc (int (/ (count ard_vec) 5)))
-          ard_par (partition-all par_size ard_vec)
-          t1 (future (ard_status_check (nth ard_par 0) iwds_resource ard_download ingest_host))
-          t2 (future (ard_status_check (nth ard_par 1) iwds_resource ard_download ingest_host))
-          t3 (future (ard_status_check (nth ard_par 2) iwds_resource ard_download ingest_host))
-          t4 (future (ard_status_check (nth ard_par 3) iwds_resource ard_download ingest_host))
-          t5 (future (ard_status_check (nth ard_par 4) iwds_resource ard_download ingest_host))]
+          ard_vec (-> body (http-body-to-list) (util/with-suffix "tar") (ard/expand-tars))
+          results (pmap #(ard_status_check % iwds_resource ing_resource) ard_vec)]
 
-;;      (doseq [i ard_vec]
-;;        (let [iwdsresp (http/get (str iwds_resource "http://fauxhost.gov/" (ard/full-name i)))]
-;;          (if (= (:body @iwdsresp) "[]")
-;;            (swap! ard-to-ingest-atom conj (ard/tif-path i ard_download ingest_host) ;(ard/full-name i)
-;;                   )
-;;            (swap! ingested-ard-atom conj i ;(ard/full-name i)
-;;                   ))))
-
-        (if @t1 (print "<-1--"))
-        (if @t2 (print "--2-"))
-        (if @t3 (print "--3-"))
-        (if @t4 (print "--4-"))
-        (if @t5 (print "-5-->"))
-
-      )
-
+        (if (= #{true} (set results))
+          (println "we got results...")))
+          
       (println "")
       (println "Tile Status Report for: " tileid)
       (println "To be ingested: "   (count @ard-to-ingest-atom))
       (println "Already ingested: " (count @ingested-ard-atom))
-
-      (doseq [i @ard-to-ingest-atom]
-        (println i))
-
       (when (= action "ingest")
-        (println "Ingesting! ")
-        (doseq [i @ard-to-ingest-atom]
-          (println "ingest: " i "\r")))
-  )
-  (System/exit 0)
-)
+        (println "ingesting!")
+        (let [ing_results (pmap #(ingest-ard % iwds_host) @ard-to-ingest-atom)]
+          (when (= #{true} (set ing_results)) (println "Ingest complete!")) )))
+  (System/exit 0))
 

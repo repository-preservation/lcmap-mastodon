@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/clojure "1.9.0-beta4"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async  "0.3.443"]
+                 [cheshire "5.8.0"]
                  [environ "1.1.0"]
                  [cljs-http "0.1.43"]
                  [http-kit "2.2.0"]
@@ -21,39 +22,39 @@
   :source-paths ["src"]
 
   ;; https://github.com/emezeske/lein-cljsbuild#hooks
-;;  :hooks [leiningen.cljsbuild]
-;;
-;;  :cljsbuild {:builds
-;;              [{:id "dev"
-;;                :source-paths ["src" "test"]
-;;                ;; The presence of a :figwheel configuration here will cause figwheel 
-;;                ;; to inject the figwheel client into your build
-;;                :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
-;;
-;;                :compiler {:main lcmap.mastodon.cljc.core
-;;                           :asset-path "js/compiled/out"
-;;                           :output-to "resources/public/js/compiled/mastodon.js"
-;;                           :output-dir "resources/public/js/compiled/out"
-;;                           :source-map-timestamp true
-;;                           :preloads [devtools.preload]}}
-;;
-;;               ;; This next build is a compressed minified build for production. 
-;;               ;; You can build this with: lein cljsbuild once min
-;;               {:id "min"
-;;                :source-paths ["src"]
-;;                :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-;;                           :main lcmap.mastodon.cljc.core
-;;                           :optimizations :advanced
-;;                           :pretty-print true
-;;                           :externs ["resources/public/js/compiled/mastodon_min.js"]}}
-;;
-;;               ;; testing build
-;;               {:id "test"
-;;                :source-paths ["src" "test"]
-;;                :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
-;;                           :output-dir "resources/public/js/compiled/out/test"
-;;                           :main lcmap.mastodon.test-runner}}]}
-;;
+  :hooks [leiningen.cljsbuild]
+
+  :cljsbuild {:builds
+              [{:id "dev"
+                :source-paths ["src" "test"]
+                ;; The presence of a :figwheel configuration here will cause figwheel 
+                ;; to inject the figwheel client into your build
+                :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
+
+                :compiler {:main lcmap.mastodon.cljc.core
+                           :asset-path "js/compiled/out"
+                           :output-to "resources/public/js/compiled/mastodon.js"
+                           :output-dir "resources/public/js/compiled/out"
+                           :source-map-timestamp true
+                           :preloads [devtools.preload]}}
+
+               ;; This next build is a compressed minified build for production. 
+               ;; You can build this with: lein cljsbuild once min
+               {:id "min"
+                :source-paths ["src"]
+                :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
+                           :main lcmap.mastodon.cljc.core
+                           :optimizations :advanced
+                           :pretty-print true
+                           :externs ["resources/public/js/compiled/mastodon_min.js"]}}
+
+               ;; testing build
+               {:id "test"
+                :source-paths ["src" "test"]
+                :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
+                           :output-dir "resources/public/js/compiled/out/test"
+                           :main lcmap.mastodon.test-runner}}]}
+
   :figwheel {:css-dirs ["resources/public/css"] } ;; watch and update CSS
   ;; Setting up nREPL for Figwheel and ClojureScript dev
   ;; Please see:
