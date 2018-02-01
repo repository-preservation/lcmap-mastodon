@@ -30,6 +30,10 @@
       (swap! ingested-ard-atom conj tif)))
   true)
 
+(defn ingest_error [ard]
+  (let [logname "ingest_errors.log"]
+    (spit logname (str ard "\n") :append true)))
+
 (defn ingest-ard [ard iwds_resource]
  (let [iwds_path (str iwds_resource "/inventory")
        post_opts {:body (json/encode {"url" ard})
@@ -37,8 +41,8 @@
                             "Accept" "application/json"}}
        {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)]
    (if (= status 200)
-     (println "success\n")
-     (println "ingest fail\n")))
+     (print "+")
+     (do (print "-") (ingest_error ard))))
   true)
 
 (defn -main [& args]
