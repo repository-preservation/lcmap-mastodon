@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [lcmap.mastodon.cljc.core :as mcore]
             [lcmap.mastodon.cljc.util :as util]
-            [lcmap.mastodon.clj.ard :as ard]
+            [lcmap.mastodon.cljc.ard :as ard]
             [cheshire.core :as json]
             [environ.core :as environ]
             [org.httpkit.client :as http]
