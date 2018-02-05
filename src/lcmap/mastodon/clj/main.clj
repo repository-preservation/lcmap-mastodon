@@ -30,22 +30,22 @@
       (swap! ingested-ard-atom conj tif)))
   true)
 
-(defn ingest_error [ard body error]
-  (let [ard_log "ingest_error_list.log"
-        msg_log "ingest_error_body.log"]
+(defn ingest_error [ard body error tileid]
+  (let [ard_log (str "ingest_error_list_" tileid ".log")
+        msg_log (str "ingest_error_body_" tileid ".log")]
     (spit ard_log (str ard "\n") :append true)
-    (spit msg_log (str ard " - " body " - " error "\n"))))
+    (spit msg_log (str ard " - " body " - " error "\n") :append true)))
 
-(defn ingest-ard [ard iwds_resource]
- (let [iwds_path (str iwds_resource "/inventory")
-       post_opts {:body (json/encode {"url" ard})
-                  :headers {"Content-Type" "application/json"
-                            "Accept" "application/json"}}
-       {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)]
-   (println "status: " status)
-   (if (< status 300)
-     (println "+")
-     (do (println "-") (ingest_error ard body error))))
+(defn ingest-ard [ard_list iwds_resource tileid]
+  (doseq [ard ard_list]
+    (let [iwds_path (str iwds_resource "/inventory")
+          post_opts {:body (json/encode {"url" ard})
+                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
+          {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)
+          tif_name (last (string/split ard #"/"))]
+      (println "layer: " tif_name " " status)
+      (if (> status 299)
+        (ingest_error ard body error tileid))))
   true)
 
 (defn -main [& args]
@@ -80,15 +80,15 @@
           results (pmap #(ard_status_check % iwds_resource ing_resource) ard_vec)]
 
         (if (= #{true} (set results))
-          (println "we got results...")))
+          (println "")))
           
-      (println "")
       (println "Tile Status Report for: " tileid)
       (println "To be ingested: "   (count @ard-to-ingest-atom))
       (println "Already ingested: " (count @ingested-ard-atom))
       (when (= action "ingest")
         (println "ingesting!")
-        (let [ing_results (pmap #(ingest-ard % iwds_host) @ard-to-ingest-atom)]
+        (let [ard_par (partition 10 10 "" @ard-to-ingest-atom)
+              ing_results (pmap #(ingest-ard % iwds_host tileid) ard_par)]
           (when (= #{true} (set ing_results)) (println "Ingest complete!")) )))
   (System/exit 0))
 
