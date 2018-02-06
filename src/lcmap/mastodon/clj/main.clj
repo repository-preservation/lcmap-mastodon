@@ -40,11 +40,12 @@
   (doseq [ard ard_list]
     (let [iwds_path (str iwds_resource "/inventory")
           post_opts {:body (json/encode {"url" ard})
+                     :timeout 60000
                      :headers {"Content-Type" "application/json" "Accept" "application/json"}}
           {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))]
       (println "layer: " tif_name " " status)
-      (if (> status 299)
+      (when (> status 299) 
         (ingest_error ard body error tileid))))
   true)
 
@@ -87,7 +88,7 @@
       (println "Already ingested: " (count @ingested-ard-atom))
       (when (= action "ingest")
         (println "ingesting!")
-        (let [ard_par (partition 10 10 "" @ard-to-ingest-atom)
+        (let [ard_par (partition 50 50 "" @ard-to-ingest-atom)
               ing_results (pmap #(ingest-ard % iwds_host tileid) ard_par)]
           (when (= #{true} (set ing_results)) (println "Ingest complete!")) )))
   (System/exit 0))
