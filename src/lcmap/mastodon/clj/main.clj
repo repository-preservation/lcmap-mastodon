@@ -13,13 +13,13 @@
 (def ingested-and-missing-ard-atom (atom []))
 (def ard-errored-on-ingest-atom (atom []))
 
-(defn http-body-to-list [inbody]
-  (if (nil? inbody)
+(defn string-to-list [instring]
+  (if (nil? instring)
     []
-    (do (-> inbody (string/replace "[" "") 
-                   (string/replace "]" "") 
-                   (string/replace "\"" "") 
-                   (string/split #",")))))
+    (do (-> instring (string/replace "[" "") 
+                     (string/replace "]" "") 
+                     (string/replace "\"" "") 
+                     (string/split #",")))))
 
 (defn ard_status_check [tif iwds_resource ing_resource]
   (let [iwdsresp (http/get (str iwds_resource tif))
@@ -42,26 +42,23 @@
           post_opts {:body (json/encode {"url" ard})
                      :timeout 60000
                      :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-          {:keys [status headers body error] :as ard_resp} @(http/post iwds_path post_opts)
+          {:keys [status headers body error] :as resp} @(http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))]
-      (println "layer: " tif_name " " status)
+      (println (str "layer: " tif_name " " status))
       (when (> status 299) 
         (ingest_error ard body error tileid))))
   true)
 
 (defn -main [& args]
-  (let [tileid      (first args)
-        action      (last args)
-        iwds_host   (:iwds-host   environ/env)
-        ard_host    (:ard-host    environ/env)
-        ingest_host (:ingest-host environ/env)]
+  (let [tileid          (first args)
+        autoingest      (last  args)
+        iwds_host       (:iwds-host   environ/env)
+        ard_host        (:ard-host    environ/env)
+        ingest_host     (:ingest-host environ/env)
+        partition_level (read-string (:partition-level environ/env))]
 
     (when (nil? (re-matches #"[0-9]{6}" tileid))
       (println "Invalid Tile Id: " tileid)
-      (System/exit 0))
-
-    (when (not (contains? #{"report" "ingest"} action))
-      (println "Invalid action, must use 'report' or 'ingest': " action)
       (System/exit 0))
 
     (when (nil? iwds_host)
@@ -72,24 +69,41 @@
       (println "ARD_HOST must be defined in your environment, exiting")
       (System/exit 0))
 
+    (when (not (int? partition_level))
+      (println "PARTITION_LEVEL must be an integer defined in your environment, exiting ")
+      (System/exit 0))
+
     (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
           ard_resource  (mcore/ard-url-format ard_host tileid)
           ard_download  (str ard_host "/ardtars/")
           ing_resource  (or ingest_host ard_download)
-          {:keys [status headers body error] :as ard_resp} @(http/get ard_resource)
-          ard_vec (-> body (http-body-to-list) (util/with-suffix "tar") (ard/expand-tars))
-          results (pmap #(ard_status_check % iwds_resource ing_resource) ard_vec)]
+          {:keys [status headers body error] :as resp} @(http/get ard_resource)
+          ard_vector    (-> body (string-to-list) (util/with-suffix "tar") (ard/expand-tars))
+          ard_results   (pmap #(ard_status_check % iwds_resource ing_resource) ard_vector)]
 
-        (if (= #{true} (set results))
-          (println "")))
-          
+      ; realize the pmap results
+      (= #{true} (set ard_results))
+
       (println "Tile Status Report for: " tileid)
       (println "To be ingested: "   (count @ard-to-ingest-atom))
       (println "Already ingested: " (count @ingested-ard-atom))
-      (when (= action "ingest")
-        (println "ingesting!")
-        (let [ard_par (partition 50 50 "" @ard-to-ingest-atom)
-              ing_results (pmap #(ingest-ard % iwds_host tileid) ard_par)]
-          (when (= #{true} (set ing_results)) (println "Ingest complete!")) )))
+      (println "")
+
+      (if (= autoingest "-y")
+        (do 
+          (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
+                 ingest_set    (pmap #(ingest-ard % iwds_host tileid) ard_partition)]
+             (= #{true} (set ingest_set))
+             (println "Ingest complete!")))
+        (do (println "Ingest? (y/n)")
+          (let [ingest        (read-line)
+                ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
+                ingest_set    (pmap #(ingest-ard % iwds_host tileid) ard_partition)]
+            (if (= ingest "y")
+              (do (when (= #{true} (set ingest_set))
+                    (println "Ingest complete!")))
+              (do (println "Exiting!")
+                  (System/exit 0))))))))
   (System/exit 0))
+
 
