@@ -41,14 +41,16 @@
     (doseq [ard ard_list]
       (let [iwds_path (str iwds_resource "/inventory")
             post_opts {:body (json/encode {"url" ard})
-                       :timeout 60000
+                       :timeout 120000
                        :headers {"Content-Type" "application/json" "Accept" "application/json"}}
             ard_resp (http/post iwds_path post_opts)
             tif_name (last (string/split ard #"/"))]
-        (println (str "layer: " tif_name " " (:status @ard_resp)))
-        (when (> (:status @ard_resp) 299) 
-          (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))
-    (= 1 1)
+            (println (str "layer: " tif_name " " (:status @ard_resp)))
+            (if (nil? (:status @ard_resp))
+              (do (println (str "Status nil for " tif_name)))
+              (do (when (> (:status @ard_resp) 299) 
+                   (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))))
+      (= 1 1)
     (catch Exception ex 
       (.printStackTrace ex)
       (str "caught exception in ingest-ard: " (.getMessage ex)))))
