@@ -28,7 +28,7 @@
     (if (= (:body @iwdsresp) "[]")
       (swap! ard-to-ingest-atom conj (str ing_resource "/" tarpath "/" tar "/" tif))
       (swap! ingested-ard-atom conj tif)))
-  true)
+    (= 1 1))
 
 (defn ingest_error [ard body error tileid]
   (let [ard_log (str "ingest_error_list_" tileid ".log")
@@ -37,17 +37,21 @@
     (spit msg_log (str ard " - " body " - " error "\n") :append true)))
 
 (defn ingest-ard [ard_list iwds_resource tileid]
-  (doseq [ard ard_list]
-    (let [iwds_path (str iwds_resource "/inventory")
-          post_opts {:body (json/encode {"url" ard})
-                     :timeout 60000
-                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-          ard_resp (http/post iwds_path post_opts)
-          tif_name (last (string/split ard #"/"))]
-      (println (str "layer: " tif_name " " (:status @ard_resp)))
-      (when (> (:status @ard_resp) 299) 
-        (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))
-  true)
+  (try 
+    (doseq [ard ard_list]
+      (let [iwds_path (str iwds_resource "/inventory")
+            post_opts {:body (json/encode {"url" ard})
+                       :timeout 60000
+                       :headers {"Content-Type" "application/json" "Accept" "application/json"}}
+            ard_resp (http/post iwds_path post_opts)
+            tif_name (last (string/split ard #"/"))]
+        (println (str "layer: " tif_name " " (:status @ard_resp)))
+        (when (> (:status @ard_resp) 299) 
+          (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))
+    (= 1 1)
+    (catch Exception ex 
+      (.printStackTrace ex)
+      (str "caught exception in ingest-ard: " (.getMessage ex)))))
 
 (defn -main [& args]
   (let [tileid          (first args)
