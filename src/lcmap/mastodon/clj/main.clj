@@ -8,10 +8,10 @@
             [org.httpkit.client :as http]
             [clojure.string :as string]))
 
-(def ard-to-ingest-atom (atom []))
-(def ingested-ard-atom (atom []))
+(def ard-to-ingest-atom            (atom []))
+(def ingested-ard-atom             (atom []))
 (def ingested-and-missing-ard-atom (atom []))
-(def ard-errored-on-ingest-atom (atom []))
+(def ard-errored-on-ingest-atom    (atom []))
 
 (defn string-to-list [instring]
   (if (nil? instring)
@@ -42,11 +42,11 @@
           post_opts {:body (json/encode {"url" ard})
                      :timeout 60000
                      :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-          {:keys [status headers body error] :as resp} @(http/post iwds_path post_opts)
+          ard_resp (http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))]
-      (println (str "layer: " tif_name " " status))
-      (when (> status 299) 
-        (ingest_error ard body error tileid))))
+      (println (str "layer: " tif_name " " (:status @ard_resp)))
+      (when (> (:status @ard_resp) 299) 
+        (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))
   true)
 
 (defn -main [& args]
