@@ -93,15 +93,15 @@
         (do 
           (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
                  ingest_set    (pmap #(ingest-ard % iwds_host tileid) ard_partition)]
-             (= #{true} (set ingest_set))
+             (count ingest_set) ; realize ingest_set, a lazy sequence
              (println "Ingest complete!")))
         (do (println "Ingest? (y/n)")
           (let [ingest        (read-line)
                 ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
                 ingest_set    (pmap #(ingest-ard % iwds_host tileid) ard_partition)]
             (if (= ingest "y")
-              (do (when (= #{true} (set ingest_set))
-                    (println "Ingest complete!")))
+              (do (count ingest_set) ; realize ingest_set, a lazy sequence 
+                  (println "Ingest Complete!"))
               (do (println "Exiting!")
                   (System/exit 0))))))))
   (System/exit 0))
