@@ -1,7 +1,7 @@
-(ns lcmap.mastodon.ard
+(ns lcmap.mastodon.cljc.ard
   (:require [clojure.string :as string]
             [clojure.set :as set]
-            [lcmap.mastodon.util :as util]))
+            [lcmap.mastodon.cljc.util :as util]))
 
 (def L457-ard-map
   (hash-map :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7" "PIXELQA")
@@ -21,18 +21,23 @@
   "Derive an ARD tif files original containing Tar file name"
   [tif-name]
   (let [base_name   (string/replace tif-name ".tif" "")
-        base_list   (string/split base_name "_")
+        base_list   (string/split base_name #"_")
         base_suffix (last base_list)
         base_prefix (keyword (first base_list))
         tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
       (str (string/replace base_name base_suffix tar_suffix) ".tar")))
+
+(defn full-name 
+  [tif-name]
+  (str (tar-name tif-name) "/" tif-name)
+)
 
 (defn ard-manifest
   "From a ARD tar file name, return a list of that tar
    files expected contents.
    ^String :ard-tar:"
   [ard-tar]
-  (let [tar-all   (-> ard-tar (string/replace ".tar" "") (string/split "_"))
+  (let [tar-all   (-> ard-tar (string/trim) (string/replace ".tar" "") (string/split #"_"))
         tar-pre   (string/join "_" (take 7 tar-all))
         key-last  (keyword (last tar-all))
         key-first (keyword (first tar-all))
@@ -65,7 +70,7 @@
 (defn tar-path [tar]
   ;; /tm/ARD_Tile/2011/CU/015/005/LT05_CU_015005_20111110_20170926_C01_V01_SR.tar
   (let [mission-map {"LT04" "tm" "LT05" "tm" "LE07" "etm" "LC08" "oli_tirs"}
-        parts-list (-> tar (string/replace ".tar" "") (string/split "_"))
+        parts-list (-> tar (string/replace ".tar" "") (string/split #"_"))
         mission  (get mission-map (nth parts-list 0)) 
         year (-> (nth parts-list 3) (subs 0 4))
         location (nth parts-list 1)

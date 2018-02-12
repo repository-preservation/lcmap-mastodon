@@ -14,33 +14,31 @@
     <script src="js/compiled/mastodon_min.js" type="text/javascript"></script>
     <script type="text/javascript">
       $(document).ready(function() {
-         lcmap.mastodon.dom.disable_btn("chpsubmit");
+         lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
-            lcmap.mastodon.dom.show_div("busydiv");
-            lcmap.mastodon.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
+            lcmap.mastodon.cljs.dom.show_div("busydiv");
+            lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
+            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
           });   
 
           $("#frmsubmit").click(function() {
-            lcmap.mastodon.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
-            lcmap.mastodon.dom.show_div("busydiv");
-            lcmap.mastodon.dom.set_div_content("error-container", "");
+            lcmap.mastodon.cljs.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
+            lcmap.mastodon.cljs.dom.show_div("busydiv");
+            lcmap.mastodon.cljs.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
             var idwhost = $("#idwshost").val();
             var ingesthost = $("#ingesthost").val();
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-            lcmap.mastodon.core.assess_ard(ardhost, idwhost, ingesthost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                                                  "ardmissing-counter",
-                                                                                                                  "iwdsmissing-list",
-                                                                                                                  "arderror-counter",
-                                                                                                                  "error-container");
+            lcmap.mastodon.cljs.core.assess_ard(ardhost, idwhost, ingesthost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                                                       "ardmissing-counter",
+                                                                                                                       "iwdsmissing-list",
+                                                                                                                       "arderror-counter",
+                                                                                                                       "error-container");
           });
-
       });
-
     </script>
 
   </head>

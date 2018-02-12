@@ -1,8 +1,9 @@
-(ns lcmap.mastodon.util
+(ns lcmap.mastodon.cljc.util
   (:require [clojure.string :as string]))
 
 (defn log [msg]
-  (.log js/console msg)
+  #? (:clj (println msg)
+      :cljs (.log js/console msg))
 )
 
 (defn get-map-val
@@ -68,5 +69,42 @@
 
   (if (string/ends-with? input "/")
     input
-    (str input "/"))
-)
+    (str input "/")))
+
+(defn hv-map
+  "Helper function.
+   Return map for :h and :v given
+   a tileid of hhhvvv e.g 052013
+
+   ^String :id: 6 character string representing tile id
+   ^Expression :regx: Optional expression to parse tile id
+
+   Returns map with keys :h & :v"
+  [id & [regx]]
+  (let [match (re-seq (or regx #"[0-9]{3}") id)]
+    (hash-map :h (first match)
+              :v (last match))))
+
+(defn ard-url-format
+  "URL generation function for requests to an ARD file access server
+
+   ^String :host:    Host name
+   ^String :tile-id: Tile ID
+
+   Returns formatted url as a string for requesting source list from ARD server"
+  [host tile-id]
+  (let [hvm (hv-map tile-id)
+        host-fmt (trailing-slash host)]
+    (str host-fmt "ard/" (:h hvm) (:v hvm))))
+
+(defn iwds-url-format
+  "URL generation function for requests to an LCMAP-Chipmunk instance
+
+   ^String :host:    lcmap-chipmunk instance host
+   ^String :tile-id: Tile ID
+
+   Returns formatted url as a string for requesting source list from IWDS"
+  [host tile-id]
+  (let [host-fmt (trailing-slash host)]
+    (str host-fmt "inventory?only=source&tile=" tile-id)))
+
