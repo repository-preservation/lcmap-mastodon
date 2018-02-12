@@ -2,7 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.test :refer-macros [deftest is async]]
             [clojure.string :as string]
-            [lcmap.mastodon.cljc.core :as mc]
+            [lcmap.mastodon.cljs.core :as mc]
             [lcmap.mastodon.cljs.http :as mhttp]
             [lcmap.mastodon.data :as testdata]
             [lcmap.mastodon.cljc.util :as util]
@@ -35,18 +35,18 @@
 (deftest hv-map-test
   (is 
     (= {:h "002" :v "999"} 
-       (mc/hv-map "002999"))))
+       (util/hv-map "002999"))))
 
 (deftest ard-url-format-test
   (is
     (= "http://magichost.org/ard/043999"
-       (mc/ard-url-format "http://magichost.org" "043999"))))
+       (util/ard-url-format "http://magichost.org" "043999"))))
 
 
 (deftest iwds-url-format-test
   (is
     (= "http://magichost.org/inventory?only=source&tile=043999"
-       (mc/iwds-url-format "http://magichost.org" "043999"))))
+       (util/iwds-url-format "http://magichost.org" "043999"))))
 
 ;; ard tests
 (deftest key-for-value-test
