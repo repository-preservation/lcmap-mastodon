@@ -40,15 +40,20 @@ Alternatively, should you prefer to ingest large amounts of ARD
 from the command line, you have that option as well.
 
   lein uberjar
+  
   $ java -jar target/lcmap-mastodon-0.1.13-standalone.jar 005015
   Tile Status Report for:  005015
   To be ingested:  28
   Already ingested:  3
 
   Ingest? (y/n) 
+  
   y
+  
   layer: LT05_CU_005015_19840508_20170912_C01_V01_SRB1.tif 200
+  
   layer: LE07_CU_005015_20021221_20170919_C01_V01_SRB4.tif 200
+  
   layer: LT05_CU_005015_19840508_20170912_C01_V01_SRB5.tif 200
 
 You'll need to export the ARD_HOST, IWDS_HOST and optionally INGEST_HOST variables
