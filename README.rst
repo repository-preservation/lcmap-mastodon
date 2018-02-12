@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/USGS-EROS/lcmap-mastodon.svg?branch=develop)](https://travis-ci.org/USGS-EROS/lcmap-mastodon)
+.. image:: https://travis-ci.org/USGS-EROS/lcmap-mastodon.svg?branch=develop
+    :target: https://travis-ci.org/USGS-EROS/lcmap-mastodon
+
 
 Mastodon
 ========
@@ -18,8 +20,8 @@ The Mastodon UI is a simple static HTML file and javascript served
 up by NGINX within a Docker container.
 
 To get the latest image:
-.. code-block:: bash
-    docker pull usgseros/lcmap-mastodon
+
+   docker pull usgseros/lcmap-mastodon
 
 The usgseros/lcmap-mastodon image depends on definition of three 
 environment variables to run
@@ -93,7 +95,7 @@ To get a repl run:
 
 ## Testing
 
-Run `make runtests`
+  make runtests
 
 ## License
 Unlicense
