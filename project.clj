@@ -1,4 +1,4 @@
-(defproject lcmap-mastodon "0.1.9"
+(defproject lcmap-mastodon "0.1.13"
   :description "Functions for LCMAP data curation"
   :url "https://eros.usgs.gov"
   :license {:name "Unlicense"
@@ -9,7 +9,10 @@
   :dependencies [[org.clojure/clojure "1.9.0-beta4"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async  "0.3.443"]
+                 [cheshire "5.8.0"]
+                 [environ "1.1.0"]
                  [cljs-http "0.1.43"]
+                 [http-kit "2.2.0"]
                  [lein-doo "0.1.8"]]
 
   :plugins [[lein-figwheel "0.5.14"]
@@ -24,21 +27,23 @@
   :cljsbuild {:builds
               [{:id "dev"
                 :source-paths ["src" "test"]
-                ;; The presence of a :figwheel configuration here will cause figwheel to inject the figwheel client into your build
+                ;; The presence of a :figwheel configuration here will cause figwheel 
+                ;; to inject the figwheel client into your build
                 :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
 
-                :compiler {:main lcmap.mastodon.core
+                :compiler {:main lcmap.mastodon.cljs.core
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/mastodon.js"
                            :output-dir "resources/public/js/compiled/out"
                            :source-map-timestamp true
                            :preloads [devtools.preload]}}
 
-               ;; This next build is a compressed minified build for production. You can build this with: lein cljsbuild once min
+               ;; This next build is a compressed minified build for production. 
+               ;; You can build this with: lein cljsbuild once min
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-                           :main lcmap.mastodon.core
+                           :main lcmap.mastodon.cljs.core
                            :optimizations :advanced
                            :pretty-print true
                            :externs ["resources/public/js/compiled/mastodon_min.js"]}}
@@ -63,8 +68,9 @@
                    :repl-options {:nrepl-middleware [cemerick.piggieback/wrap-cljs-repl]}
                    ;; need to add the compliled assets to the :clean-targets
                    :clean-targets ^{:protect false} ["resources/public/js/compiled" :target-path]}
-
-
-
-  } ;;profiles
+             :repl    {:resource-paths ["dev"]
+:dependencies [[cider/cider-nrepl "0.15.1"]]}
+             :uberjar {:omit-source true
+                       :aot :all}} ;;profiles
+  :main lcmap.mastodon.clj.main
 ) ;;defproject
