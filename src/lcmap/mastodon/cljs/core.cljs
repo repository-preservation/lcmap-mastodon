@@ -1,15 +1,10 @@
-(ns lcmap.mastodon.cljc.core
-  #? (:cljs (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
-  (:require #? (:clj  [lcmap.mastodon.clj.http :as http]
-                :cljs [lcmap.mastodon.cljs.http :as http])
+(ns lcmap.mastodon.cljs.core
+(:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [lcmap.mastodon.cljs.http :as http]
             [lcmap.mastodon.cljc.ard  :as ard]
-            #? (:cljs [lcmap.mastodon.cljs.dom  :as dom]) 
+            [lcmap.mastodon.cljs.dom  :as dom]
             [lcmap.mastodon.cljc.util :as util]
-            #? (:clj  [clojure.core.async :refer [<! >! chan go go-loop]]
-                :cljs [cljs.core.async :refer [<! >! chan]])
-
-            
-  ))
+            [cljs.core.async :refer [<! >! chan]]))
 
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
@@ -23,8 +18,6 @@
 (def iwds-resource-atom (atom {:path ""}))   ;; atom containing IWDS host
 (def ingest-resource-atom (atom {:path ""})) ;; atom containing Ingest host
 
-(defn -main [] (prn "hey there"))
-
 (defn keep-host-info
   "Function for persisting ARD and IWDS host information within Atoms
 
@@ -34,43 +27,6 @@
   (swap! ard-resource-atom  assoc :path ard-host)
   (swap! iwds-resource-atom assoc :path iwds-host)
   (swap! ingest-resource-atom assoc :path ingest-host))
-
-(defn hv-map
-  "Helper function.
-   Return map for :h and :v given
-   a tileid of hhhvvv e.g 052013
-
-   ^String :id: 6 character string representing tile id
-   ^Expression :regx: Optional expression to parse tile id
-
-   Returns map with keys :h & :v"
-  [id & [regx]]
-  (let [match (re-seq (or regx #"[0-9]{3}") id)]
-    (hash-map :h (first match)
-              :v (last match))))
-
-(defn ard-url-format
-  "URL generation function for requests to an ARD file access server
-
-   ^String :host:    Host name
-   ^String :tile-id: Tile ID
-
-   Returns formatted url as a string for requesting source list from ARD server"
-  [host tile-id]
-  (let [hvm (hv-map tile-id)
-        host-fmt (util/trailing-slash host)]
-    (str host-fmt "ard/" (:h hvm) (:v hvm))))
-
-(defn iwds-url-format
-  "URL generation function for requests to an LCMAP-Chipmunk instance
-
-   ^String :host:    lcmap-chipmunk instance host
-   ^String :tile-id: Tile ID
-
-   Returns formatted url as a string for requesting source list from IWDS"
-  [host tile-id]
-  (let [host-fmt (util/trailing-slash host)]
-    (str host-fmt "inventory?only=source&tile=" tile-id)))
 
 (defn compare-iwds 
   "Compare the available ARD resources against whats available from IWDS. This
@@ -90,8 +46,7 @@
     (let [ard-tifs   (<! ard-channel)
           iwds-tifs  (ard/iwds-tifs (<! (iwds-request iwds-url)))
           ard-report (ard/ard-iwds-report ard-tifs (:tifs iwds-tifs))
-          dom-update #? (:cljs (or dom-func dom/update-for-ard-check) 
-                         :clj nil)
+          dom-update (or dom-func dom/update-for-ard-check)
           report-map (hash-map :ingested-count     (count (:ingested ard-report))
                                :ard-missing-count  (count (:ard-only ard-report))
                                :iwds-missing       (:iwd-only ard-report)
@@ -100,10 +55,7 @@
           (util/log (str "ARD Status Report: " report-map))
           (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
           (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          
-          #? (:cljs (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs))) 
-
-)))
+          (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs)))))
 
 (defn ^:export assess-ard
   "Diff function, comparing what source files the ARD source has available, 
@@ -127,9 +79,9 @@
   [ard-host iwds-host ingest-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn iwds-req-fn]]
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or iwds-req-fn http/get-request)
-          ard-inventory-resource (ard-url-format ard-host  tile-id)
+          ard-inventory-resource (util/ard-url-format ard-host  tile-id)
           ard-download-resource  (str ard-host "/ardtars")
-          iwds-resource          (iwds-url-format iwds-host tile-id)
+          iwds-resource          (util/iwds-url-format iwds-host tile-id)
           iwds-post-url          (str iwds-host "/inventory")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
@@ -155,10 +107,9 @@
   (go
     (let [tifs (<! ingest-channel)]
       (doseq [t tifs]
-        #? (:cljs (dom/set-div-content ingesting-div [(str "Ingesting: " t)]))
+        (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
         (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
-      #? (:cljs (dom/update-for-ingest-completion busy-div ingesting-div)) 
-)))
+      (dom/update-for-ingest-completion busy-div ingesting-div))))
 
 (defn ingest-status-handler 
   "Function parked on the ingest-status-chan channel. Handles successful and
@@ -175,9 +126,9 @@
           body     (:body response)]
       (if (= 200 status)
           (do (util/log "status is 200")
-              #? (:cljs (dom/update-for-ingest-success counter-map)))
+              (dom/update-for-ingest-success counter-map))
           (do (util/log (str "status is NOT 200, ingest failed. message: " body))
-              #? (:cljs (dom/update-for-ingest-fail counter-map))  ) ))
+              (dom/update-for-ingest-fail counter-map))))
     (recur)))
 
 (defn ^:export ingest 
@@ -204,7 +155,7 @@
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)]
 
-    #? (:cljs (dom/update-for-ingest-start (:progress counter-map) ard-count)) 
+    (dom/update-for-ingest-start (:progress counter-map) ard-count) 
     (ingest-status-handler ingest-status-chan counter-map) 
     (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
     (go (>! ard-to-ingest-chan ard-sources))))

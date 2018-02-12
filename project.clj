@@ -31,7 +31,7 @@
                 ;; to inject the figwheel client into your build
                 :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
 
-                :compiler {:main lcmap.mastodon.cljc.core
+                :compiler {:main lcmap.mastodon.cljs.core
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/mastodon.js"
                            :output-dir "resources/public/js/compiled/out"
@@ -43,7 +43,7 @@
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-                           :main lcmap.mastodon.cljc.core
+                           :main lcmap.mastodon.cljs.core
                            :optimizations :advanced
                            :pretty-print true
                            :externs ["resources/public/js/compiled/mastodon_min.js"]}}
