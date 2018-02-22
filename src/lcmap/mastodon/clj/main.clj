@@ -1,14 +1,52 @@
 (ns lcmap.mastodon.clj.main
   (:gen-class)
-  (:require [lcmap.mastodon.cljc.util :as util]
-            [lcmap.mastodon.cljc.ard :as ard]
-            [cheshire.core :as json]
-            [environ.core :as environ]
-            [org.httpkit.client :as http]
-            [clojure.string :as string]))
+  (:require 
+            [cheshire.core            :as json]
+            [clojure.string           :as string]
+            [compojure.core           :as compojure]
+            [compojure.route          :as route]
+            [environ.core             :as environ]
+            [lcmap.mastodon.cljc.ard  :as ard]
+            [lcmap.mastodon.cljc.util :as util]
+            [org.httpkit.client       :as http]
+            [org.httpkit.server       :as server]
+            [org.satta.glob           :as glob]
+            [ring.middleware.json     :as ring-json]))
 
 (def ard-to-ingest-atom (atom []))
 (def ingested-ard-atom  (atom []))
+
+; export ARDPATH=/tmp/fauxard/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
+(def ardpath (:ardpath environ/env))
+
+(defn strip-path 
+  "Return the filename, minus the path"
+  [filepath]
+  (last (string/split filepath #"/")))
+
+(defn jfile-name 
+  "Convert java.io.File object into string of file name"
+  [jfile]
+  (strip-path (str jfile)))
+
+(defn get-filenames
+  "Return list of files for a given filesystem path patter"
+  [filepath]
+  (map jfile-name (glob/glob filepath)))
+
+(defn hv-map
+  "Return hash-map for :h and :v given a tileid of hhhvvv e.g 052013"
+  [id & [regx]]
+  (let [match (re-seq (or regx #"[0-9]{3}") id)]
+    (hash-map :h (first match)
+              :v (last match))))
+
+(defn ard-lookup 
+  "Return list of ARD for a give tileid"
+  [tileid]
+  (let [hvmap (hv-map tileid)
+        fpath (str ardpath (:h hvmap) "/" (:v hvmap) "/*")]
+    {:status 200 :body (get-filenames fpath)}))
 
 (defn string-to-list 
   "Convert a list represented as a string into a list"
@@ -60,60 +98,23 @@
       (.printStackTrace ex)
       (str "caught exception in ingest-ard: " (.getMessage ex)))))
 
-(defn -main 
-  "Report on a Tile's ARD status, provide "
-  [& args]
-  (let [tileid          (first args)
-        autoingest      (last  args)
-        iwds_host       (:iwds-host   environ/env)
-        ard_host        (:ard-host    environ/env)
-        ingest_host     (:ingest-host environ/env)
-        partition_level (read-string (:partition-level environ/env))]
+(defn get-base [request]
+{:status 200 :body ["Would you like some ARD with that?"]})
 
-    (when (nil? (re-matches #"[0-9]{6}" tileid))
-      (println "Invalid Tile Id: " tileid)
-      (System/exit 0))
+;; ## Routes
+(compojure/defroutes routes
+  (compojure/context "/" request
+    (route/resources "/")
+    (compojure/GET "/" [] (get-base request))
+    (compojure/GET "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-lookup tileid))
+))
 
-    (when (nil? iwds_host)
-      (println "IWDS_HOST must be defined in your environment, exiting")
-      (System/exit 0))
+(def app (-> routes 
+             (ring-json/wrap-json-body {:keywords? true})
+             (ring-json/wrap-json-response)))
 
-    (when (nil? ard_host)
-      (println "ARD_HOST must be defined in your environment, exiting")
-      (System/exit 0))
+(declare http-server)
 
-    (when (not (int? partition_level))
-      (println "PARTITION_LEVEL must be an integer defined in your environment, exiting ")
-      (System/exit 0))
-
-    (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
-          ard_resource  (util/ard-url-format ard_host tileid)
-          ard_download  (str ard_host "/ardtars/")
-          ing_resource  (or ingest_host ard_download)
-          {:keys [status headers body error] :as resp} @(http/get ard_resource)
-          ard_vector    (-> body (string-to-list) (util/with-suffix "tar") (ard/expand-tars))
-          ard_results   (pmap #(ard_status_check % iwds_resource ing_resource) ard_vector)]
-
-      ; realize the pmap results
-      (count ard_results)
-
-      (println "Tile Status Report for: " tileid)
-      (println "To be ingested: "   (count @ard-to-ingest-atom))
-      (println "Already ingested: " (count @ingested-ard-atom))
-      (println "")
-
-      (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
-            ingest_map #(ingest-ard % iwds_host tileid)]
-        
-        (if (= autoingest "-y")
-          (do (count (pmap ingest_map ard_partition))
-              (println "Ingest Complete"))
-          (do (println "Ingest? (y/n) ")
-              (if (= (read-line) "y")
-                (do (count (pmap ingest_map ard_partition))
-                    (println "Ingest Complete!"))
-                (do (println "Exiting!")
-                  (System/exit 0))))))))
-  (System/exit 0))
-
+(defn -main [& args]
+  (server/run-server #'app {:port 9876}))
 
