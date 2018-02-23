@@ -80,7 +80,7 @@
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or iwds-req-fn http/get-request)
           ard-inventory-resource (util/ard-url-format ard-host  tile-id)
-          ard-download-resource  (str ard-host "/ardtars")
+          ard-download-resource  (str ard-host "/ard")
           iwds-resource          (util/iwds-url-format iwds-host tile-id)
           iwds-post-url          (str iwds-host "/inventory")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]

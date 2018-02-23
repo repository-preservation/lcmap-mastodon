@@ -95,7 +95,7 @@
   [host tile-id]
   (let [hvm (hv-map tile-id)
         host-fmt (trailing-slash host)]
-    (str host-fmt "ard/" (:h hvm) (:v hvm))))
+    (str host-fmt "inventory/" (:h hvm) (:v hvm))))
 
 (defn iwds-url-format
   "URL generation function for requests to an LCMAP-Chipmunk instance
