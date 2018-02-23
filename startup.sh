@@ -1,3 +1,3 @@
 #!/bin/bash
-nohup java -jar orb-0.1.0-SNAPSHOT-standalone.jar &
+nohup java -jar /usr/local/bin/lcmap-mastodon-0.1.13-standalone.jar &
 /usr/sbin/nginx -g 'daemon off;'

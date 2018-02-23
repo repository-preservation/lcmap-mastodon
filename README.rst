@@ -16,7 +16,31 @@ Features
 
 Running
 -------
-The Mastodon UI is simple HTML and javascript served up by NGINX within a Docker container.
+The LCMAP Mastodon application is deployed via Docker container.  All interactions
+are handled over HTTP, through an NGINX instance.
+
+Requests for available ARD, and for ingesting ARD, and proxied to a Clojure Ring
+application.
+
+Requests for ARD file access are handled by the NGINX instance.
+
+The host systems path to the mission base of the ARD directory needs to be mounted
+to `/data` in the container
+
+You must define the pattern used to traverse the mounted ARD directory so that the
+Ring application knows where to look for requested ARD
+
+.. code-block:: bash
+
+   export ARDPATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
+
+.. code-block:: bash
+
+   docker run -p 8080:80 -v /workspace/data:/data -e "ARDPATH=${ARDPATH}" usgseros/lcmap-mastodon 
+
+
+The Mastodon UI is simple HTML and javascript, which was transpiled from Clojurescript. If you exposed
+port 8080 as in the previous example, the UI will be available at http://127.0.0.1:8080/index.html
 
 To get the latest image:
 
