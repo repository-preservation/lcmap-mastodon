@@ -39,7 +39,7 @@
 
 (deftest ard-url-format-test
   (is
-    (= "http://magichost.org/ard/043999"
+    (= "http://magichost.org/inventory/043999"
        (util/ard-url-format "http://magichost.org" "043999"))))
 
 
