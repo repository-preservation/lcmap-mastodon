@@ -83,9 +83,10 @@
           ard-download-resource  (str ard-host "/ard")
           iwds-resource          (util/iwds-url-format iwds-host tile-id)
           iwds-post-url          (str iwds-host "/inventory")
+          ingest-resource        (str ingest-host "/ard")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
-          (keep-host-info ard-download-resource iwds-post-url ingest-host)
+          (keep-host-info ard-download-resource iwds-post-url ingest-resource)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     
           (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource))
                                     (util/with-suffix "tar")

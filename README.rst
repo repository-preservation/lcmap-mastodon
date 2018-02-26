@@ -8,93 +8,61 @@ Tools for facilitating LCMAP data curation.
 
 Features
 --------
-* Clojurescript for providing a simple UI
-* Standard Clojure for CLI interaction and ingest parallelization
 * Report on ARD ingest status on a per tile basis
-* Ingest available ARD that has not been processed
-* Report ARD that has been ingested, and which is now missing 
+* Ingest available ARD that has not been ingested
+* Report on ARD that has been ingested, which is now missing 
 
 Running
 -------
-The LCMAP Mastodon application is deployed via Docker container.  All interactions
-are handled over HTTP, through an NGINX instance.
-
-Requests for available ARD, and for ingesting ARD, and proxied to a Clojure Ring
-application.
-
-Requests for ARD file access are handled by the NGINX instance.
-
-The host systems path to the mission base of the ARD directory needs to be mounted
-to `/data` in the container
-
-You must define the pattern used to traverse the mounted ARD directory so that the
-Ring application knows where to look for requested ARD
+The LCMAP Mastodon application is deployed as a Docker container.  All interactions
+are handled over HTTP, via NGINX.
 
 .. code-block:: bash
 
-   export ARDPATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
+   docker run -p 8080:80 -v /workspace/data:/data -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
+   -e "IWDS_HOST=${IWDS_HOST}" --ip="192.168.43.4" usgseros/lcmap-mastodon
+
+
+Configuration
+-------------
+There are three environment variables, and up to two configurations that need to be defined.
+
+You need to mount a volume to your container at `/data`. This should be the base dir
+to where the ARD tarballs can be found
 
 .. code-block:: bash
 
-   docker run -p 8080:80 -v /workspace/data:/data -e "ARDPATH=${ARDPATH}" usgseros/lcmap-mastodon 
+   -v /localardpath/data:/data
 
 
-The Mastodon UI is simple HTML and javascript, which was transpiled from Clojurescript. If you exposed
-port 8080 as in the previous example, the UI will be available at http://127.0.0.1:8080/index.html
-
-To get the latest image:
-
-.. code-block:: bash
-
-   docker pull usgseros/lcmap-mastodon
-
-
-The usgseros/lcmap-mastodon image depends on definition of three 
-environment variables to run
+The ${ARD_PATH} environment variable is used by a glob function to determine what ARD 
+tarballs are available for a given Tile ID.  The value is determined by the directory 
+structure where the ARD is kept
 
 .. code-block:: bash
 
-    docker run -e ARD_HOST=$ARD_HOST -e INGEST_HOST=$INGEST_HOST -e IWDS_HOST=$IWDS_HOST -p 8080:80 usgseros/lcmap-mastodon:develop-0.1.13
+   export ARD_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
 
 
-- $ARD_HOST is the resource which provides the list of available ARD.
-- $IWDS_HOST is the resource which receives HTTP POST requests for ARD ingest into the IWDS. 
-- $INGEST_HOST, optional, if a different service is being used to provide HTTP access to the ARD.
+The ${ARD_HOST} environment variable is your hostname or IP address for the deployed lcmap-mastodon
+instance
 
+The ${IWDS_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
+instance
 
-The ARD_HOST instance should model the behavior of the https://github.com/USGS-EROS/lcmap-anteater project.
-
-The IWDS_HOST instance should model the behavior of the https://github.com/USGS-EROS/lcmap-chipmunk project.
-
-
-Alternatively, should you prefer to ingest large amounts of ARD
-from the command line, you have that option as well.  Just build an uberjar
-first.
+Unless requests to the application are being routed through a DNS server, you'll need to declare what
+IP address the container should use with `--ip`. This value should correspond to the ${ARD_HOST} 
+environment variable mentioned previously
 
 .. code-block:: bash
 
-    $ lein uberjar
-
-    $ java -jar target/lcmap-mastodon-0.1.13-standalone.jar 005015
-    Tile Status Report for:  005015
-    To be ingested:  28
-    Already ingested:  3
-    Ingest? (y/n) 
-    y
-    layer: LT05_CU_005015_19840508_20170912_C01_V01_SRB1.tif 200
-    layer: LE07_CU_005015_20021221_20170919_C01_V01_SRB4.tif 200
-    layer: LT05_CU_005015_19840508_20170912_C01_V01_SRB5.tif 200
+   --ip="192.168.43.4"
 
 
-You'll need to export the ARD_HOST, IWDS_HOST, PARTITION_LEVEL, and optionally INGEST_HOST variables
-before running.
-
-PARTITION_LEVEL determines how many ingest requests will be handled at a time.  If you define
-``export PARTITION_LEVEL=10`` , the list of ARD to be ingested will be divided into 10 groups
-which will be passed to Clojure's `pmap <https://clojuredocs.org/clojure.core/pmap>`_ function for parallelization.
-
-If you add the `-y` flag to the end of the java command, any not yet ingested ARD will begin 
-ingesting automatically.
+User Interface
+--------------
+The Mastodon UI is simple HTML and javascript. If you exposed port 8080 as in the previous example, 
+the UI will be available at http://127.0.0.1:8080
 
 
 Development Clojurescript
@@ -153,6 +121,18 @@ Testing
 .. code-block:: bash
 
   make runtests
+
+
+Docker
+------
+Before building a new docker image, you'll need to create a new uberjar and transpile the 
+clojurescript
+
+.. code-block:: bash
+
+   lein uberjar
+
+
 
 License
 -------
