@@ -17,7 +17,7 @@
 (def ingested-ard-atom  (atom []))
 
 ; export ARDPATH=/tmp/fauxard/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
-(def ardpath (:ardpath environ/env))
+(def ardpath (:ard-path environ/env))
 
 (defn strip-path 
   "Return the filename, minus the path"
