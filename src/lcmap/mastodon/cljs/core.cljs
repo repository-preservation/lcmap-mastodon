@@ -4,6 +4,7 @@
             [lcmap.mastodon.cljc.ard  :as ard]
             [lcmap.mastodon.cljs.dom  :as dom]
             [lcmap.mastodon.cljc.util :as util]
+            [clojure.string :as string]
             [cljs.core.async :refer [<! >! chan]]))
 
 
@@ -80,13 +81,13 @@
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or iwds-req-fn http/get-request)
           ard-inventory-resource (util/ard-url-format ard-host  tile-id)
-          ard-download-resource  (str ard-host "/ard")
+          ;;ard-download-resource  (str ard-host "/ard")
           iwds-resource          (util/iwds-url-format iwds-host tile-id)
           iwds-post-url          (str iwds-host "/inventory")
           ingest-resource        (str ingest-host "/ard")
           dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
 
-          (keep-host-info ard-download-resource iwds-post-url ingest-resource)
+          (keep-host-info ard-host iwds-post-url ingest-resource)
           (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     
           (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource))
                                     (util/with-suffix "tar")
@@ -106,10 +107,11 @@
    Returns Core.Async Channel. Request responses are placed on the status-channel"
   [ingest-channel iwds-resource status-channel busy-div ingesting-div]
   (go
-    (let [tifs (<! ingest-channel)]
-      (doseq [t tifs]
-        (dom/set-div-content ingesting-div [(str "Ingesting: " t)])
-        (>! status-channel  (<! (http/post-request iwds-resource {"url" t}))))
+    (let [tifs (<! ingest-channel)
+          partifs (partition 5 5 "" tifs)
+          ard-resource (str (:path @ard-resource-atom) "/bulk-ingest")]
+      (doseq [t partifs]
+        (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
       (dom/update-for-ingest-completion busy-div ingesting-div))))
 
 (defn ingest-status-handler 

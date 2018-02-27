@@ -79,24 +79,31 @@
 
 (defn ingest-ard 
   "Post ingest requests to IWDS resources"
-  [ard_list iwds_resource tileid]
+  [ard iwds_resource]
   (try 
-    (doseq [ard ard_list]
-      (let [iwds_path (str iwds_resource "/inventory")
-            post_opts {:body (json/encode {"url" ard})
-                       :timeout 120000
-                       :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-            ard_resp (http/post iwds_path post_opts)
-            tif_name (last (string/split ard #"/"))]
-            (println (str "layer: " tif_name " " (:status @ard_resp)))
-            (if (nil? (:status @ard_resp))
-              (do (println (str "Status nil for " tif_name)))
-              (do (when (> (:status @ard_resp) 299) 
-                   (ingest_error ard (:body @ard_resp) (:error @ard_resp) tileid))))))
+    (let [iwds_path (str iwds_resource "/inventory")
+          post_opts {:body (json/encode {"url" ard})
+                     :timeout 120000
+                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
+          ard_resp (http/post iwds_path post_opts)
+          tif_name (last (string/split ard #"/"))]
+          (println (str "layer: " tif_name " " (:status @ard_resp))))
       (= 1 1)
     (catch Exception ex 
       (.printStackTrace ex)
       (str "caught exception in ingest-ard: " (.getMessage ex)))))
+
+(defn post-bulk-ingest
+  "Generate ingest requests for list of posted ARD"
+  [{:keys [:body] :as req}]
+  (let [tifs (:urls body)
+        tif_list (string/split tifs #",")
+        iwds (:iwds-host environ/env)
+        ingest_results (pmap #(ingest-ard % iwds) tif_list)]
+    
+    ;; realize results
+    (count ingest_results)
+    {:status 200 :body ingest_results}))
 
 (defn get-base [request]
 {:status 200 :body ["Would you like some ARD with that?"]})
@@ -107,9 +114,9 @@
     (route/resources "/")
     (compojure/GET "/" [] (get-base request))
     (compojure/GET "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-lookup tileid))
-))
+    (compojure/POST "/bulk-ingest" [] (post-bulk-ingest request))))
 
-(def app (-> routes 
+(def app (-> routes
              (ring-json/wrap-json-body {:keywords? true})
              (ring-json/wrap-json-response)))
 
