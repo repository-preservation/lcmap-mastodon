@@ -87,8 +87,7 @@
                      :headers {"Content-Type" "application/json" "Accept" "application/json"}}
           ard_resp (http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))]
-          (println (str "layer: " tif_name " " (:status @ard_resp))))
-      (= 1 1)
+          {tif_name (:status @ard_resp)})
     (catch Exception ex 
       (.printStackTrace ex)
       (str "caught exception in ingest-ard: " (.getMessage ex)))))

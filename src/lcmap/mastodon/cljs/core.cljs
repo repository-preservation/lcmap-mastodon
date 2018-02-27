@@ -81,7 +81,6 @@
     (let [ard-request-handler    (or ard-req-fn http/get-request)
           iwds-request-handler   (or iwds-req-fn http/get-request)
           ard-inventory-resource (util/ard-url-format ard-host  tile-id)
-          ;;ard-download-resource  (str ard-host "/ard")
           iwds-resource          (util/iwds-url-format iwds-host tile-id)
           iwds-post-url          (str iwds-host "/inventory")
           ingest-resource        (str ingest-host "/ard")
@@ -129,9 +128,12 @@
           body     (:body response)]
       (if (= 200 status)
           (do (util/log "status is 200")
-              (dom/update-for-ingest-success counter-map))
-          (do (util/log (str "status is NOT 200, ingest failed. message: " body))
-              (dom/update-for-ingest-fail counter-map))))
+              (doseq [ard_resp body]
+                (if (= 200 (first (vals ard_resp)))
+                  (dom/update-for-ingest-success counter-map)
+                  (do (util/log (str "status is NOT 200, ingest failed. message: " body))
+                      (dom/update-for-ingest-fail counter-map)))))
+          (do (util/log (str "non-200 response: " response)))))
     (recur)))
 
 (defn ^:export ingest 
