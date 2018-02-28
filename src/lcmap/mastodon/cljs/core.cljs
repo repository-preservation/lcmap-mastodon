@@ -5,7 +5,8 @@
             [lcmap.mastodon.cljs.dom  :as dom]
             [lcmap.mastodon.cljc.util :as util]
             [clojure.string :as string]
-            [cljs.core.async :refer [<! >! chan]]))
+            [cljs.core.async :refer [<! >! chan]]
+            [cljs.reader :refer [read-string]]))
 
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
@@ -104,10 +105,10 @@
    ^String             :ingesting-div:  The name of the div displaying the ARD being ingested
 
    Returns Core.Async Channel. Request responses are placed on the status-channel"
-  [ingest-channel iwds-resource status-channel busy-div ingesting-div]
+  [ingest-channel iwds-resource status-channel busy-div ingesting-div partition-level]
   (go
     (let [tifs (<! ingest-channel)
-          partifs (partition 5 5 "" tifs)
+          partifs (partition partition-level partition-level "" tifs)
           ard-resource (str (:path @ard-resource-atom) "/bulk-ingest")]
       (doseq [t partifs]
         (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
@@ -152,16 +153,17 @@
    Returns Core.Async channel. Parks ingest-status-handler on ingest-status-chan. 
    Parks make-chipmunk-requests on ard-to-ingest-chan, and puts ard-sources on the
    ard-to-ingest-chan."
-  [inprogress-div missing-div ingested-div busy-div error-div ingesting-div]
+  [inprogress-div missing-div ingested-div busy-div error-div ingesting-div par-level]
   (let [ard-resource-path    (:path @ard-resource-atom)
         iwds-resource-path   (:path @iwds-resource-atom)
         ingest-resource-path (:path @ingest-resource-atom)
         ard-sources          (map #(ard/tif-path % ard-resource-path ingest-resource-path) (:tifs @ard-miss-atom))
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
-        ard-count            (count ard-sources)]
+        ard-count            (count ard-sources)
+        partition-level      (read-string par-level)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count) 
     (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div)
+    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div partition-level)
     (go (>! ard-to-ingest-chan ard-sources))))
 

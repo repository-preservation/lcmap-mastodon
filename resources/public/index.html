@@ -17,9 +17,11 @@
          lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
+            var ingest_partitioning = $("#ingest_partitioning").val();
             lcmap.mastodon.cljs.dom.show_div("busydiv");
             lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
+            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
+                                            "arderror-counter", "ingesting-div", ingest_partitioning);
           });   
 
           $("#frmsubmit").click(function() {
@@ -71,6 +73,8 @@
           <label for="tileid">Tile ID</label>
           <input type="text" class="form-control" id="tileid" name="tileid" placeholder="111555">
         </div>
+        <!-- Partitioning -->
+        <input id="ingest_partitioning" name="ingest_partitioning" type="hidden" value="<INGESTPARTITIONING>">
 
       </form>
       <!-- find better solution to preventing form submission -->

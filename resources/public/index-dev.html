@@ -17,9 +17,10 @@
          lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
+            var ingest_partitioning = "10";
             lcmap.mastodon.cljs.dom.show_div("busydiv");
             lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
+            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div", ingest_partitioning);
           });   
 
           $("#frmsubmit").click(function() {
