@@ -20,12 +20,12 @@ are handled over HTTP, via NGINX.
 .. code-block:: bash
 
    docker run -p 8080:80 -v /workspace/data:/data -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
-   -e "IWDS_HOST=${IWDS_HOST}" --ip="192.168.43.4" usgseros/lcmap-mastodon
+   -e "IWDS_HOST=${IWDS_HOST}" -e "PARTITION_LEVEL=${PARTITION_LEVEL}" --ip="192.168.43.4" usgseros/lcmap-mastodon
 
 
 Configuration
 -------------
-There are three environment variables, and up to two configurations that need to be defined.
+There are four environment variables, and up to two configurations that need to be defined.
 
 You need to mount a volume to your container at `/data`. This should be the base dir
 to where the ARD tarballs can be found
@@ -49,6 +49,9 @@ instance
 
 The ${IWDS_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
 instance
+
+The ${PARTITION_LEVEL} environment variable determines the level of parallelization applied to
+the ingest process. 
 
 Unless requests to the application are being routed through a DNS server, you'll need to declare what
 IP address the container should use with `--ip`. This value should correspond to the ${ARD_HOST} 
