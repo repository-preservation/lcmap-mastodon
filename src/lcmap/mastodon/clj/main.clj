@@ -122,5 +122,64 @@
 (declare http-server)
 
 (defn -main [& args]
-  (server/run-server #'app {:port 9876}))
+  (let [tileid          (first args)
+        autoingest      (last  args)
+        iwds_host       (:iwds-host   environ/env)
+        ard_host        (:ard-host    environ/env)
+        ingest_host     (:ingest-host environ/env)
+        partition_level (read-string (:partition-level environ/env))]
+
+    (if (nil? tileid)
+      (server/run-server #'app {:port 9876}) ;; no args passed, run ring app
+      (do
+        (when (nil? (re-matches #"[0-9]{6}" tileid))
+          (println "Invalid Tile Id: " tileid)
+          (System/exit 0))
+
+        (when (nil? iwds_host)
+          (println "IWDS_HOST must be defined in your environment, exiting")
+          (System/exit 0))
+
+        (when (nil? ard_host)
+          (println "ARD_HOST must be defined in your environment, exiting")
+          (System/exit 0))
+
+        (when (not (int? partition_level))
+          (println "PARTITION_LEVEL must be an integer defined in your environment, exiting ")
+          (System/exit 0))
+
+        (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
+              ard_resource  (util/ard-url-format ard_host tileid)
+              ing_resource  (str ard_host "/ard")
+              {:keys [status headers body error] :as resp} @(http/get ard_resource)
+              ard_vector    (-> body (string-to-list) (util/with-suffix "tar") (ard/expand-tars))
+              ard_results   (pmap #(ard_status_check % iwds_resource ing_resource) ard_vector)]
+
+          ; realize the pmap results
+          (count ard_results)
+
+          (println "Tile Status Report for: " tileid)
+          (println "To be ingested: "   (count @ard-to-ingest-atom))
+          (println "Already ingested: " (count @ingested-ard-atom))
+          (println "")
+
+          (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
+                ingest_map #(ingest-ard % iwds_host)]
+            
+            (if (= autoingest "-y")
+              (do 
+                (doseq [a ard_partition]
+                  (count (pmap ingest_map a)))
+                (println "Ingest Complete"))
+              (do 
+                (println "Ingest? (y/n)")
+                (if (= (read-line) "y")
+                  (do
+                    (doseq [a ard_partition]
+                      (count (pmap ingest_map a)))
+                    (println "Ingest Complete"))
+                  (do 
+                    (println "Exiting!")
+                    (System/exit 0)))))))
+        (System/exit 0)))))
 
