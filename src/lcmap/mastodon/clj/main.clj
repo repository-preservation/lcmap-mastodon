@@ -10,6 +10,7 @@
             [lcmap.mastodon.cljc.util :as util]
             [lcmap.mastodon.clj.file  :as file]
             [lcmap.mastodon.clj.persistance :as persist]
+            [lcmap.mastodon.clj.validation :as validation]
             [org.httpkit.client       :as http]
             [org.httpkit.server       :as server]
             [ring.middleware.json     :as ring-json]
@@ -64,22 +65,14 @@
         partition_level (read-string (:partition-level environ/env))]
 
     (if (nil? tileid)
-      (server/run-server #'app {:port 9876}) ;; no args passed, run ring app
+      (do ;; no args, run server
+        (when (not (validation/not-nil? (:ard-path environ/env) "ARD_PATH"))
+          (println "validation failed, exiting")
+          (System/exit 0))
+        (server/run-server #'app {:port 9876}))
       (do
-        (when (nil? (re-matches #"[0-9]{6}" tileid))
-          (println "Invalid Tile Id: " tileid)
-          (System/exit 0))
-
-        (when (nil? iwds_host)
-          (println "IWDS_HOST must be defined in your environment, exiting")
-          (System/exit 0))
-
-        (when (nil? ard_host)
-          (println "ARD_HOST must be defined in your environment, exiting")
-          (System/exit 0))
-
-        (when (not (int? partition_level))
-          (println "PARTITION_LEVEL must be an integer defined in your environment, exiting ")
+        (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
+          (println "validation failed, exiting")
           (System/exit 0))
 
         (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
