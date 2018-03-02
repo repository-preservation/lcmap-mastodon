@@ -8,55 +8,17 @@
             [environ.core             :as environ]
             [lcmap.mastodon.cljc.ard  :as ard]
             [lcmap.mastodon.cljc.util :as util]
+            [lcmap.mastodon.clj.file  :as file]
             [org.httpkit.client       :as http]
             [org.httpkit.server       :as server]
-            [org.satta.glob           :as glob]
-            [ring.middleware.json     :as ring-json]))
+            [ring.middleware.json     :as ring-json]
+            [lcmap.mastodon.cljc.util :as util]))
 
 (def ard-to-ingest-atom (atom []))
 (def ingested-ard-atom  (atom []))
 
 ; export ARDPATH=/tmp/fauxard/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
 (def ardpath (:ard-path environ/env))
-
-(defn strip-path 
-  "Return the filename, minus the path"
-  [filepath]
-  (last (string/split filepath #"/")))
-
-(defn jfile-name 
-  "Convert java.io.File object into string of file name"
-  [jfile]
-  (strip-path (str jfile)))
-
-(defn get-filenames
-  "Return list of files for a given filesystem path patter"
-  [filepath]
-  (map jfile-name (glob/glob filepath)))
-
-(defn hv-map
-  "Return hash-map for :h and :v given a tileid of hhhvvv e.g 052013"
-  [id & [regx]]
-  (let [match (re-seq (or regx #"[0-9]{3}") id)]
-    (hash-map :h (first match)
-              :v (last match))))
-
-(defn ard-lookup 
-  "Return list of ARD for a give tileid"
-  [tileid]
-  (let [hvmap (hv-map tileid)
-        fpath (str ardpath (:h hvmap) "/" (:v hvmap) "/*")]
-    {:status 200 :body (get-filenames fpath)}))
-
-(defn string-to-list 
-  "Convert a list represented as a string into a list"
-  [instring]
-  (if (nil? instring)
-    []
-    (do (-> instring (string/replace "[" "") 
-                     (string/replace "]" "") 
-                     (string/replace "\"" "") 
-                     (string/split #",")))))
 
 (defn ard_status_check
   "Based on ingest status, put ARD into correct Atom"
@@ -103,6 +65,13 @@
     ;; realize results
     (count ingest_results)
     {:status 200 :body ingest_results}))
+
+(defn ard-lookup 
+  "Return list of ARD for a give tileid"
+  [tileid]
+  (let [hvmap (util/hv-map tileid)
+        fpath (str ardpath (:h hvmap) "/" (:v hvmap) "/*")]
+    {:status 200 :body (file/get-filenames fpath)}))
 
 (defn get-base [request]
 {:status 200 :body ["Would you like some ARD with that?"]})
@@ -152,7 +121,7 @@
               ard_resource  (util/ard-url-format ard_host tileid)
               ing_resource  (str ard_host "/ard")
               {:keys [status headers body error] :as resp} @(http/get ard_resource)
-              ard_vector    (-> body (string-to-list) (util/with-suffix "tar") (ard/expand-tars))
+              ard_vector    (-> body (util/string-to-list) (util/with-suffix "tar") (ard/expand-tars))
               ard_results   (pmap #(ard_status_check % iwds_resource ing_resource) ard_vector)]
 
           ; realize the pmap results

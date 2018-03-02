@@ -108,3 +108,12 @@
   (let [host-fmt (trailing-slash host)]
     (str host-fmt "inventory?only=source&tile=" tile-id)))
 
+(defn string-to-list 
+  "Convert a list represented as a string into a list"
+  [instring]
+  (if (nil? instring)
+    []
+    (do (-> instring (string/replace "[" "") 
+                     (string/replace "]" "") 
+                     (string/replace "\"" "") 
+                     (string/split #",")))))
