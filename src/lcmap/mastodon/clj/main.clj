@@ -9,6 +9,7 @@
             [lcmap.mastodon.cljc.ard  :as ard]
             [lcmap.mastodon.cljc.util :as util]
             [lcmap.mastodon.clj.file  :as file]
+            [lcmap.mastodon.clj.persistance :as persist]
             [org.httpkit.client       :as http]
             [org.httpkit.server       :as server]
             [ring.middleware.json     :as ring-json]
@@ -17,61 +18,25 @@
 (def ard-to-ingest-atom (atom []))
 (def ingested-ard-atom  (atom []))
 
-; export ARDPATH=/tmp/fauxard/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
-(def ardpath (:ard-path environ/env))
-
-(defn ard_status_check
-  "Based on ingest status, put ARD into correct Atom"
-  [tif iwds_resource ing_resource]
-  (let [iwdsresp (http/get (str iwds_resource tif))
-        tar      (ard/tar-name tif)
-        tarpath  (ard/tar-path tar)]
-    (if (= (:body @iwdsresp) "[]")
-      (swap! ard-to-ingest-atom conj (str ing_resource "/" tarpath "/" tar "/" tif))
-      (swap! ingested-ard-atom conj tif)))
-    (= 1 1))
-
-(defn ingest_error
-  "Record ingest error in appropriate log files"
-  [ard body error tileid]
-  (let [ard_log (str "ingest_error_list_" tileid ".log")
-        msg_log (str "ingest_error_body_" tileid ".log")]
-    (spit ard_log (str ard "\n") :append true)
-    (spit msg_log (str ard " - " body " - " error "\n") :append true)))
-
-(defn ingest-ard 
-  "Post ingest requests to IWDS resources"
-  [ard iwds_resource]
-  (try 
-    (let [iwds_path (str iwds_resource "/inventory")
-          post_opts {:body (json/encode {"url" ard})
-                     :timeout 120000
-                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-          ard_resp (http/post iwds_path post_opts)
-          tif_name (last (string/split ard #"/"))]
-          {tif_name (:status @ard_resp)})
-    (catch Exception ex 
-      (.printStackTrace ex)
-      (str "caught exception in ingest-ard: " (.getMessage ex)))))
-
-(defn post-bulk-ingest
+(defn bulk-ingest
   "Generate ingest requests for list of posted ARD"
   [{:keys [:body] :as req}]
-  (let [tifs (:urls body)
-        tif_list (string/split tifs #",")
-        iwds (:iwds-host environ/env)
-        ingest_results (pmap #(ingest-ard % iwds) tif_list)]
+  (let [tifs    (string/split (:urls body) #",")
+        iwds    (:iwds-host environ/env)
+        results (pmap #(persist/ingest % iwds) tifs)]
     
     ;; realize results
-    (count ingest_results)
-    {:status 200 :body ingest_results}))
+    (count results)
+    {:status 200 :body results}))
 
 (defn ard-lookup 
   "Return list of ARD for a give tileid"
   [tileid]
-  (let [hvmap (util/hv-map tileid)
-        fpath (str ardpath (:h hvmap) "/" (:v hvmap) "/*")]
-    {:status 200 :body (file/get-filenames fpath)}))
+  (let [hvmap     (util/hv-map tileid)
+        ardpath   (:ard-path environ/env) 
+        fpath     (str ardpath (:h hvmap) "/" (:v hvmap) "/*")
+        ard-files (file/get-filenames fpath)]
+    {:status 200 :body ard-files}))
 
 (defn get-base [request]
 {:status 200 :body ["Would you like some ARD with that?"]})
@@ -80,9 +45,9 @@
 (compojure/defroutes routes
   (compojure/context "/" request
     (route/resources "/")
-    (compojure/GET "/" [] (get-base request))
-    (compojure/GET "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-lookup tileid))
-    (compojure/POST "/bulk-ingest" [] (post-bulk-ingest request))))
+    (compojure/GET   "/" [] (get-base request))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-lookup tileid))
+    (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (def app (-> routes
              (ring-json/wrap-json-body {:keywords? true})
@@ -122,7 +87,7 @@
               ing_resource  (str ard_host "/ard")
               {:keys [status headers body error] :as resp} @(http/get ard_resource)
               ard_vector    (-> body (util/string-to-list) (util/with-suffix "tar") (ard/expand-tars))
-              ard_results   (pmap #(ard_status_check % iwds_resource ing_resource) ard_vector)]
+              ard_results   (pmap #(persist/status-check % iwds_resource ing_resource ard-to-ingest-atom ingested-ard-atom) ard_vector)]
 
           ; realize the pmap results
           (count ard_results)
@@ -133,7 +98,7 @@
           (println "")
 
           (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
-                ingest_map #(ingest-ard % iwds_host)]
+                ingest_map #(persist/ingest % iwds_host)]
             
             (if (= autoingest "-y")
               (do 
