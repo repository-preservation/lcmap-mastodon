@@ -1,20 +1,17 @@
 (ns lcmap.mastodon.clj.main
   (:gen-class)
-  (:require 
-            [cheshire.core            :as json]
-            [clojure.string           :as string]
-            [compojure.core           :as compojure]
-            [compojure.route          :as route]
-            [environ.core             :as environ]
-            [lcmap.mastodon.cljc.ard  :as ard]
-            [lcmap.mastodon.cljc.util :as util]
-            [lcmap.mastodon.clj.file  :as file]
+  (:require [clojure.string                 :as string]
+            [compojure.core                 :as compojure]
+            [compojure.route                :as route]
+            [environ.core                   :as environ]
+            [lcmap.mastodon.cljc.ard        :as ard]
+            [lcmap.mastodon.cljc.util       :as util]
+            [lcmap.mastodon.clj.file        :as file]
             [lcmap.mastodon.clj.persistance :as persist]
-            [lcmap.mastodon.clj.validation :as validation]
-            [org.httpkit.client       :as http]
-            [org.httpkit.server       :as server]
-            [ring.middleware.json     :as ring-json]
-            [lcmap.mastodon.cljc.util :as util]))
+            [lcmap.mastodon.clj.validation  :as validation]
+            [org.httpkit.client             :as http]
+            [org.httpkit.server             :as server]
+            [ring.middleware.json           :as ring-json]))
 
 (def ard-to-ingest-atom (atom []))
 (def ingested-ard-atom  (atom []))
@@ -35,12 +32,12 @@
   [tileid]
   (let [hvmap     (util/hv-map tileid)
         ardpath   (:ard-path environ/env) 
-        fpath     (str ardpath (:h hvmap) "/" (:v hvmap) "/*")
-        ard-files (file/get-filenames fpath)]
-    {:status 200 :body ard-files}))
+        filepath  (str ardpath (:h hvmap) "/" (:v hvmap) "/*")
+        ardfiles  (file/get-filenames filepath)]
+    {:status 200 :body ardfiles}))
 
 (defn get-base [request]
-{:status 200 :body ["Would you like some ARD with that?"]})
+  {:status 200 :body ["Would you like some ARD with that?"]})
 
 ;; ## Routes
 (compojure/defroutes routes
@@ -53,8 +50,6 @@
 (def app (-> routes
              (ring-json/wrap-json-body {:keywords? true})
              (ring-json/wrap-json-response)))
-
-(declare http-server)
 
 (defn -main [& args]
   (let [tileid          (first args)
