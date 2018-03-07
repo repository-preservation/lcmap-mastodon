@@ -30,11 +30,31 @@
 (defn ard-lookup 
   "Return list of ARD for a give tileid"
   [tileid]
-  (let [hvmap     (util/hv-map tileid)
-        ardpath   (:ard-path environ/env) 
-        filepath  (str ardpath (:h hvmap) "/" (:v hvmap) "/*")
-        ardfiles  (file/get-filenames filepath)]
+  (let [hvmap    (util/hv-map tileid)
+        ardpath  (:ard-path environ/env) 
+        filepath (str ardpath (:h hvmap) "/" (:v hvmap) "/*")
+        ardfiles (-> filepath (file/get-filenames) (util/with-suffix "tar"))]
     {:status 200 :body ardfiles}))
+
+(defn ard-status
+  [tileid]
+  (let [hvmap    (util/hv-map tileid)
+        filepath (-> (:ard-path environ/env) (str (:h hvmap) "/" (:v hvmap) "/*"))
+        ardtifs  (-> filepath (file/get-filenames)
+                              (util/with-suffix "tar")
+                              (#(map ard/ard-manifest %))
+                              (flatten))
+        iwds_src (-> (:iwds-host environ/env) (str "/inventory?only=source&source="))
+        ing_src  (-> (:ard-host environ/env) (str "/ard"))
+        ard_res  (pmap #(persist/status-check-http % iwds_src ing_src) ardtifs)]
+    ; realize ard_res
+    (count ard_res)
+    (let [missing  (filter (fn [i] (= (vals i) '("[]"))) ard_res)
+          ingested (filter (fn [i] (not (= (vals i) '("[]")))) ard_res)
+          miss_count   (count missing)
+          ingest_count (count ingested)
+          miss_flat (keys (apply merge-with concat missing))]
+      {:status 200 :body {:ingested ingest_count :missing miss_flat}})))
 
 (defn get-base [request]
   {:status 200 :body ["Would you like some ARD with that?"]})
@@ -44,7 +64,7 @@
   (compojure/context "/" request
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
-    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-lookup tileid))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-status tileid))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (def app (-> routes
@@ -56,7 +76,6 @@
         autoingest      (last  args)
         iwds_host       (:iwds-host   environ/env)
         ard_host        (:ard-host    environ/env)
-        ingest_host     (:ingest-host environ/env)
         partition_level (read-string (:partition-level environ/env))]
 
     (if (nil? tileid)
@@ -75,7 +94,7 @@
               ing_resource  (str ard_host "/ard")
               {:keys [status headers body error] :as resp} @(http/get ard_resource)
               ard_vector    (-> body (util/string-to-list) (util/with-suffix "tar") (ard/expand-tars))
-              ard_results   (pmap #(persist/status-check % iwds_resource ing_resource ard-to-ingest-atom ingested-ard-atom) ard_vector)]
+              ard_results   (pmap #(persist/status-check-cli % iwds_resource ing_resource ard-to-ingest-atom ingested-ard-atom) ard_vector)]
 
           ; realize the pmap results
           (count ard_results)

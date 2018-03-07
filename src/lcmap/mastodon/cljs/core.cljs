@@ -30,68 +30,26 @@
   (swap! iwds-resource-atom assoc :path iwds-host)
   (swap! ingest-resource-atom assoc :path ingest-host))
 
-(defn compare-iwds 
-  "Compare the available ARD resources against whats available from IWDS. This
-   function is parked on the ard-data-chan channel. When an ARD request response
-   lands on the ard-data-chan, make an inventory request to the IWDS. Categorize
-   the results, put them in Atoms, and update the DOM.
-
-   ^Core.Async Channel :ard-channel:  The channel containing list of ARD available for ingest
-   ^String             :iwds-url:     The lcmap-chipmunk url used to check whats been ingested for a tile
-   ^Function           :iwds-request: The function to use for checking what ARD the IWDS has ingested
-   ^Hash Map           :dom-map:      Hash map of DOM elements to update after comparison has been made
-
-   Returns a Core.Async channel. Organizes ARD by status, placing lists
-   in appropriate Atoms."
-  [ard-channel iwds-url iwds-request dom-map & [dom-func]]
+(defn report-assessment
+  [ard-channel dom-map & [dom-func]]
   (go
-    (let [ard-tifs   (<! ard-channel)
-          iwds-tifs  (ard/iwds-tifs (<! (iwds-request iwds-url)))
-          ard-report (ard/ard-iwds-report ard-tifs (:tifs iwds-tifs))
+    (let [ard-status (<! ard-channel)
           dom-update (or dom-func dom/update-for-ard-check)
-          report-map (hash-map :ingested-count     (count (:ingested ard-report))
-                               :ard-missing-count  (count (:ard-only ard-report))
-                               :iwds-missing       (:iwd-only ard-report)
+          report-map (hash-map :ingested-count (:ingested ard-status)
+                               :ard-missing-count (count (:missing ard-status))
+                               :iwds-missing   []
                                :dom-map dom-map)]
-
-          (util/log (str "ARD Status Report: " report-map))
-          (swap! ard-miss-atom assoc :tifs (:ard-only ard-report))
-          (swap! iwd-miss-atom assoc :tifs (:iwd-only ard-report))
-          (dom-update report-map (count (:ard-only ard-report)) (:errors iwds-tifs)))))
+      (util/log (str "ARD Status Report: " report-map))
+      (swap! ard-miss-atom assoc :tifs (:missing ard-status))
+      (dom-update report-map (count (:missing ard-status))))))
 
 (defn ^:export assess-ard
-  "Diff function, comparing what source files the ARD source has available, 
-   and what sources have been ingested into the data warehouse for a specific tile
-
-   ^String :ard-host:       ARD Host
-   ^String :iwds-host:      IWDS Host
-   ^String :ingest-host:    Ingest Host
-   ^String :tile-id:        Tile ID
-   ^String :region:         Region
-   ^String :bsy-div:        busy image name
-   ^String :ing-btn:        ingest button name
-   ^String :ing-ctr:        ingest counter name
-   ^String :mis-ctr:        missing counter name
-   ^String :iwds-miss-list: missing ARD div name
-   ^String :error-ctr:      error counter name
-   ^String :error-div:      error container name
-
-   Returns Core.Async Channel. Parks compare-iwds function on the ard-data-chan Channel,
-   requests ARD inventory for a given tile."
-  [ard-host iwds-host ingest-host tile-id region bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn iwds-req-fn]]
-    (let [ard-request-handler    (or ard-req-fn http/get-request)
-          iwds-request-handler   (or iwds-req-fn http/get-request)
-          ard-inventory-resource (util/ard-url-format ard-host  tile-id)
-          iwds-resource          (util/iwds-url-format iwds-host tile-id)
-          iwds-post-url          (str iwds-host "/inventory")
-          ingest-resource        (str ingest-host "/ard")
-          dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
-
-          (keep-host-info ard-host iwds-post-url ingest-resource)
-          (compare-iwds ard-data-chan iwds-resource iwds-request-handler dom-map)     
-          (go (>! ard-data-chan (-> (<! (ard-request-handler ard-inventory-resource))
-                                    (util/with-suffix "tar")
-                                    (ard/expand-tars))))))
+  [ard-host tile-id bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
+  (let [ard-request-handler    (or ard-req-fn http/get-request)
+        ard-inventory-resource (util/ard-url-format ard-host  tile-id)
+        dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
+    (report-assessment ard-data-chan dom-map) ;; park func on ard-data-chan to update dom
+    (go (>! ard-data-chan (<! (ard-request-handler ard-inventory-resource))))))
 
 (defn make-chipmunk-requests 
   "Function which makes the requests to an lcmap-chipmunk instance for ARD ingest. This
@@ -157,7 +115,7 @@
   (let [ard-resource-path    (:path @ard-resource-atom)
         iwds-resource-path   (:path @iwds-resource-atom)
         ingest-resource-path (:path @ingest-resource-atom)
-        ard-sources          (map #(ard/tif-path % ard-resource-path ingest-resource-path) (:tifs @ard-miss-atom))
+        ard-sources          (:tifs @ard-miss-atom)
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)
         partition-level      (read-string par-level)]

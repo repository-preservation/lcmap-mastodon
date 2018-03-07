@@ -20,7 +20,8 @@
             var ingest_partitioning = "10";
             lcmap.mastodon.cljs.dom.show_div("busydiv");
             lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div", ingest_partitioning);
+            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
+                                            "arderror-counter", "ingesting-div", ingest_partitioning);
           });   
 
           $("#frmsubmit").click(function() {
@@ -33,11 +34,11 @@
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-            lcmap.mastodon.cljs.core.assess_ard(ardhost, idwhost, ingesthost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                                                  "ardmissing-counter",
-                                                                                                                  "iwdsmissing-list",
-                                                                                                                  "arderror-counter",
-                                                                                                                  "error-container");
+            lcmap.mastodon.cljs.core.assess_ard(ardhost, tile_id, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                          "ardmissing-counter",
+                                                                                          "iwdsmissing-list",
+                                                                                          "arderror-counter",
+                                                                                          "error-container");
           });
 
       });
