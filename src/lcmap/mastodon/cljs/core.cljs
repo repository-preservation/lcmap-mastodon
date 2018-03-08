@@ -8,27 +8,12 @@
             [cljs.core.async :refer [<! >! chan]]
             [cljs.reader :refer [read-string]]))
 
-
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
 (def ard-to-ingest-chan (chan 1))  ;; channel used to handle ARD to ingest
 (def ingest-status-chan (chan 1))  ;; channel used to handle ingest status
 
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
 (def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IWDS
-
-(def ard-resource-atom  (atom {:path ""}))   ;; atom containing ARD host
-(def iwds-resource-atom (atom {:path ""}))   ;; atom containing IWDS host
-(def ingest-resource-atom (atom {:path ""})) ;; atom containing Ingest host
-
-(defn keep-host-info
-  "Function for persisting ARD and IWDS host information within Atoms
-
-   ^String :ard-host: name of ARD host
-   ^String :iwds-host: name of IWDS host"
-  [ard-host iwds-host ingest-host]
-  (swap! ard-resource-atom  assoc :path ard-host)
-  (swap! iwds-resource-atom assoc :path iwds-host)
-  (swap! ingest-resource-atom assoc :path ingest-host))
 
 (defn report-assessment
   [ard-channel dom-map & [dom-func]]
@@ -63,11 +48,11 @@
    ^String             :ingesting-div:  The name of the div displaying the ARD being ingested
 
    Returns Core.Async Channel. Request responses are placed on the status-channel"
-  [ingest-channel iwds-resource status-channel busy-div ingesting-div partition-level]
+  [ingest-channel status-channel ard-host busy-div ingesting-div partition-level]
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
-          ard-resource (str (:path @ard-resource-atom) "/bulk-ingest")]
+          ard-resource (str ard-host "/bulk-ingest")]
       (doseq [t partifs]
         (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
       (dom/update-for-ingest-completion busy-div ingesting-div))))
@@ -111,17 +96,14 @@
    Returns Core.Async channel. Parks ingest-status-handler on ingest-status-chan. 
    Parks make-chipmunk-requests on ard-to-ingest-chan, and puts ard-sources on the
    ard-to-ingest-chan."
-  [inprogress-div missing-div ingested-div busy-div error-div ingesting-div par-level]
-  (let [ard-resource-path    (:path @ard-resource-atom)
-        iwds-resource-path   (:path @iwds-resource-atom)
-        ingest-resource-path (:path @ingest-resource-atom)
-        ard-sources          (:tifs @ard-miss-atom)
+  [ard-host inprogress-div missing-div ingested-div busy-div error-div ingesting-div par-level]
+  (let [ard-sources          (:tifs @ard-miss-atom)
         counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)
         partition-level      (read-string par-level)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count) 
     (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan iwds-resource-path ingest-status-chan busy-div ingesting-div partition-level)
+    (make-chipmunk-requests ard-to-ingest-chan ingest-status-chan ard-host busy-div ingesting-div partition-level)
     (go (>! ard-to-ingest-chan ard-sources))))
 
