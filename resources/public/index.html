@@ -18,9 +18,10 @@
 
          $("#chpsubmit").click(function() {
             var ingest_partitioning = $("#ingest_partitioning").val();
+            var ardhost = $("#ardhost").val();
             lcmap.mastodon.cljs.dom.show_div("busydiv");
             lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
+            lcmap.mastodon.cljs.core.ingest(ardhost, "ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
                                             "arderror-counter", "ingesting-div", ingest_partitioning);
           });   
 
@@ -30,7 +31,6 @@
             lcmap.mastodon.cljs.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
             var idwhost = $("#idwshost").val();
-            var ingesthost = $("#ingesthost").val();
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
@@ -62,11 +62,6 @@
         <div id="idws-group" class="form-group">
           <label for="idwshost">IWDS Host</label> <IWDSHOST>
           <input type="hidden" class="form-control" id="idwshost" name="idwshost" value="<IWDSHOST>">
-        </div>
-        <!-- Ingest Host -->
-        <div id="idws-group" class="form-group">
-          <label for="ingesthost">Ingest Host</label> <INGESTHOST>
-          <input type="hidden" class="form-control" id="ingesthost" name="ingesthost" value="<INGESTHOST>">
         </div>
         <!-- H & V -->
         <div id="tile-group" class="form-group">
