@@ -12,7 +12,7 @@
       (println name " does not appear valid"))
     resp))
 
-(defn is-int? [val]
+(defn is-int? [val name]
   (let [resp (int? val)]
     (when (not resp)
       (println name " does not appear to be an int"))
@@ -24,4 +24,17 @@
      (set [(does-match? #"[0-9]{6}" tileid "Tile ID")
            (not-nil? iwds_host "IWDS_HOST")
            (not-nil? ard_host "ARD_HOST")
-           (is-int? par_level)])))
+           (is-int? par_level "PARTITION_LEVEL")])))
+
+(defn validate-server
+  [iwds_host ard_host par_level ard_path]
+  (= #{true} 
+     (set [(not-nil? iwds_host "IWDS_HOST")
+           (not-nil? ard_host "ARD_HOST")
+           (is-int? par_level "PARTITION_LEVEL")
+           (not-nil? ard_path "ARD_PATH")])))
+
+(defn validate-map
+  [env-map]
+  (let [nil-check (map (fn [[key val]] (not-nil? val key)) env-map)]
+    (= (set nil-check) #{true})))
