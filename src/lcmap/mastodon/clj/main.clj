@@ -3,6 +3,7 @@
   (:require [clojure.string                 :as string]
             [compojure.core                 :as compojure]
             [compojure.route                :as route]
+            [cheshire.core                  :refer :all]
             [environ.core                   :as environ]
             [lcmap.mastodon.cljc.ard        :as ard]
             [lcmap.mastodon.cljc.util       :as util]
@@ -12,9 +13,6 @@
             [org.httpkit.client             :as http]
             [org.httpkit.server             :as server]
             [ring.middleware.json           :as ring-json]))
-
-(def ard-to-ingest-atom (atom []))
-(def ingested-ard-atom  (atom []))
 
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD"
@@ -37,7 +35,7 @@
                               (flatten))
         iwds_src (-> (:iwds-host environ/env) (str "/inventory?only=source&source="))
         ing_src  (-> (:ard-host environ/env) (str "/ard"))
-        ard_res  (pmap #(persist/status-check-http % iwds_src ing_src) ardtifs)]
+        ard_res  (pmap #(persist/status-check % iwds_src ing_src) ardtifs)]
     ; realize ard_res
     (count ard_res)
     (let [missing  (filter (fn [i] (= (vals i) '("[]"))) ard_res)
@@ -84,21 +82,18 @@
         (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
               ard_resource  (util/ard-url-format ard_host tileid)
               ing_resource  (str ard_host "/ard")
-              ard_response  (http/get ard_resource)
-              ard_vector    (-> (:body @ard_response) (util/string-to-list) (util/with-suffix "tar") (ard/expand-tars))
-              status_check  #(persist/status-check-cli % iwds_resource ing_resource ard-to-ingest-atom ingested-ard-atom)
-              ard_results   (pmap status_check ard_vector)]
+              ard_response  (http/get ard_resource)]
 
-          ; realize the pmap results
-          (count ard_results)
-
-          (println "Tile Status Report for: " tileid)
-          (println "To be ingested: "   (count @ard-to-ingest-atom))
-          (println "Already ingested: " (count @ingested-ard-atom))
-          (println "")
-
-          (let [ard_partition (partition partition_level partition_level "" @ard-to-ingest-atom)
+          (let [response_map   (-> (:body @ard_response) (parse-string true))
+                missing_vector (:missing response_map)
+                ingested_count (:ingested response_map)
+                ard_partition (partition partition_level partition_level "" missing_vector)
                 ingest_map #(persist/ingest % iwds_host)]
+
+            (println "Tile Status Report for: " tileid)
+            (println "To be ingested: " (count missing_vector))
+            (println "Already ingested: " ingested_count)
+            (println "")
             
             (if (= autoingest "-y")
               (do 
