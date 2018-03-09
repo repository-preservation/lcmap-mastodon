@@ -14,6 +14,11 @@
             [org.httpkit.server             :as server]
             [ring.middleware.json           :as ring-json]))
 
+(defn pmap-partitions 
+  [infunc collection]
+  (doseq [i collection]
+    (doall (pmap infunc i))))
+
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD"
   [{:keys [:body] :as req}]
@@ -93,15 +98,13 @@
             
             (if (= autoingest "-y")
               (do 
-                (doseq [a ard_partition]
-                  (doall (pmap ingest_map a)))
+                (pmap-partitions ingest_map ard_partition)
                 (println "Ingest Complete"))
               (do 
                 (println "Ingest? (y/n)")
                 (if (= (read-line) "y")
                   (do
-                    (doseq [a ard_partition]
-                      (doall (pmap ingest_map a)))
+                    (pmap-partitions ingest_map ard_partition)
                     (println "Ingest Complete"))
                   (do 
                     (println "Exiting!")
