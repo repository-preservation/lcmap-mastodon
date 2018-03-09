@@ -27,7 +27,7 @@
       (.printStackTrace ex)
       (str "caught exception in ingest-ard: " (.getMessage ex)))))
 
-(defn status-check-http
+(defn status-check
   "Based on ingest status, put ARD into correct Atom"
   [tif iwds_resource ing_resource]
   (let [iwdsresp (http/get (str iwds_resource tif))
@@ -35,13 +35,4 @@
         tarpath  (ard/tar-path tar)]
     (hash-map (str ing_resource "/" tarpath "/" tar "/" tif) (:body @iwdsresp))))
 
-(defn status-check-cli
-  "Based on ingest status, put ARD into correct Atom"
-  [tif iwds_resource ing_resource todo-atom done-atom]
-  (let [iwdsresp (http/get (str iwds_resource tif))
-        tar      (ard/tar-name tif)
-        tarpath  (ard/tar-path tar)]
-    (if (= (:body @iwdsresp) "[]")
-      (swap! todo-atom conj (str ing_resource "/" tarpath "/" tar "/" tif))
-      (swap! done-atom conj tif)))
-    (= 1 1))
+
