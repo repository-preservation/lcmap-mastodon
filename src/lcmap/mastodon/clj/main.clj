@@ -19,10 +19,7 @@
   [{:keys [:body] :as req}]
   (let [tifs    (string/split (:urls body) #",")
         iwds    (:iwds-host environ/env)
-        results (pmap #(persist/ingest % iwds) tifs)]
-    
-    ;; realize results
-    (count results)
+        results (doall (pmap #(persist/ingest % iwds) tifs))]
     {:status 200 :body results}))
 
 (defn ard-status
@@ -35,9 +32,8 @@
                               (flatten))
         iwds_src (-> (:iwds-host environ/env) (str "/inventory?only=source&source="))
         ing_src  (-> (:ard-host environ/env) (str "/ard"))
-        ard_res  (pmap #(persist/status-check % iwds_src ing_src) ardtifs)]
-    ; realize ard_res
-    (count ard_res)
+        ard_res  (doall (pmap #(persist/status-check % iwds_src ing_src) ardtifs))]
+
     (let [missing  (filter (fn [i] (= (vals i) '("[]"))) ard_res)
           ingested (filter (fn [i] (not (= (vals i) '("[]")))) ard_res)
           miss_count   (count missing)
@@ -98,14 +94,14 @@
             (if (= autoingest "-y")
               (do 
                 (doseq [a ard_partition]
-                  (count (pmap ingest_map a)))
+                  (doall (pmap ingest_map a)))
                 (println "Ingest Complete"))
               (do 
                 (println "Ingest? (y/n)")
                 (if (= (read-line) "y")
                   (do
                     (doseq [a ard_partition]
-                      (count (pmap ingest_map a)))
+                      (doall (pmap ingest_map a)))
                     (println "Ingest Complete"))
                   (do 
                     (println "Exiting!")
