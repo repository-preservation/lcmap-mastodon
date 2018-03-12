@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.data
+(ns mastodon.data
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def xmap (hash-map :a "a" :b "b" :c "c" :d "foo"))

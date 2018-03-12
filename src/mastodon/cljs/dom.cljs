@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.cljs.dom
+(ns mastodon.cljs.dom
   (:require [cljs.reader :refer [read-string]]
             [clojure.string :as string])
   (:import goog.dom))
@@ -72,18 +72,14 @@
   )
 )
 
-(defn update-for-ard-check [params missing-count iwds-errors]
-  (if iwds-errors
-    (do (set-div-content (:error-div (:dom-map params)) iwds-errors))
-    (do 
-        (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
-        (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
-        (set-div-content (:iwds-miss-list (:dom-map params)) (:iwds-missing params))
-        (reset-counter-divs [(:error-ctr (:dom-map params))])
-        (when (> missing-count 0)
-          (enable-btn (:ing-btn (:dom-map params))))))
-  (hide-div (:bsy-div (:dom-map params)))
-)
+(defn update-for-ard-check [params missing-count]
+  (inc-counter-div (:ing-ctr (:dom-map params)) (:ingested-count params))
+  (inc-counter-div (:mis-ctr (:dom-map params)) (:ard-missing-count params))
+  (set-div-content (:iwds-miss-list (:dom-map params)) (:iwds-missing params))
+  (reset-counter-divs [(:error-ctr (:dom-map params))])
+  (when (> missing-count 0)
+    (enable-btn (:ing-btn (:dom-map params))))
+  (hide-div (:bsy-div (:dom-map params))))
 
 (defn update-for-ingest-success [params]
   (dec-counter-div (:progress params))

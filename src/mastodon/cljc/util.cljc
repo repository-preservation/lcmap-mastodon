@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.cljc.util
+(ns mastodon.cljc.util
   (:require [clojure.string :as string]))
 
 (defn log [msg]
@@ -95,7 +95,7 @@
   [host tile-id]
   (let [hvm (hv-map tile-id)
         host-fmt (trailing-slash host)]
-    (str host-fmt "ard/" (:h hvm) (:v hvm))))
+    (str host-fmt "inventory/" (:h hvm) (:v hvm))))
 
 (defn iwds-url-format
   "URL generation function for requests to an LCMAP-Chipmunk instance
@@ -108,3 +108,12 @@
   (let [host-fmt (trailing-slash host)]
     (str host-fmt "inventory?only=source&tile=" tile-id)))
 
+(defn string-to-list 
+  "Convert a list represented as a string into a list"
+  [instring]
+  (if (nil? instring)
+    []
+    (do (-> instring (string/replace "[" "") 
+                     (string/replace "]" "") 
+                     (string/replace "\"" "") 
+                     (string/split #",")))))

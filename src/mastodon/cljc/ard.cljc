@@ -1,7 +1,7 @@
-(ns lcmap.mastodon.cljc.ard
+(ns mastodon.cljc.ard
   (:require [clojure.string :as string]
             [clojure.set :as set]
-            [lcmap.mastodon.cljc.util :as util]))
+            [mastodon.cljc.util :as util]))
 
 (def L457-ard-map
   (hash-map :SR '("SRB1" "SRB2" "SRB3" "SRB4" "SRB5" "SRB7" "PIXELQA")

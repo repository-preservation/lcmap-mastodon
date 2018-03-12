@@ -14,29 +14,31 @@
     <script src="js/compiled/mastodon_min.js" type="text/javascript"></script>
     <script type="text/javascript">
       $(document).ready(function() {
-         lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
+         mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
-            lcmap.mastodon.cljs.dom.show_div("busydiv");
-            lcmap.mastodon.cljs.dom.disable_btn("chpsubmit");
-            lcmap.mastodon.cljs.core.ingest("ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", "arderror-counter", "ingesting-div");
+            var ingest_partitioning = $("#ingest_partitioning").val();
+            var ardhost = $("#ardhost").val();
+            mastodon.cljs.dom.show_div("busydiv");
+            mastodon.cljs.dom.disable_btn("chpsubmit");
+            mastodon.cljs.core.ingest(ardhost, "ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
+                                      "arderror-counter", "ingesting-div", ingest_partitioning);
           });   
 
           $("#frmsubmit").click(function() {
-            lcmap.mastodon.cljs.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
-            lcmap.mastodon.cljs.dom.show_div("busydiv");
-            lcmap.mastodon.cljs.dom.set_div_content("error-container", "");
+            mastodon.cljs.dom.reset_counter_divs(["ardingested-counter", "ardmissing-counter"]);
+            mastodon.cljs.dom.show_div("busydiv");
+            mastodon.cljs.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
             var idwhost = $("#idwshost").val();
-            var ingesthost = $("#ingesthost").val();
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-            lcmap.mastodon.cljs.core.assess_ard(ardhost, idwhost, ingesthost, tile_id, region, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                                                       "ardmissing-counter",
-                                                                                                                       "iwdsmissing-list",
-                                                                                                                       "arderror-counter",
-                                                                                                                       "error-container");
+            mastodon.cljs.core.assess_ard(ardhost, tile_id, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                    "ardmissing-counter",
+                                                                                    "iwdsmissing-list",
+                                                                                    "arderror-counter",
+                                                                                    "error-container");
           });
       });
     </script>
@@ -61,16 +63,13 @@
           <label for="idwshost">IWDS Host</label> <IWDSHOST>
           <input type="hidden" class="form-control" id="idwshost" name="idwshost" value="<IWDSHOST>">
         </div>
-        <!-- Ingest Host -->
-        <div id="idws-group" class="form-group">
-          <label for="ingesthost">Ingest Host</label> <INGESTHOST>
-          <input type="hidden" class="form-control" id="ingesthost" name="ingesthost" value="<INGESTHOST>">
-        </div>
         <!-- H & V -->
         <div id="tile-group" class="form-group">
           <label for="tileid">Tile ID</label>
           <input type="text" class="form-control" id="tileid" name="tileid" placeholder="111555">
         </div>
+        <!-- Partitioning -->
+        <input id="ingest_partitioning" name="ingest_partitioning" type="hidden" value="<INGESTPARTITIONING>">
 
       </form>
       <!-- find better solution to preventing form submission -->
