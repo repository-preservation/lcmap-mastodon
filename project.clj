@@ -6,14 +6,19 @@
 
   :min-lein-version "2.7.1"
 
-  :dependencies [[org.clojure/clojure "1.9.0-beta4"]
+  :dependencies [[org.clojure/clojure       "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
-                 [org.clojure/core.async  "0.3.443"]
-                 [cheshire "5.8.0"]
-                 [environ "1.1.0"]
-                 [cljs-http "0.1.43"]
-                 [http-kit "2.2.0"]
-                 [lein-doo "0.1.8"]]
+                 [org.clojure/core.async    "0.3.443"]
+                 [cheshire                  "5.8.0"]
+                 [clj-glob                  "1.0.0"]
+                 [cljs-http                 "0.1.43"]
+                 [compojure                 "1.6.0"]
+                 [environ                   "1.1.0"]
+                 [http-kit                  "2.2.0"]
+                 [lein-doo                  "0.1.8"]
+                 [ring                      "1.6.3"]
+                 [ring/ring-json            "0.4.0"]
+                 [ring/ring-jetty-adapter   "1.6.3"]]
 
   :plugins [[lein-figwheel "0.5.14"]
             [lein-doo "0.1.8"]
@@ -31,7 +36,7 @@
                 ;; to inject the figwheel client into your build
                 :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
 
-                :compiler {:main lcmap.mastodon.cljs.core
+                :compiler {:main mastodon.cljs.core
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/mastodon.js"
                            :output-dir "resources/public/js/compiled/out"
@@ -43,7 +48,7 @@
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-                           :main lcmap.mastodon.cljs.core
+                           :main mastodon.cljs.core
                            :optimizations :advanced
                            :pretty-print true
                            :externs ["resources/public/js/compiled/mastodon_min.js"]}}
@@ -53,7 +58,7 @@
                 :source-paths ["src" "test"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
                            :output-dir "resources/public/js/compiled/out/test"
-                           :main lcmap.mastodon.test-runner}}]}
+                           :main mastodon.test-runner}}]}
 
   :figwheel {:css-dirs ["resources/public/css"] } ;; watch and update CSS
   ;; Setting up nREPL for Figwheel and ClojureScript dev
@@ -72,5 +77,5 @@
 :dependencies [[cider/cider-nrepl "0.15.1"]]}
              :uberjar {:omit-source true
                        :aot :all}} ;;profiles
-  :main lcmap.mastodon.clj.main
+  :main mastodon.clj.main
 ) ;;defproject
