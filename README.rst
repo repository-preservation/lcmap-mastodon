@@ -39,6 +39,12 @@ The ${ARD_PATH} environment variable is used by a glob function to determine wha
 tarballs are available for a given Tile ID.  The value is determined by the directory 
 structure where the ARD is kept
 
+Data are expected to be organized by Landsat Mission. From the mounted dir, the directory
+structure should mirror this: <mission>/ARD_Tile/<year acquired>/CU/<HHH>/<VVV>/
+
+HHH and VVV constituting the 3 digit tile-id.  The H and V values DO NOT need to be included
+in your ${ARD_PATH} definition.
+
 .. code-block:: bash
 
    export ARD_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
@@ -68,6 +74,28 @@ The Mastodon UI is simple HTML and javascript. If you exposed port 8080 as in th
 the UI will be available at http://127.0.0.1:8080
 
 
+CLI Interaction
+---------------
+Mastodon allows you to interact with another running instance via the command line as well, using a
+standalone jar file.  To use Mastodon in this fashion, you'll need to have ${IWDS_HOST} ${ARD_HOST}
+and ${PARTITION_LEVEL} defined in your environment.
+
+To build the standalone jar file:
+
+.. code-block:: bash
+  
+    lein uberjar
+
+With your jar built, and your environment setup
+
+.. code-block:: bash
+  
+    java -jar target/lcmap-mastodon-0.1.13-standalone.jar 005015
+
+And follow the prompts. If you want to automatically ingest any non-ingested ARD, 
+add `-y` after the tile id.
+
+
 Development Clojurescript
 -------------------------
 
@@ -77,7 +105,7 @@ To get an interactive development environment run:
 
     lein figwheel
 
-and open your browser at [localhost:3449](http://localhost:3449/).
+and open your browser at http://localhost:3449/.
 This will auto compile and send all changes to the browser without the
 need to reload. After the compilation process is complete, you will
 get a Browser Connected REPL. An easy way to try it is:
@@ -134,6 +162,10 @@ clojurescript
 .. code-block:: bash
 
    lein uberjar
+
+.. code-block:: bash
+
+   docker build -t < your tag here > .
 
 
 
