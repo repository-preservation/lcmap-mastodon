@@ -36,7 +36,7 @@
                 ;; to inject the figwheel client into your build
                 :figwheel {:open-urls ["http://localhost:3449/index-dev.html"]}
 
-                :compiler {:main lcmap.mastodon.cljs.core
+                :compiler {:main mastodon.cljs.core
                            :asset-path "js/compiled/out"
                            :output-to "resources/public/js/compiled/mastodon.js"
                            :output-dir "resources/public/js/compiled/out"
@@ -48,7 +48,7 @@
                {:id "min"
                 :source-paths ["src"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_min.js"
-                           :main lcmap.mastodon.cljs.core
+                           :main mastodon.cljs.core
                            :optimizations :advanced
                            :pretty-print true
                            :externs ["resources/public/js/compiled/mastodon_min.js"]}}
@@ -58,7 +58,7 @@
                 :source-paths ["src" "test"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
                            :output-dir "resources/public/js/compiled/out/test"
-                           :main lcmap.mastodon.test-runner}}]}
+                           :main mastodon.test-runner}}]}
 
   :figwheel {:css-dirs ["resources/public/css"] } ;; watch and update CSS
   ;; Setting up nREPL for Figwheel and ClojureScript dev
@@ -77,5 +77,5 @@
 :dependencies [[cider/cider-nrepl "0.15.1"]]}
              :uberjar {:omit-source true
                        :aot :all}} ;;profiles
-  :main lcmap.mastodon.clj.main
+  :main mastodon.clj.main
 ) ;;defproject

@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.clj.validation)
+(ns mastodon.clj.validation)
 
 (defn not-nil? [val name]
   (let [resp (not (nil? val))]

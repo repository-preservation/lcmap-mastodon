@@ -1,9 +1,9 @@
-(ns lcmap.mastodon.cljs.core
+(ns mastodon.cljs.core
 (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [lcmap.mastodon.cljs.http :as http]
-            [lcmap.mastodon.cljc.ard  :as ard]
-            [lcmap.mastodon.cljs.dom  :as dom]
-            [lcmap.mastodon.cljc.util :as util]
+  (:require [mastodon.cljs.http :as http]
+            [mastodon.cljc.ard  :as ard]
+            [mastodon.cljs.dom  :as dom]
+            [mastodon.cljc.util :as util]
             [clojure.string :as string]
             [cljs.core.async :refer [<! >! chan]]
             [cljs.reader :refer [read-string]]))

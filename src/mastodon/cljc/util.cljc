@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.cljc.util
+(ns mastodon.cljc.util
   (:require [clojure.string :as string]))
 
 (defn log [msg]

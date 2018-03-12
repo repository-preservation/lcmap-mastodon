@@ -1,8 +1,8 @@
-(ns lcmap.mastodon.clj.persistance
+(ns mastodon.clj.persistance
   (:require [org.httpkit.client :as http]
             [cheshire.core :as json]
             [clojure.string :as string]
-            [lcmap.mastodon.cljc.ard :as ard]))
+            [mastodon.cljc.ard :as ard]))
 
 (defn log-error
   "Record ingest error in appropriate log files"
