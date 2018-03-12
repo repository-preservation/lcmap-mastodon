@@ -1,6 +1,7 @@
 (ns lcmap.mastodon.clj.file
   (:require [clojure.string :as string] 
-            [org.satta.glob :as glob]))
+            [org.satta.glob :as glob]
+            [lcmap.mastodon.cljc.util :as util]))
 
 (defn strip-path 
   "Return the filename, minus the path"
@@ -14,6 +15,8 @@
 
 (defn get-filenames
   "Return list of files for a given filesystem path patter"
-  [filepath]
-  (map jfile-name (glob/glob filepath)))
+  ([filepath]
+   (map jfile-name (glob/glob filepath)))
+  ([filepath suffix]
+   (-> filepath (get-filenames) (util/with-suffix suffix))))
 

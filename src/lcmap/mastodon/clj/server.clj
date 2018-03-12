@@ -9,32 +9,29 @@
              [lcmap.mastodon.clj.persistance :as persist]
              [ring.middleware.json           :as ring-json]))
 
+(def iwds-host (:iwds-host environ/env))
+(def ard-host  (:ard-host  environ/env))
+(def ard-path  (:ard-path  environ/env))
+
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD"
   [{:keys [:body] :as req}]
   (let [tifs    (string/split (:urls body) #",")
-        iwds    (:iwds-host environ/env)
-        results (doall (pmap #(persist/ingest % iwds) tifs))]
+        results (doall (pmap #(persist/ingest % iwds-host) tifs))]
     {:status 200 :body results}))
 
 (defn ard-status
   [tileid]
   (let [hvmap    (util/hv-map tileid)
-        filepath (-> (:ard-path environ/env) (str (:h hvmap) "/" (:v hvmap) "/*"))
-        ardtifs  (-> filepath (file/get-filenames)
-                              (util/with-suffix "tar")
+        filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
+        ardtifs  (-> filepath (file/get-filenames "tar")
                               (#(map ard/ard-manifest %))
                               (flatten))
-        iwds_src (-> (:iwds-host environ/env) (str "/inventory?only=source&source="))
-        ing_src  (-> (:ard-host environ/env) (str "/ard"))
-        ard_res  (doall (pmap #(persist/status-check % iwds_src ing_src) ardtifs))]
-
-    (let [missing  (filter (fn [i] (= (vals i) '("[]"))) ard_res)
-          ingested (filter (fn [i] (not (= (vals i) '("[]")))) ard_res)
-          miss_count   (count missing)
-          ingest_count (count ingested)
-          miss_flat (keys (apply merge-with concat missing))]
-      {:status 200 :body {:ingested ingest_count :missing miss_flat}})))
+        ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
+        missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
+                             (#(apply merge-with concat %)) 
+                             (keys))]
+      {:status 200 :body {:ingested (- (count ard_res) (count missing)) :missing missing}}))
 
 (defn get-base [request]
   {:status 200 :body ["Would you like some ARD with that?"]})
