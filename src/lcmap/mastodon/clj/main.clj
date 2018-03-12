@@ -12,7 +12,9 @@
 (def iwds_host       (:iwds-host environ/env))
 (def ard_host        (:ard-host  environ/env))
 (def ard_path        (:ard-path  environ/env))
-(def partition_level (read-string (:partition-level environ/env)))        
+(def partition_level (if (nil? (:partition-level environ/env))
+                       nil 
+                       (read-string (:partition-level environ/env))))    
 
 (defn pmap-partitions 
   [infunc collection]
