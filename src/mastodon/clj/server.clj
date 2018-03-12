@@ -1,26 +1,27 @@
 (ns mastodon.clj.server
-   (:require [clojure.string                 :as string]
-             [compojure.core                 :as compojure]
-             [compojure.route                :as route]
-             [environ.core                   :as environ]
+   (:require [clojure.string           :as string]
+             [compojure.core           :as compojure]
+             [compojure.route          :as route]
+             [environ.core             :as environ]
              [mastodon.cljc.ard        :as ard]
              [mastodon.cljc.util       :as util]
              [mastodon.clj.file        :as file]
              [mastodon.clj.persistance :as persist]
-             [ring.middleware.json           :as ring-json]))
+             [ring.middleware.json     :as ring-json]))
 
 (def iwds-host (:iwds-host environ/env))
 (def ard-host  (:ard-host  environ/env))
 (def ard-path  (:ard-path  environ/env))
 
 (defn bulk-ingest
-  "Generate ingest requests for list of posted ARD"
+  "Generate ingest requests for list of posted ARD."
   [{:keys [:body] :as req}]
   (let [tifs    (string/split (:urls body) #",")
         results (doall (pmap #(persist/ingest % iwds-host) tifs))]
     {:status 200 :body results}))
 
 (defn ard-status
+  "Determine the ARD ingest status for the given tile id."
   [tileid]
   (let [hvmap    (util/hv-map tileid)
         filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
@@ -34,6 +35,7 @@
       {:status 200 :body {:ingested (- (count ard_res) (count missing)) :missing missing}}))
 
 (defn get-base [request]
+  "Hello Mastodon."
   {:status 200 :body ["Would you like some ARD with that?"]})
 
 ;; ## Routes
