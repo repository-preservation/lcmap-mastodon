@@ -26,41 +26,36 @@
       (do ;; no args, run server
         (when (not (validation/validate-server iwds_host ard_host partition_level ard_path)) 
           (println "validation failed, exiting")
-          (System/exit 0))
+          (System/exit 1))
         (server/run-server #'mserver/app {:port 9876}))
       (do
         (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
           (println "validation failed, exiting")
-          (System/exit 0))
+          (System/exit 1))
 
-        (let [iwds_resource (str iwds_host "/inventory?only=source&source=")
-              ard_resource  (util/ard-url-format ard_host tileid)
-              ing_resource  (str ard_host "/ard")
-              ard_response  (http/get ard_resource)]
+        (let [ard_response   (http/get (util/ard-url-format ard_host tileid))
+              response_map   (-> (:body @ard_response) (parse-string true))
+              missing_vector (:missing response_map)
+              ard_partition  (partition partition_level partition_level "" missing_vector)
+              ingest_map    #(persist/ingest % iwds_host)]
 
-          (let [response_map   (-> (:body @ard_response) (parse-string true))
-                missing_vector (:missing response_map)
-                ingested_count (:ingested response_map)
-                ard_partition  (partition partition_level partition_level "" missing_vector)
-                ingest_map #(persist/ingest % iwds_host)]
-
-            (println "Tile Status Report for: " tileid)
-            (println "To be ingested: " (count missing_vector))
-            (println "Already ingested: " ingested_count)
-            (println "")
-            
-            (if (= autoingest "-y")
-              (do 
-                (pmap-partitions ingest_map ard_partition)
-                (println "Ingest Complete"))
-              (do 
-                (println "Ingest? (y/n)")
-                (if (= (read-line) "y")
-                  (do
-                    (pmap-partitions ingest_map ard_partition)
-                    (println "Ingest Complete"))
-                  (do 
-                    (println "Exiting!")
-                    (System/exit 0)))))))
+          (println "Tile Status Report for: " tileid)
+          (println "To be ingested: " (count missing_vector))
+          (println "Already ingested: " (:ingested response_map))
+          (println "")
+          
+          (if (= autoingest "-y")
+            (do 
+              (pmap-partitions ingest_map ard_partition)
+              (println "Ingest Complete"))
+            (do 
+              (println "Ingest? (y/n)")
+              (if (= (read-line) "y")
+                (do
+                  (pmap-partitions ingest_map ard_partition)
+                  (println "Ingest Complete"))
+                (do 
+                  (println "Exiting!")
+                  (System/exit 0))))))
         (System/exit 0)))))
 

@@ -9,7 +9,6 @@
              [lcmap.mastodon.clj.persistance :as persist]
              [ring.middleware.json           :as ring-json]))
 
-
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD"
   [{:keys [:body] :as req}]
