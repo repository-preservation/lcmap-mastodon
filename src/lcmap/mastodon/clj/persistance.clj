@@ -29,8 +29,8 @@
 
 (defn status-check
   "Based on ingest status, put ARD into correct Atom"
-  [tif iwds_resource ing_resource]
-  (let [iwdsresp (http/get (str iwds_resource tif))
+  [tif iwds_host ing_resource]
+  (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" tif))
         tar      (ard/tar-name tif)
         tarpath  (ard/tar-path tar)]
     (hash-map (str ing_resource "/" tarpath "/" tar "/" tif) (:body @iwdsresp))))
