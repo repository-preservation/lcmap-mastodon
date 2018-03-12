@@ -12,11 +12,11 @@
 (def iwds_host       (:iwds-host environ/env))
 (def ard_host        (:ard-host  environ/env))
 (def ard_path        (:ard-path  environ/env))
-(def partition_level (if (nil? (:partition-level environ/env))
-                       nil 
+(def partition_level (if (nil? (:partition-level environ/env)) nil 
                        (read-string (:partition-level environ/env))))    
 
-(defn pmap-partitions 
+(defn pmap-partitions
+  "Realize func with pmap over a collection of collections." 
   [infunc collection]
   (doseq [i collection]
     (doall (pmap infunc i))))
