@@ -5,7 +5,7 @@ repl:
 	@echo "use 'lein figwheel'"
 
 replincs:
-	@echo "(require '[lcmap.mastodon.http :as mhttp] '[lcmap.mastodon.core :as mcore] '[lcmap.mastodon.data :as testdata])"
+	@echo "(require '[mastodon.http :as mhttp] '[mastodon.core :as mcore] '[mastodon.data :as testdata])"
 	@echo "(require '[cljs.core.async :refer [<! >! chan pipeline]])"
 	@echo "(require-macros '[cljs.core.async.macros :refer [go go-loop]])"
 

@@ -1,4 +1,4 @@
-(ns lcmap.mastodon.cljs.dom
+(ns mastodon.cljs.dom
   (:require [cljs.reader :refer [read-string]]
             [clojure.string :as string])
   (:import goog.dom))

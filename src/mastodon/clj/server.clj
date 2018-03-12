@@ -1,12 +1,12 @@
-(ns lcmap.mastodon.clj.server
+(ns mastodon.clj.server
    (:require [clojure.string                 :as string]
              [compojure.core                 :as compojure]
              [compojure.route                :as route]
              [environ.core                   :as environ]
-             [lcmap.mastodon.cljc.ard        :as ard]
-             [lcmap.mastodon.cljc.util       :as util]
-             [lcmap.mastodon.clj.file        :as file]
-             [lcmap.mastodon.clj.persistance :as persist]
+             [mastodon.cljc.ard        :as ard]
+             [mastodon.cljc.util       :as util]
+             [mastodon.clj.file        :as file]
+             [mastodon.clj.persistance :as persist]
              [ring.middleware.json           :as ring-json]))
 
 (def iwds-host (:iwds-host environ/env))

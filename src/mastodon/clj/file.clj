@@ -1,7 +1,7 @@
-(ns lcmap.mastodon.clj.file
+(ns mastodon.clj.file
   (:require [clojure.string :as string] 
             [org.satta.glob :as glob]
-            [lcmap.mastodon.cljc.util :as util]))
+            [mastodon.cljc.util :as util]))
 
 (defn strip-path 
   "Return the filename, minus the path"

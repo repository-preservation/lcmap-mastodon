@@ -1,13 +1,13 @@
-(ns lcmap.mastodon.clj.main
+(ns mastodon.clj.main
   (:gen-class)
   (:require [cheshire.core                  :refer :all]
             [environ.core                   :as environ]
-            [lcmap.mastodon.cljc.util       :as util]
-            [lcmap.mastodon.clj.persistance :as persist]
-            [lcmap.mastodon.clj.validation  :as validation]
+            [mastodon.cljc.util       :as util]
+            [mastodon.clj.persistance :as persist]
+            [mastodon.clj.validation  :as validation]
             [org.httpkit.client             :as http]
             [org.httpkit.server             :as server]
-            [lcmap.mastodon.clj.server      :as mserver]))
+            [mastodon.clj.server      :as mserver]))
 
 (def iwds_host       (:iwds-host environ/env))
 (def ard_host        (:ard-host  environ/env))
