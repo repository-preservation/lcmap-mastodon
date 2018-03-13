@@ -42,8 +42,3 @@
            (is-int? par_level "PARTITION_LEVEL")
            (not-nil? ard_path "ARD_PATH")])))
 
-(defn validate-map
-  "Return whether any input hash-map values are nil"
-  [env-map]
-  (let [nil-check (map (fn [[key val]] (not-nil? val key)) env-map)]
-    (= (set nil-check) #{true})))
