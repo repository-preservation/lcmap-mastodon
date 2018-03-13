@@ -1,10 +1,10 @@
-(ns mastodon.core-test
+(ns mastodon.cljs.core-test
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.test :refer-macros [deftest is async]]
             [clojure.string :as string]
             [mastodon.cljs.core :as mc]
             [mastodon.cljs.http :as mhttp]
-            [mastodon.data :as testdata]
+            [mastodon.cljs.data :as testdata]
             [mastodon.cljc.util :as util]
             [mastodon.cljc.ard :as ard]
             [cljs.core.async :as async]))
