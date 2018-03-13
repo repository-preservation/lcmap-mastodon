@@ -83,9 +83,8 @@
 
 (defn tif-path 
   "Return the path to an ARD tif file, given a tif name and a resource path."
-  [tif rpath ingpath]
+  [tif rpath]
   (let [tar (tar-name tif)
-        tarpath (tar-path tar)
-        resource (if (empty? ingpath) rpath ingpath)]    
-    (str resource "/" tarpath "/" tar "/" tif)))
+        tarpath (tar-path tar)]    
+    (str rpath "/" tarpath "/" tar "/" tif)))
 

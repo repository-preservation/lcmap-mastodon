@@ -28,13 +28,6 @@
     ;; is there a better way? there should only be one match
     (first (remove nil? matching-key-list))))
 
-(defn fresh-includes 
-  "Add unique members to a collection."
-  [coll i]
-  (if (contains? (set coll) i)
-    (do coll)
-    (do (conj coll i))))
-
 (defn with-suffix 
   "Return items from collection with suffix."
   [lst sfx]

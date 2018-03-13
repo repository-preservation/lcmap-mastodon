@@ -74,8 +74,9 @@
                    ;; need to add the compliled assets to the :clean-targets
                    :clean-targets ^{:protect false} ["resources/public/js/compiled" :target-path]}
              :repl    {:resource-paths ["dev"]
-:dependencies [[cider/cider-nrepl "0.15.1"]]}
+                       :dependencies [[cider/cider-nrepl "0.15.1"]]}
              :uberjar {:omit-source true
-                       :aot :all}} ;;profiles
+                       :aot :all}
+             :test {:resource-paths ["test/mastodon/cljc" "test/mastodon/clj"]}} ;;profiles
   :main mastodon.clj.main
 ) ;;defproject

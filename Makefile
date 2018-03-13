@@ -11,6 +11,7 @@ replincs:
 
 runtests:
 	lein doo phantom test once
+	lein test	
 
 build-min:
 	lein cljsbuild once min
