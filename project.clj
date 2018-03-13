@@ -58,7 +58,7 @@
                 :source-paths ["src" "test"]
                 :compiler {:output-to "resources/public/js/compiled/mastodon_tst.js"
                            :output-dir "resources/public/js/compiled/out/test"
-                           :main mastodon.test-runner}}]}
+                           :main mastodon.cljs.test-runner}}]}
 
   :figwheel {:css-dirs ["resources/public/css"] } ;; watch and update CSS
   ;; Setting up nREPL for Figwheel and ClojureScript dev

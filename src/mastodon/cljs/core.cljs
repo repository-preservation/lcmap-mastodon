@@ -62,7 +62,8 @@
   [ard-host tile-id bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
   (let [ard-request-handler    (or ard-req-fn http/get-request)
         ard-inventory-resource (util/ard-url-format ard-host  tile-id)
-        dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
+        dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn
+                           :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
     (report-assessment ard-data-chan dom-map) ;; park func on ard-data-chan to update dom
     (go (>! ard-data-chan (<! (ard-request-handler ard-inventory-resource))))))
 
@@ -70,7 +71,8 @@
   "Exposed function for initiating the ARD ingest process."
   [ard-host inprogress-div missing-div ingested-div busy-div error-div ingesting-div par-level]
   (let [ard-sources          (:tifs @ard-miss-atom)
-        counter-map          (hash-map :progress inprogress-div :missing missing-div :ingested ingested-div :error error-div)
+        counter-map          (hash-map :progress inprogress-div :missing missing-div 
+                                       :ingested ingested-div :error error-div)
         ard-count            (count ard-sources)
         partition-level      (read-string par-level)]
 
