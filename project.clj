@@ -15,6 +15,7 @@
                  [compojure                 "1.6.0"]
                  [environ                   "1.1.0"]
                  [http-kit                  "2.2.0"]
+                 [http-kit.fake             "0.2.1"]
                  [lein-doo                  "0.1.8"]
                  [ring                      "1.6.3"]
                  [ring/ring-json            "0.4.0"]
