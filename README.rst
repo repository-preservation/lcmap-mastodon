@@ -76,9 +76,10 @@ the UI will be available at http://127.0.0.1:8080
 
 CLI Interaction
 ---------------
-Mastodon allows you to interact with another running instance via the command line as well, using a
-standalone jar file.  To use Mastodon in this fashion, you'll need to have ${IWDS_HOST} ${ARD_HOST}
-and ${PARTITION_LEVEL} defined in your environment.
+You have the option to manage ingest from the command line as well.  Just build an uberjar with
+leiningen, and export environment variables for the ${IWDS_HOST}, ${PARTITION_LEVEL}, and ${ARD_HOST}.
+The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance which 
+exposes the ARD over HTTP for ingest.
 
 To build the standalone jar file:
 
