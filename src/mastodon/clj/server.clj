@@ -31,14 +31,15 @@
         ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
         missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
                              (#(apply merge-with concat %)) 
-                             (keys))]
-      {:status 200 :body {:ingested (- (count ard_res) (count missing)) :missing missing}}))
+                             (keys))
+        ingested_count (- (count ard_res) (count missing))]
+      {:status 200 :body {:ingested ingested_count :missing missing}}))
 
-(defn get-base [request]
-  "Hello Mastodon."
+(defn get-base 
+  "Hello Mastodon"
+  [request]
   {:status 200 :body ["Would you like some ARD with that?"]})
 
-;; ## Routes
 (compojure/defroutes routes
   (compojure/context "/" request
     (route/resources "/")

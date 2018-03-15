@@ -23,10 +23,10 @@
 
 (defn -main
   ([]
-    (when (not (validation/validate-server iwds_host ard_host partition_level ard_path)) 
-      (println "validation failed, exiting")
-      (System/exit 1))
-    (server/run-server #'mserver/app {:port 9876}))
+    (if (validation/validate-server iwds_host ard_host partition_level ard_path)
+      (do (server/run-server #'mserver/app {:port 9876})) 
+      (do (println "validation failed, exiting")
+          (System/exit 1))))
   ([tileid & args]
     (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
       (println "validation failed, exiting")
@@ -36,24 +36,20 @@
           missing_vector (:missing response_map)
           ard_partition  (partition partition_level partition_level "" missing_vector)
           ingest_map     #(persist/ingest % iwds_host)
-          autoingest     args]
+          autoingest     (first args)]
 
       (println "Tile Status Report for: " tileid)
       (println "To be ingested: " (count missing_vector))
       (println "Already ingested: " (:ingested response_map))
       (println "")
-          
+
       (if (= autoingest "-y")
-        (do 
-          (pmap-partitions ingest_map ard_partition)
-          (println "Ingest Complete"))
-        (do 
-          (println "Ingest? (y/n)")
-          (if (= (read-line) "y")
-            (do
-              (pmap-partitions ingest_map ard_partition)
-              (println "Ingest Complete"))
-            (do 
-              (println "Exiting!"))))))
+        (do (pmap-partitions ingest_map ard_partition)
+            (println "Ingest Complete"))
+        (do (println "Ingest? (y/n)")
+            (if (= (read-line) "y")
+              (do (pmap-partitions ingest_map ard_partition)
+                  (println "Ingest Complete"))
+              (do (println "Exiting!"))))))
     (System/exit 0)))
 
