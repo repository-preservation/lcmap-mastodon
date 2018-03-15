@@ -7,10 +7,16 @@
 .w3-border-blue,.w3-hover-border-blue:hover{border-color:#2196F3}
 
 .counter-div {padding:2px;overflow:hidden; }
-.ard-wrapper {width:33%; text-align:center; float: right;}
+.ard-wrapper {width:25%; text-align:center; float: right;}
+
+.leftside {width:50%; float: left; padding:2px; text-align:center; /*border:1px solid black;*/}
+.rightside {width:50%; float: right; padding:2px; text-align:center; /*border:1px solid black;*/}
+
+#form-buttons {width: 70%; height:70px; text-align:left;}
 
 #busy-container {
-  height:80px;
+  height:70px;
+  width:30%;
 /*  border:1px solid black; */
 }
 
@@ -24,15 +30,16 @@
 }
 
 #error-container {
-  height: 80px;
+  height: 40px;
 /*  border: 1px solid black; */
   color: red;
 }
 
-#ingesting {
-  height:64px;
-  width:450px;
-  float:left;
-  position:relative;
- /* border:1px solid black; */
+#ingesting-div {
+  border-right:1px solid black;
+}
+
+#ingesting-list {
+  font-size: x-small;
+  text-align: left;
 }

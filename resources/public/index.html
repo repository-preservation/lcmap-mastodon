@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html>
   <head>
@@ -17,12 +15,12 @@
          mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
-            var ingest_partitioning = $("#ingest_partitioning").val();
+            var ingest_partitioning = "10";
             var ardhost = $("#ardhost").val();
             mastodon.cljs.dom.show_div("busydiv");
             mastodon.cljs.dom.disable_btn("chpsubmit");
             mastodon.cljs.core.ingest(ardhost, "ardinprogress-counter", "ardmissing-counter", "ardingested-counter", "busydiv", 
-                                      "arderror-counter", "ingesting-div", ingest_partitioning);
+                                      "arderror-counter", "ingesting-list", ingest_partitioning);
           });   
 
           $("#frmsubmit").click(function() {
@@ -40,19 +38,20 @@
                                                                                     "arderror-counter",
                                                                                     "error-container");
           });
+
       });
+
     </script>
 
   </head>
   <body>
 
-    <div class="col-sm-6 col-sm-offset-3" style="width:600px;">
+    <div class="col-sm-6 col-sm-offset-3" style="width:675px;">
 
       <h1>LCMAP System Source Data Inventory Monitoring</h1>
 
       <!-- OUR FORM -->
       <form action="" method="POST">
-
         <!-- ARD -->
         <div id="ard-group" class="form-group">
           <label for="ardhost">ARD Host</label> <ARDHOST>
@@ -70,19 +69,22 @@
         </div>
         <!-- Partitioning -->
         <input id="ingest_partitioning" name="ingest_partitioning" type="hidden" value="<INGESTPARTITIONING>">
-
       </form>
       <!-- find better solution to preventing form submission -->
-      <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
-      <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
-      <div id="busy-container">
-        <div id="busydiv"><img src="images/Blocks.gif"></img></div>
-        <div id="ingesting-div"></div>
+      <div id="form-buttons" class="leftside">
+        <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
+        <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
       </div>
-      <div id="error-container"></div>
+      <div id="busy-container" class="rightside">
+        <div id="busydiv"><img src="images/Blocks.gif"></img></div>
+      </div>      
       <div id="counters-container" class="counter-div">
+        <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-rightbar">
+          Errored
+          <div id="arderror-counter" class="counter-div">0</div>
+        </div>
         <div id="ardmissing" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue">
-          Missing from IWDS
+          Missing
           <div id="ardmissing-counter" class="counter-div">0</div>
         </div>
 
@@ -95,26 +97,16 @@
           Ingested
           <div id="ardingested-counter" class="counter-div">0</div>
         </div>
-
-        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
-          <div class="counter-div"></div>
-        </div>
-
-        <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
-          Errored on ingest
-          <div id="arderror-counter" class="counter-div">0</div>
-        </div>
-
-        <div  style="height:48px;" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-topbar">
-          <div class="counter-div"></div>
-        </div>
      </div>
-     <div id="iwdsmissing">
-       Ingested and now Missing ARD
+     <div id="error-container"></div>
+     <div id="ingesting-div" class="leftside">
+       <b>Ingested</b>
+       <div id="ingesting-list"></div>
+     </div>
+     <div id="iwdsmissing" class="rightside">
+       <b>Ingested and now Missing ARD</b>
        <div id="iwdsmissing-list"</div>
      </div>
     </div>
   </body>
 </html>
-
-

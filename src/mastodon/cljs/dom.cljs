@@ -24,9 +24,13 @@
   [divid & [amt]]
   (let [div (dom.getElement divid)
         val (read-string (dom.getTextContent div))
-        imt (or amt 1)
-        ival (- val imt)]
-    (dom.setTextContent div ival)))
+        inc-amt (or amt 1)
+        inc-val (- val inc-amt)
+        upd-val (if (neg? inc-val) 0 inc-val)]
+    
+    (dom.setTextContent div upd-val)
+
+    ))
 
 (defn ^:export reset-counter-divs 
   "Exposed function for resetting counter div content."
@@ -91,7 +95,8 @@
 
 (defn update-for-ingest-completion 
   "Wrapper for DOM updates upon completing ingest."
-  [busy-div ingesting-div]
+  [busy-div ingesting-div inprogress-div]
   (hide-div busy-div)
-  (set-div-content ingesting-div ""))
+  (set-div-content ingesting-div "")
+  (set-div-content inprogress-div ""))
 

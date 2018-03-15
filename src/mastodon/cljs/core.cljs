@@ -31,14 +31,14 @@
 
 (defn make-chipmunk-requests 
   "Handle requests to lcmap-chipmunk for ARD ingest"
-  [ingest-channel status-channel ard-host busy-div ingesting-div partition-level]
+  [ingest-channel status-channel ard-host busy-div ingesting-div inprogress-div partition-level]
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
           ard-resource (str ard-host "/bulk-ingest")]
       (doseq [t partifs]
         (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
-      (dom/update-for-ingest-completion busy-div ingesting-div))))
+      (dom/update-for-ingest-completion busy-div ingesting-div inprogress-div))))
 
 (defn ingest-status-handler 
   "Handle ingest request responses."
@@ -46,12 +46,16 @@
   (go-loop []
     (let [response (<! status-channel)
           status   (:status response)
-          body     (:body response)]
+          body     (:body response)
+          tifs     (-> body (#(reduce conj %)) (keys) (#(map name %)))]
       (if (= 200 status)
           (do (util/log "status is 200")
+              (util/log (str "ingested: " tifs))
+              (dom/set-div-content "ingesting-list" tifs)
               (doseq [ard_resp body]
                 (if (= 200 (first (vals ard_resp)))
-                  (dom/update-for-ingest-success counter-map)
+                  (do (dom/update-for-ingest-success counter-map)
+                      (util/log (str "200 ard_resp: " ard_resp)))
                   (do (util/log (str "status is NOT 200, ingest failed. message: " body))
                       (dom/update-for-ingest-fail counter-map)))))
           (do (util/log (str "non-200 response: " response)))))
@@ -78,6 +82,6 @@
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count) 
     (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan ingest-status-chan ard-host busy-div ingesting-div partition-level)
+    (make-chipmunk-requests ard-to-ingest-chan ingest-status-chan ard-host busy-div ingesting-div inprogress-div partition-level)
     (go (>! ard-to-ingest-chan ard-sources))))
 
