@@ -14,7 +14,7 @@
   [url & [resp]]
   (if (nil? resp)
      (do (go (let [response (<! (http-client/get url {:with-credentials? false}))]
-                  (:body response)))) 
+                  response))) 
      (do resp)))
 
 (defn post-request

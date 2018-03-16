@@ -21,13 +21,19 @@
   (go
     (let [ard-status (<! ard-channel)
           dom-update (or dom-func dom/update-for-ard-check)
-          report-map (hash-map :ingested-count (:ingested ard-status)
-                               :ard-missing-count (count (:missing ard-status))
-                               :iwds-missing   []
-                               :dom-map dom-map)]
-      (util/log (str "ARD Status Report: " report-map))
-      (swap! ard-miss-atom assoc :tifs (:missing ard-status))
-      (dom-update report-map (count (:missing ard-status))))))
+          ard-body   (:body ard-status)
+          report-map (hash-map :ingested-count (:ingested ard-body)
+                               :ard-missing-count (count (:missing ard-body))
+                               :iwds-missing [] ; dependent on single iwds query
+                               :dom-map dom-map)
+          ard-error (:error ard-body)]
+      (if (nil? ard-error)
+        (do (util/log (str "ARD Status Report: " report-map))
+            (swap! ard-miss-atom assoc :tifs (:missing ard-body))
+            (dom-update report-map (count (:missing ard-body))))
+        (do (util/log (str "Error reaching services: " (:body ard-status)))
+            (dom/hide-div "busydiv")
+            (dom/set-div-content "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
 
 (defn make-chipmunk-requests 
   "Handle requests to lcmap-chipmunk for ARD ingest"
