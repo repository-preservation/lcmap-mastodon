@@ -1,12 +1,12 @@
 (ns mastodon.clj.main
   (:gen-class)
-  (:require [cheshire.core                  :refer :all]
-            [environ.core                   :as environ]
+  (:require [cheshire.core            :refer :all]
+            [environ.core             :as environ]
             [mastodon.cljc.util       :as util]
             [mastodon.clj.persistance :as persist]
             [mastodon.clj.validation  :as validation]
-            [org.httpkit.client             :as http]
-            [org.httpkit.server             :as server]
+            [org.httpkit.client       :as http]
+            [org.httpkit.server       :as server]
             [mastodon.clj.server      :as mserver]))
 
 (def iwds_host       (:iwds-host environ/env))
