@@ -7,6 +7,7 @@
              [mastodon.cljc.util       :as util]
              [mastodon.clj.file        :as file]
              [mastodon.clj.persistance :as persist]
+             [mastodon.clj.validation  :as validation]
              [ring.middleware.json     :as ring-json]))
 
 (def iwds-host (:iwds-host environ/env))
@@ -23,17 +24,27 @@
 (defn ard-status
   "Determine the ARD ingest status for the given tile id."
   [tileid]
-  (let [hvmap    (util/hv-map tileid)
-        filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
-        ardtifs  (-> filepath (file/get-filenames "tar")
-                              (#(map ard/ard-manifest %))
-                              (flatten))
-        ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
-        missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
+  (let [ard-accessible  (validation/http-accessible? ard-host)
+        iwds-accessible (validation/http-accessible? iwds-host)
+        ard-message  (str "ARD Host: " ard-host " is not reachable. ") 
+        iwds-message (str "IWDS Host: " iwds-host " is not reachable")]
+
+    (if (= #{true} (set [ard-accessible iwds-accessible]))
+      (do (let [hvmap    (util/hv-map tileid)
+                filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
+                ardtifs  (-> filepath (file/get-filenames "tar")
+                             (#(map ard/ard-manifest %))
+                             (flatten))
+                ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
+                missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
                              (#(apply merge-with concat %)) 
                              (keys))
-        ingested_count (- (count ard_res) (count missing))]
-      {:status 200 :body {:ingested ingested_count :missing missing}}))
+                ingested_count (- (count ard_res) (count missing))]
+            {:status 200 :body {:ingested ingested_count :missing missing}}))
+      (do (cond
+           (= true ard-accessible)  {:status 200 :body {:error iwds-message}}
+           (= true iwds-accessible) {:status 200 :body {:error ard-message} }
+           :else {:status 200 :body {:error (str ard-message iwds-message)}})))))
 
 (defn get-base 
   "Hello Mastodon"
