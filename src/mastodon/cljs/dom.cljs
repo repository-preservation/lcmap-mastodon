@@ -3,65 +3,72 @@
             [clojure.string :as string])
   (:import goog.dom))
 
+(defn set-dom-content
+  "Wrapper for dom.setTextContent"
+  [id content]
+  (let [elem (dom.getElement id)]
+    (dom.setTextContent elem content)))
+
+(defn get-dom-content
+  "Wrapper for dom.getElement"
+  [id]
+  (let [elem (dom.getElement id)]
+    (read-string (dom.getTextContent elem))))
+
+(defn set-dom-properties
+  "Wrapper for dom.setProperties"
+  [divid key value]
+  (let [domel (dom.getElement divid)]
+    (dom.setProperties domel (js-obj key value))))
+
 (defn ^:export set-div-content
   "Exposed function for setting the text contents of a div."
   [divid values]
-  (let [div (dom.getElement divid)
-        content (string/join ", " values)]
-      (dom.setTextContent div content)))
+  (let [content (string/join ", " values)]
+    (set-dom-content divid content)))
 
 (defn inc-counter-div
   "Increment by 1 the value within a div."
   [divid & [amt]]
-  (let [div (dom.getElement divid)
-        val (read-string (dom.getTextContent div))
+  (let [val (get-dom-content divid)
         imt (or amt 1)
         ival (+ imt val)]
-    (dom.setTextContent div ival)))
+    (set-dom-content divid ival)))
 
 (defn dec-counter-div
   "Decrement by 1 the value within a div."
   [divid & [amt]]
-  (let [div (dom.getElement divid)
-        val (read-string (dom.getTextContent div))
+  (let [val (get-dom-content divid)
         inc-amt (or amt 1)
         inc-val (- val inc-amt)
         upd-val (if (neg? inc-val) 0 inc-val)]
-    
-    (dom.setTextContent div upd-val)
-
-    ))
+    (set-dom-content divid upd-val)))
 
 (defn ^:export reset-counter-divs 
   "Exposed function for resetting counter div content."
   [divs]
   (doseq [d divs]
-    (let [i (dom.getElement d)]
-      (dom.setTextContent i "0"))))
+    (set-dom-content d "0")))
 
 (defn ^:export show-div 
   "Exposed function for un-hiding a div."
   [divid]
-  (let [div (dom.getElement divid)]
-    (dom.setProperties div (js-obj "style" "display: block"))))
+  (set-dom-properties divid "style" "display: block"))
 
 (defn hide-div 
   "Hide a div by id."
   [divid]
-  (let [div (dom.getElement divid)]
-    (dom.setProperties div (js-obj "style" "display: none"))))
+  (set-dom-properties divid "style" "display: none"))
 
 (defn enable-btn 
   "Enable a button by id."
   [btnid]
-  (let [btn (dom.getElement btnid)]
-    (dom.setProperties btn (js-obj "disabled" false))))
+  (set-dom-properties btnid "disabled" false))
 
 (defn ^:export disable-btn 
   "Exposed function for disabling a button."
   [btnid]
-  (let [btn (dom.getElement btnid)]
-    (dom.setProperties btn (js-obj "disabled" true))))
+  (set-dom-properties btnid "disabled" true))
 
 (defn update-for-ard-check
   "Wrapper for DOM updates post Tile status check."
