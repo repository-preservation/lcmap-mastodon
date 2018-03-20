@@ -40,14 +40,15 @@
 
 (defn make-chipmunk-requests 
   "Handle requests to lcmap-chipmunk for ARD ingest"
-  [ingest-channel status-channel ard-host busy-div ingesting-div inprogress-div partition-level]
+  [ingest-channel status-channel ard-host busy-div ingesting-div inprogress-div partition-level & [dom-func]]
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
-          ard-resource (str ard-host "/bulk-ingest")]
+          ard-resource (str ard-host "/bulk-ingest")
+          dom-update (or dom-func dom/update-for-ingest-completion)]
       (doseq [t partifs]
         (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
-      (dom/update-for-ingest-completion busy-div ingesting-div inprogress-div))))
+      (dom-update busy-div ingesting-div inprogress-div))))
 
 (defn ingest-status-handler 
   "Handle ingest request responses."
