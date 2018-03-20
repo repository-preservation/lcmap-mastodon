@@ -5,6 +5,7 @@
             [mastodon.cljs.core :as mc]
             [mastodon.cljs.http :as mhttp]
             [mastodon.cljs.data :as testdata]
+            [mastodon.cljs.dom :as dom]
             [mastodon.cljc.util :as util]
             [mastodon.cljc.ard :as ard]
             [cljs.core.async :as async]))
@@ -14,18 +15,29 @@
   [ch]
     (let [done (fn [] (prn "done with async test"))]
       (async done
-        (async/take! ch (fn [_] (done)))))
-)
+        (async/take! ch (fn [_] (done))))))
 
-;; (deftest ard-status-check-test
-;;   (let [achan (async/chan 1)
-;;         rchan (async/chan 1)]
-;;     (go 
-;;       (async/>! achan (util/collect-map-values (async/<! (testdata/ard-resp)) :name :type "file"))
-;;       (mc/ard-status-check achan "idw.com" (mhttp/mock-idw) "bdiv" "ibtn" "ictr" "mctr" (fn [i] (str i)) rchan)
-;;       )
+(deftest report-assessment-test
+  (with-redefs [util/log (fn [x] x)]
+      (let [achan  (async/chan 1) 
+            inpmap {:body {:ingested 9 :missing ["a" "e" "i"]}}
+            dommap {:busydiv "busydiv"}]
+        
+        (go (async/>! achan inpmap))
+        (test-async
+          (go (is (= {{:iwds-missing [], :ingested-count 9, :dom-map {:busydiv "busydiv"}, :ard-missing-count 3} 3} 
+                     (async/<! (mc/report-assessment achan dommap (fn [a b] {a b}))))))))))
 
-;;     (test-async
-;;       (go (is (= 12 (:mis-cnt (async/<! rchan))))))
-;;   ) 
-;; )
+(deftest report-assessment-error-test
+      (let [achan  (async/chan 1) 
+            inpmap {:body {:error "there was a massive failure"}}
+            dommap {:busydiv "busydiv"}]
+        
+        (go (async/>! achan inpmap))
+        (test-async
+          (go (is (= {"error-container" ["Error reaching ARD server: there was a massive failure"]} 
+                     (async/<! (mc/report-assessment achan dommap (fn [a b] {a b}) (fn [a b] {a b}) (fn [a] true)))))))))
+
+
+
+

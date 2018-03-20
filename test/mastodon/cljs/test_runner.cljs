@@ -5,4 +5,5 @@
 
 (enable-console-print!)
 
-(doo-tests  'mastodon.cljs.dom-test)
+(doo-tests  'mastodon.cljs.dom-test
+            'mastodon.cljs.core-test)
