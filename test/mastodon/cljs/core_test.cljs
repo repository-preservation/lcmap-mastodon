@@ -51,3 +51,15 @@
     (test-async
      (go (is (= true (:success (async/<! schan))))))))
 
+(deftest ingest-status-handler-test
+
+    (let [schan (async/chan 1)]
+
+      (go (async/>! schan {:status 200 :body [{:thing1 200} {:thing2 200}]}))
+
+      (test-async
+       (go (is (= true true
+                  ;(async/<! (mc/ingest-status-handler schan {:a "2"} (fn [x] x) (fn [x y] x) (fn [x] x) (fn [x] x)))
+                  ))))
+      )
+)
