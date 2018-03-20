@@ -38,6 +38,16 @@
           (go (is (= {"error-container" ["Error reaching ARD server: there was a massive failure"]} 
                      (async/<! (mc/report-assessment achan dommap (fn [a b] {a b}) (fn [a b] {a b}) (fn [a] true)))))))))
 
+(deftest make-chipmunk-requests-test
+  (let [ichan (async/chan 1)
+        schan (async/chan 2)]
 
+    (go (async/>! ichan ["a" "b"]))
 
+    (test-async
+     (go (is (= ["busydiv" "ingdiv" "progdiv"] 
+                (async/<! (mc/make-chipmunk-requests ichan schan "ardhost" "busydiv" "ingdiv" "progdiv" 2 (fn [a b c] [a b c])))))))
+
+    (test-async
+     (go (is (= true (:success (async/<! schan))))))))
 
