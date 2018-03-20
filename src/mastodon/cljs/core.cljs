@@ -17,23 +17,26 @@
 
 (defn report-assessment
   "Handle DOM update, store names of non-ingested ARD, based on Tile status check."
-  [ard-channel dom-map & [dom-func]]
+  [ard-channel dom-map & [dom-func dom-content hide-fn]]
   (go
     (let [ard-status (<! ard-channel)
           dom-update (or dom-func dom/update-for-ard-check)
+          dom-set-fn (or dom-content dom/set-div-content)
+          dom-hide   (or hide-fn dom/hide-div)
           ard-body   (:body ard-status)
           report-map (hash-map :ingested-count (:ingested ard-body)
                                :ard-missing-count (count (:missing ard-body))
                                :iwds-missing [] ; dependent on single iwds query
                                :dom-map dom-map)
           ard-error (:error ard-body)]
+
       (if (nil? ard-error)
         (do (util/log (str "ARD Status Report: " report-map))
             (swap! ard-miss-atom assoc :tifs (:missing ard-body))
             (dom-update report-map (count (:missing ard-body))))
         (do (util/log (str "Error reaching services: " (:body ard-status)))
-            (dom/hide-div "busydiv")
-            (dom/set-div-content "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
+            (dom-hide "busydiv")
+            (dom-set-fn "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
 
 (defn make-chipmunk-requests 
   "Handle requests to lcmap-chipmunk for ARD ingest"
