@@ -52,24 +52,30 @@
 
 (defn ingest-status-handler 
   "Handle ingest request responses."
-  [status-channel counter-map]
-  (go-loop []
-    (let [response (<! status-channel)
-          status   (:status response)
-          body     (:body response)
-          tifs     (-> body (#(reduce conj %)) (keys) (#(map name %)))]
-      (if (= 200 status)
-          (do (util/log "status is 200")
-              (util/log (str "ingested: " tifs))
-              (dom/set-div-content "ingesting-list" tifs)
+  [status-channel counter-map & [logfn setdivfn domsuccfn domfailfn]]
+  (let [log-fn         (or logfn util/log) 
+        set-div-fn     (or setdivfn dom/set-div-content) 
+        dom-success-fn (or domsuccfn dom/update-for-ingest-success) 
+        dom-fail-fn    (or domfailfn dom/update-for-ingest-fail)]
+
+    (go-loop []
+      (let [response (<! status-channel)
+            status   (:status response)
+            body     (:body response)
+            tifs     (-> body (#(reduce conj %)) (keys) (#(map name %)))]
+        (if (= 200 status)
+          (do (log-fn "status is 200")
+              (log-fn (str "ingested: " tifs))
+              (set-div-fn "ingesting-list" tifs)
               (doseq [ard_resp body]
                 (if (= 200 (first (vals ard_resp)))
-                  (do (dom/update-for-ingest-success counter-map)
-                      (util/log (str "200 ard_resp: " ard_resp)))
-                  (do (util/log (str "status is NOT 200, ingest failed. message: " body))
-                      (dom/update-for-ingest-fail counter-map)))))
-          (do (util/log (str "non-200 response: " response)))))
-    (recur)))
+                  (do (dom-success-fn counter-map)
+                      (log-fn (str "200 ard_resp: " ard_resp)))
+                  (do (log-fn (str "status is NOT 200, ingest failed. message: " body))
+                      (dom-fail-fn counter-map)))))
+          (do (log-fn (str "non-200 response: " response)))))
+      (recur))
+    ))
 
 (defn ^:export assess-ard
   "Exposed function for determining what ARD needs to be ingested."
