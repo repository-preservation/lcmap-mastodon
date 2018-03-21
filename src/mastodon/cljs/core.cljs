@@ -38,44 +38,38 @@
             (dom-hide "busydiv")
             (dom-set-fn "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
 
-(defn make-chipmunk-requests 
-  "Handle requests to lcmap-chipmunk for ARD ingest"
-  [ingest-channel status-channel ard-host busy-div ingesting-div inprogress-div partition-level & [dom-func]]
+(defn ingest-status-handler
+  "Update DOM according to ingest request response"
+  [status body counter-map]
+  (let [tifs (-> body (#(reduce conj %)) (keys) (#(map name %)))]
+    (if (= 200 status)
+      (do (util/log "status is 200")
+          (util/log (str "ingested: " tifs))
+          (dom/set-div-content "ingesting-list" tifs)
+          (doseq [ard_resp body]
+            (if (= 200 (first (vals ard_resp)))
+              (do (dom/update-for-ingest-success counter-map)
+                  (util/log (str "200 ard_resp: " ard_resp)))
+              (do (util/log (str "status is NOT 200, ingest failed. message: " body))
+                  (dom/update-for-ingest-fail counter-map)))))
+      (do (util/log (str "non-200 status: " status " body: " body))))))
+
+(defn make-chipmunk-requests
+  "Function parked on channel for purpose of making ingest requests to IWDS"
+  [ingest-channel ard-host busy-div ingesting-div inprogress-div partition-level counter-map & [dom-func]]
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
           ard-resource (str ard-host "/bulk-ingest")
           dom-update (or dom-func dom/update-for-ingest-completion)]
+
       (doseq [t partifs]
-        (>! status-channel (<! (http/post-request ard-resource {"urls" (string/join "," t) }))))
+        (let [response (<! (http/post-request ard-resource {"urls" (string/join "," t)}))
+              status   (:status response)
+              body     (:body response)]
+            (ingest-status-handler status body counter-map)))
+
       (dom-update busy-div ingesting-div inprogress-div))))
-
-(defn ingest-status-handler 
-  "Handle ingest request responses."
-  [status-channel counter-map & [logfn setdivfn domsuccfn domfailfn]]
-  (let [log-fn         (or logfn util/log) 
-        set-div-fn     (or setdivfn dom/set-div-content) 
-        dom-success-fn (or domsuccfn dom/update-for-ingest-success) 
-        dom-fail-fn    (or domfailfn dom/update-for-ingest-fail)]
-
-    (go-loop []
-      (let [response (<! status-channel)
-            status   (:status response)
-            body     (:body response)
-            tifs     (-> body (#(reduce conj %)) (keys) (#(map name %)))]
-        (if (= 200 status)
-          (do (log-fn "status is 200")
-              (log-fn (str "ingested: " tifs))
-              (set-div-fn "ingesting-list" tifs)
-              (doseq [ard_resp body]
-                (if (= 200 (first (vals ard_resp)))
-                  (do (dom-success-fn counter-map)
-                      (log-fn (str "200 ard_resp: " ard_resp)))
-                  (do (log-fn (str "status is NOT 200, ingest failed. message: " body))
-                      (dom-fail-fn counter-map)))))
-          (do (log-fn (str "non-200 response: " response)))))
-      (recur))
-    ))
 
 (defn ^:export assess-ard
   "Exposed function for determining what ARD needs to be ingested."
@@ -97,7 +91,6 @@
         partition-level      (read-string par-level)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count) 
-    (ingest-status-handler ingest-status-chan counter-map) 
-    (make-chipmunk-requests ard-to-ingest-chan ingest-status-chan ard-host busy-div ingesting-div inprogress-div partition-level)
+    (make-chipmunk-requests ard-to-ingest-chan ard-host busy-div ingesting-div inprogress-div partition-level counter-map)
     (go (>! ard-to-ingest-chan ard-sources))))
 
