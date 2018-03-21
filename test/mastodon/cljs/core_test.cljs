@@ -38,28 +38,16 @@
           (go (is (= {"error-container" ["Error reaching ARD server: there was a massive failure"]} 
                      (async/<! (mc/report-assessment achan dommap (fn [a b] {a b}) (fn [a b] {a b}) (fn [a] true)))))))))
 
-(deftest make-chipmunk-requests-test
-  (let [ichan (async/chan 1)
-        schan (async/chan 2)]
+;; (deftest make-chipmunk-requests-test-old
+;;   (let [ichan (async/chan 1)
+;;         schan (async/chan 2)]
 
-    (go (async/>! ichan ["a" "b"]))
+;;     (go (async/>! ichan ["a" "b"]))
 
-    (test-async
-     (go (is (= ["busydiv" "ingdiv" "progdiv"] 
-                (async/<! (mc/make-chipmunk-requests ichan schan "ardhost" "busydiv" "ingdiv" "progdiv" 2 (fn [a b c] [a b c])))))))
+;;     (test-async
+;;      (go (is (= ["busydiv" "ingdiv" "progdiv"] 
+;;                 (async/<! (mc/make-chipmunk-requests ichan schan "ardhost" "busydiv" "ingdiv" "progdiv" 2 (fn [a b c] [a b c])))))))
 
-    (test-async
-     (go (is (= true (:success (async/<! schan))))))))
+;;     (test-async
+;;      (go (is (= true (:success (async/<! schan))))))))
 
-(deftest ingest-status-handler-test
-
-    (let [schan (async/chan 1)]
-
-      (go (async/>! schan {:status 200 :body [{:thing1 200} {:thing2 200}]}))
-
-      (test-async
-       (go (is (= true true
-                  ;(async/<! (mc/ingest-status-handler schan {:a "2"} (fn [x] x) (fn [x y] x) (fn [x] x) (fn [x] x)))
-                  ))))
-      )
-)
