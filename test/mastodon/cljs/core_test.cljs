@@ -3,7 +3,7 @@
   (:require [cljs.test :refer-macros [deftest is async]]
             [clojure.string :as string]
             [mastodon.cljs.core :as mc]
-            [mastodon.cljs.http :as mhttp]
+            [mastodon.cljs.http :as http]
             [mastodon.cljs.data :as testdata]
             [mastodon.cljs.dom :as dom]
             [mastodon.cljc.util :as util]
@@ -38,16 +38,23 @@
           (go (is (= {"error-container" ["Error reaching ARD server: there was a massive failure"]} 
                      (async/<! (mc/report-assessment achan dommap (fn [a b] {a b}) (fn [a b] {a b}) (fn [a] true)))))))))
 
-;; (deftest make-chipmunk-requests-test-old
-;;   (let [ichan (async/chan 1)
-;;         schan (async/chan 2)]
+(deftest make-chipmunk-requests-test
+  (with-redefs [http/post-request (fn [url parms] {:status 200 :body [{:foo 200} {:bar 200}]})
+                mc/ingest-status-handler (fn [a b] {a b})]
+    (let [ichan (async/chan 1)]
 
-;;     (go (async/>! ichan ["a" "b"]))
+    (go (async/>! ichan ["a" "b"]))
 
-;;     (test-async
-;;      (go (is (= ["busydiv" "ingdiv" "progdiv"] 
-;;                 (async/<! (mc/make-chipmunk-requests ichan schan "ardhost" "busydiv" "ingdiv" "progdiv" 2 (fn [a b c] [a b c])))))))
+    (test-async
+     (go (is (= ["busydiv" "ingdiv" "progdiv"] 
+                (async/<! (mc/make-chipmunk-requests ichan "ardhost" "busydiv" "ingdiv" "progdiv" 2 {:foo "bar"} (fn [a b c] [a b c]))))))))))
 
-;;     (test-async
-;;      (go (is (= true (:success (async/<! schan))))))))
+(deftest ingest-status-handler-test
+  (with-redefs [util/log (fn [x] {:foo "bar"})
+                dom/set-div-content (fn [x y] {x y})
+                dom/update-for-ingest-success (fn [x] (println "success!!!") true)
+                dom/update-for-ingest-fail (fn [x] (println "failure!!!") false)]
+
+        (is (= {:status 200, :tifs ("boo.tif" "who.tif"), :body [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}]}
+           (mc/ingest-status-handler 200 [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}] {"div1" 4})))))
 

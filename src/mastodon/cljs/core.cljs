@@ -10,7 +10,6 @@
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
 (def ard-to-ingest-chan (chan 1))  ;; channel used to handle ARD to ingest
-(def ingest-status-chan (chan 1))  ;; channel used to handle ingest status
 
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
 (def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IWDS
@@ -48,20 +47,20 @@
           (dom/set-div-content "ingesting-list" tifs)
           (doseq [ard_resp body]
             (if (= 200 (first (vals ard_resp)))
-              (do (dom/update-for-ingest-success counter-map)
-                  (util/log (str "200 ard_resp: " ard_resp)))
+              (do (util/log (str "200 ard_resp: " ard_resp))
+                  (dom/update-for-ingest-success counter-map))
               (do (util/log (str "status is NOT 200, ingest failed. message: " body))
                   (dom/update-for-ingest-fail counter-map)))))
-      (do (util/log (str "non-200 status: " status " body: " body))))))
+      (do (util/log (str "non-200 status: " status " body: " body))))
+    (hash-map :status status :tifs tifs :body body)))
 
 (defn make-chipmunk-requests
   "Function parked on channel for purpose of making ingest requests to IWDS"
-  [ingest-channel ard-host busy-div ingesting-div inprogress-div partition-level counter-map & [dom-func]]
+  [ingest-channel ard-host busy-div ingesting-div inprogress-div partition-level counter-map dom-update]
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
-          ard-resource (str ard-host "/bulk-ingest")
-          dom-update (or dom-func dom/update-for-ingest-completion)]
+          ard-resource (str ard-host "/bulk-ingest")]
 
       (doseq [t partifs]
         (let [response (<! (http/post-request ard-resource {"urls" (string/join "," t)}))
@@ -91,6 +90,6 @@
         partition-level      (read-string par-level)]
 
     (dom/update-for-ingest-start (:progress counter-map) ard-count) 
-    (make-chipmunk-requests ard-to-ingest-chan ard-host busy-div ingesting-div inprogress-div partition-level counter-map)
+    (make-chipmunk-requests ard-to-ingest-chan ard-host busy-div ingesting-div inprogress-div partition-level counter-map dom/update-for-ingest-completion)
     (go (>! ard-to-ingest-chan ard-sources))))
 
