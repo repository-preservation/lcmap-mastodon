@@ -67,4 +67,4 @@
 (deftest update-for-ingest-completion-test
   (with-redefs [dom/hide-div (fn [x] x)
                 dom/set-div-content (fn [a b] {a b})]
-    (is (= {"foodiv" ""} (dom/update-for-ingest-completion "busydiv" "ingesting" "foodiv")))))
+    (is (= {"foodiv" "0"} (dom/update-for-ingest-completion "busydiv" "ingesting" "foodiv")))))
