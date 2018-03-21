@@ -55,6 +55,6 @@
                 dom/update-for-ingest-success (fn [x] (println "success!!!") true)
                 dom/update-for-ingest-fail (fn [x] (println "failure!!!") false)]
 
-        (is (= {:status 200, :tifs ("boo.tif" "who.tif"), :body [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}]}
+        (is (= {:status 200, :tifs '("boo.tif" "who.tif"), :body [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}]}
            (mc/ingest-status-handler 200 [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}] {"div1" 4})))))
 
