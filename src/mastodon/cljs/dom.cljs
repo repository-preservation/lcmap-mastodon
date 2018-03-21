@@ -105,5 +105,5 @@
   [busy-div ingesting-div inprogress-div]
   (hide-div busy-div)
   (set-div-content ingesting-div "")
-  (set-div-content inprogress-div ""))
+  (set-div-content inprogress-div "0"))
 
