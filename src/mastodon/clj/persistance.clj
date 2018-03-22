@@ -2,7 +2,8 @@
   (:require [org.httpkit.client :as http]
             [cheshire.core :as json]
             [clojure.string :as string]
-            [mastodon.cljc.ard :as ard]))
+            [mastodon.cljc.ard :as ard]
+            [mastodon.cljc.util :as util]))
 
 (defn log-error
   "Record ingest error in appropriate log files"
@@ -23,7 +24,7 @@
           ard_resp (http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))
           response {tif_name (:status @ard_resp)}]
-          (println (str "ingested: " response))
+          (util/log (str "ingested: " response))
           response)
     (catch Exception ex 
       (.printStackTrace ex)
