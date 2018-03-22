@@ -12,7 +12,7 @@ COPY resources/public/css /usr/share/nginx/html/css/
 COPY resources/public/images /usr/share/nginx/html/images/
 COPY default.conf /etc/nginx/conf.d/default.conf
 COPY startup.sh /usr/local/bin/startup.sh
-COPY target/lcmap-mastodon-0.1.13-standalone.jar /usr/local/bin/
+COPY target/lcmap-mastodon-1.0.0-standalone.jar /usr/local/bin/
 
 RUN mkdir /data
 
