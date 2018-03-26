@@ -4,11 +4,6 @@
    (:require [cljs-http.client :as http-client]
              [cljs.core.async :refer [<!]]))
 
-(defn log 
-  "Function for logging messages to the JS console."
-  [msg]
-  (.log js/console msg))
-
 (defn get-request
   "Wrapper func for async HTTP GET requests."
   [url & [resp]]

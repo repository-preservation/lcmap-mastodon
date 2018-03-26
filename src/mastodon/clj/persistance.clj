@@ -3,15 +3,8 @@
             [cheshire.core :as json]
             [clojure.string :as string]
             [mastodon.cljc.ard :as ard]
-            [mastodon.cljc.util :as util]))
-
-(defn log-error
-  "Record ingest error in appropriate log files"
-  [ard body error tileid]
-  (let [ard_log (str "ingest_error_list_" tileid ".log")
-        msg_log (str "ingest_error_body_" tileid ".log")]
-    (spit ard_log (str ard "\n") :append true)
-    (spit msg_log (str ard " - " body " - " error "\n") :append true)))
+            [mastodon.cljc.util :as util]
+            [clojure.tools.logging :as log]))
 
 (defn ingest 
   "Post ingest requests to IWDS resources"
@@ -24,11 +17,10 @@
           ard_resp (http/post iwds_path post_opts)
           tif_name (last (string/split ard #"/"))
           response {tif_name (:status @ard_resp)}]
-          (util/log (str "ingested: " response))
+          (log/info (str "ingest attempt: " response))
           response)
     (catch Exception ex 
-      (.printStackTrace ex)
-      (str "caught exception in ingest-ard: " (.getMessage ex)))))
+      (log/error ex "caught exception during ingest"))))
 
 (defn status-check
   "Based on ingest status, put ARD into correct Atom"

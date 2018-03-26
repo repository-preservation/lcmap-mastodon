@@ -18,7 +18,7 @@
         (async/take! ch (fn [_] (done))))))
 
 (deftest report-assessment-test
-  (with-redefs [util/log (fn [x] x)]
+  (with-redefs [mc/log (fn [x] x)]
       (let [achan  (async/chan 1) 
             inpmap {:body {:ingested 9 :missing ["a" "e" "i"]}}
             dommap {:busydiv "busydiv"}]
@@ -50,7 +50,7 @@
                 (async/<! (mc/make-chipmunk-requests ichan "ardhost" "busydiv" "ingdiv" "progdiv" 2 {:foo "bar"} (fn [a b c] [a b c]))))))))))
 
 (deftest ingest-status-handler-test
-  (with-redefs [util/log (fn [x] {:foo "bar"})
+  (with-redefs [mc/log (fn [x] {:foo "bar"})
                 dom/set-div-content (fn [x y] {x y})
                 dom/update-for-ingest-success (fn [x] (println "success!!!") true)
                 dom/update-for-ingest-fail (fn [x] (println "failure!!!") false)]
