@@ -48,7 +48,7 @@
 
     <div class="col-sm-6 col-sm-offset-3" style="width:675px;">
 
-      <h1>LCMAP System Source Data Inventory Monitoring</h1>
+      <h1>LCMAP ARD Management</h1>
 
       <!-- OUR FORM -->
       <form action="" method="POST">
@@ -73,11 +73,12 @@
       <!-- find better solution to preventing form submission -->
       <div id="form-buttons" class="leftside">
         <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
-        <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD <span class="fa fa-arrow-right"></span></button>
+        <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD Layers<span class="fa fa-arrow-right"></span></button>
       </div>
       <div id="busy-container" class="rightside">
         <div id="busydiv"><img src="images/Blocks.gif"></img></div>
       </div>      
+      * All units are in layers
       <div id="counters-container" class="counter-div">
         <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-rightbar">
           Errored
@@ -99,11 +100,11 @@
         </div>
      </div>
      <div id="ingesting-div" class="leftside">
-       <b>Ingested</b>
+       <b>Ingested Layers</b>
        <div id="ingesting-list"></div>
      </div>
      <div id="iwdsmissing" class="rightside">
-       <b>Ingested and now Missing ARD</b>
+       <b>Ingested and Missing Layers</b>
        <div id="iwdsmissing-list"></div>
      </div>
      <div id="error-container"></div>
