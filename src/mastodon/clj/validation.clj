@@ -1,5 +1,6 @@
 (ns mastodon.clj.validation
-  (:require [org.httpkit.client :as http]))
+  (:require [org.httpkit.client :as http]
+            [clojure.tools.logging :as log]))
 
 (defn http-accessible?
   "Return whether an http resource is accessible."
@@ -9,10 +10,10 @@
     (try
       (if (< status 300) 
         true 
-        (do (println resource " returned non-200 status: " status)
+        (do (log/error (str resource " returned non-200 status: " status))
             false))
     (catch NullPointerException ex
-      (println resource " is unaccessible")
+      (log/error (str resource " is unaccessible"))
       false))))
 
 (defn not-nil? 
@@ -20,7 +21,7 @@
   [val name]
   (let [resp (not (nil? val))]
     (when (not resp)
-      (println name " is not defined"))
+      (log/error (str name " is not defined")))
     resp))
 
 (defn does-match? 
@@ -28,7 +29,7 @@
   [pattern val name]
   (let [resp (not (nil? (re-matches pattern val)))]
     (when (= false resp)
-      (println name " does not appear valid"))
+      (log/error (str name " does not appear valid")))
     resp))
 
 (defn is-int?
@@ -36,7 +37,7 @@
   [val name]
   (let [resp (int? val)]
     (when (not resp)
-      (println name " does not appear to be an int"))
+      (log/error (str name " does not appear to be an int")))
     resp))
 
 (defn validate-cli
