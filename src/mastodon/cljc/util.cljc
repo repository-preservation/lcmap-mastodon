@@ -1,12 +1,6 @@
 (ns mastodon.cljc.util
   (:require [clojure.string :as string]))
 
-(defn log 
-  "Log messages."
-  [msg]
-  #? (:clj (println msg)
-      :cljs (.log js/console msg)))
-
 (defn get-map-val
   "Return particular value for a map, for the conditional key and value."
   [map-obj desired-key & [conditional-key conditional-val]]

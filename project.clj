@@ -9,6 +9,7 @@
   :dependencies [[org.clojure/clojure       "1.9.0"]
                  [org.clojure/clojurescript "1.9.946"]
                  [org.clojure/core.async    "0.3.443"]
+                 [org.clojure/tools.logging "0.4.0"]
                  [cheshire                  "5.8.0"]
                  [clj-glob                  "1.0.0"]
                  [cljs-http                 "0.1.43"]

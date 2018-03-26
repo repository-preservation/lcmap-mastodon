@@ -14,6 +14,11 @@
 (def ard-miss-atom (atom {})) ;; atom containing list of ARD not yet ingested
 (def iwd-miss-atom (atom {})) ;; atom containing list of ARD only found in IWDS
 
+(defn log 
+  "Log messages."
+  [msg]
+  (.log js/console msg))
+
 (defn report-assessment
   "Handle DOM update, store names of non-ingested ARD, based on Tile status check."
   [ard-channel dom-map & [dom-func dom-content hide-fn]]
@@ -30,10 +35,10 @@
           ard-error (:error ard-body)]
 
       (if (nil? ard-error)
-        (do (util/log (str "ARD Status Report: " report-map))
+        (do (log (str "ARD Status Report: " report-map))
             (swap! ard-miss-atom assoc :tifs (:missing ard-body))
             (dom-update report-map (count (:missing ard-body))))
-        (do (util/log (str "Error reaching services: " (:body ard-status)))
+        (do (log (str "Error reaching services: " (:body ard-status)))
             (dom-hide "busydiv")
             (dom-set-fn "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
 
@@ -42,16 +47,16 @@
   [status body counter-map]
   (let [tifs (-> body (#(reduce conj %)) (keys) (#(map name %)))]
     (if (= 200 status)
-      (do (util/log "status is 200")
-          (util/log (str "ingested: " tifs))
+      (do (log "status is 200")
+          (log (str "ingested: " tifs))
           (dom/set-div-content "ingesting-list" tifs)
           (doseq [ard_resp body]
             (if (= 200 (first (vals ard_resp)))
-              (do (util/log (str "200 ard_resp: " ard_resp))
+              (do (log (str "200 ard_resp: " ard_resp))
                   (dom/update-for-ingest-success counter-map))
-              (do (util/log (str "status is NOT 200, ingest failed. message: " body))
+              (do (log (str "status is NOT 200, ingest failed. message: " body))
                   (dom/update-for-ingest-fail counter-map)))))
-      (do (util/log (str "non-200 status: " status " body: " body))))
+      (do (log (str "non-200 status: " status " body: " body))))
     (hash-map :status status :tifs tifs :body body)))
 
 (defn make-chipmunk-requests
