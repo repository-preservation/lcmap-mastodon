@@ -9,18 +9,19 @@
 (defn ingest 
   "Post ingest requests to IWDS resources"
   [ard iwds_resource]
-  (try 
-    (let [iwds_path (str iwds_resource "/inventory")
-          post_opts {:body (json/encode {"url" ard})
-                     :timeout 120000
-                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-          ard_resp (http/post iwds_path post_opts)
-          tif_name (last (string/split ard #"/"))
-          response {tif_name (:status @ard_resp)}]
-          (log/info (str "ingest attempt: " response))
-          response)
-    (catch Exception ex 
-      (log/error ex "caught exception during ingest"))))
+  (let [tif_name (last (string/split ard #"/"))]
+    (try 
+      (let [iwds_path (str iwds_resource "/inventory")
+            post_opts {:body (json/encode {"url" ard}) :timeout 120000
+                       :headers {"Content-Type" "application/json" "Accept" "application/json"}}
+            ard_resp (http/post iwds_path post_opts)
+            response {tif_name (:status @ard_resp)}]
+        (log/infof "ingest attempt: %s" response)
+        response)
+      (catch Exception ex 
+        (log/errorf "caught exception during ingest. ard: %s  iwds: %s  exception: %" 
+                    ard iwds_resource (.getMessage ex))
+        {tif_name 500 :error (.getMessage ex)}))))
 
 (defn status-check
   "Based on ingest status, put ARD into correct Atom"
