@@ -13,7 +13,7 @@ COPY resources/public/images /usr/share/nginx/html/images/
 COPY resources/log4j.properties /log4j.properties
 COPY default.conf /etc/nginx/conf.d/default.conf
 COPY startup.sh /startup.sh
-COPY target/lcmap-mastodon-1.0.0-standalone.jar /
+COPY target/lcmap-mastodon-*-standalone.jar /
 
 RUN mkdir /data
 
