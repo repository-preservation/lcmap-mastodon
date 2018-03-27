@@ -1,5 +1,6 @@
 (ns mastodon.clj.server
    (:require [clojure.string           :as string]
+             [clojure.tools.logging    :as log]
              [compojure.core           :as compojure]
              [compojure.route          :as route]
              [environ.core             :as environ]
@@ -30,20 +31,24 @@
         iwds-message (str "IWDS Host: " iwds-host " is not reachable")]
 
     (if (= #{true} (set [ard-accessible iwds-accessible]))
-      (do (let [hvmap    (util/hv-map tileid)
-                filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
-                ardtifs  (-> filepath (file/get-filenames "tar")
-                             (#(map ard/ard-manifest %))
-                             (flatten))
-                ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
-                missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
-                             (#(apply merge-with concat %)) 
-                             (keys))
-                ingested_count (- (count ard_res) (count missing))]
-            {:status 200 :body {:ingested ingested_count :missing missing}}))
+      (do (try
+            (let [hvmap    (util/hv-map tileid)
+                  filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")
+                  ardtifs  (-> filepath (file/get-filenames "tar")
+                               (#(map ard/ard-manifest %))
+                               (flatten))
+                  ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
+                  missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
+                               (#(apply merge-with concat %)) 
+                               (keys))
+                  ingested_count (- (count ard_res) (count missing))]
+              {:status 200 :body {:ingested ingested_count :missing missing}})
+            (catch Exception ex
+              (log/errorf "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))
+              {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))}})))
       (do (cond
            (= true ard-accessible)  {:status 200 :body {:error iwds-message}}
-           (= true iwds-accessible) {:status 200 :body {:error ard-message} }
+           (= true iwds-accessible) {:status 200 :body {:error ard-message}}
            :else {:status 200 :body {:error (str ard-message iwds-message)}})))))
 
 (defn get-base 

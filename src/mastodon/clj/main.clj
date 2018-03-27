@@ -28,7 +28,8 @@
       (do (try
             (server/run-server #'mserver/app {:port 9876})
             (catch Exception ex
-              (log/error ex "error starting Mastodon")))) 
+              (log/error ex "error starting Mastodon")
+              (System/exit 1)))) 
       (do (log/error "validation failed, exiting")
           (System/exit 1))))
   ([tileid & args]
@@ -44,12 +45,11 @@
             autoingest     (first args)]
 
         (when (:error @ard_response)
-          (log/error (str "Error reaching ARD_HOST: " (:error @ard_response)))
+          (log/error (str "Error response from ARD_HOST: " (:error @ard_response)))
           (System/exit 1))
 
-        (log/info (str "\nTile Status Report for: " tileid "\n"
-                       "To be ingested: " (count missing_vector) "\n"
-                       "Already ingested: " (:ingested response_map) "\n"))
+        (log/info (format "\nTile Status report for: %s \nTo be ingested: %s \nAlready ingested: %s\n"
+                          tileid (count missing_vector) (:ingested response_map)))
 
         (if (= autoingest "-y")
           (do (pmap-partitions ingest_map ard_partition)

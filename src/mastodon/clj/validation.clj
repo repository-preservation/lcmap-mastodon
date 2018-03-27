@@ -48,7 +48,8 @@
            (not-nil? iwds_host "IWDS_HOST")
            (not-nil? ard_host "ARD_HOST")
            (is-int? par_level "PARTITION_LEVEL")
-           (http-accessible? iwds_host)])))
+           (http-accessible? iwds_host)
+           (http-accessible? ard_host)])))
 
 (defn validate-server
   "Wrapper func for server parameters."
