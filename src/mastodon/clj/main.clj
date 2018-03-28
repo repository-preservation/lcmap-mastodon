@@ -28,13 +28,13 @@
       (do (try
             (server/run-server #'mserver/app {:port 9876})
             (catch Exception ex
-              (log/error ex "error starting Mastodon")
+              (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
               (System/exit 1)))) 
-      (do (log/error "validation failed, exiting")
+      (do (log/errorf "server validation failed, exiting")
           (System/exit 1))))
   ([tileid & args]
     (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
-      (log/error "validation failed, exiting")
+      (log/errorf "validation failed, exiting")
       (System/exit 1))
     (try
       (let [ard_response   (http/get (util/ard-url-format ard_host tileid))
@@ -45,25 +45,25 @@
             autoingest     (first args)]
 
         (when (:error @ard_response)
-          (log/error (str "Error response from ARD_HOST: " (:error @ard_response)))
+          (log/errorf "Error response from ARD_HOST: %s" (:error @ard_response))
           (System/exit 1))
 
-        (log/info (format "\nTile Status report for: %s \nTo be ingested: %s \nAlready ingested: %s\n"
-                          tileid (count missing_vector) (:ingested response_map)))
+        (log/infof "Tile Status report for: %s \nTo be ingested: %s \nAlready ingested: %s\n" 
+                   tileid (count missing_vector) (:ingested response_map))
 
         (if (= autoingest "-y")
           (do (pmap-partitions ingest_map ard_partition)
-              (log/info "Ingest Complete"))
+              (log/infof "Ingest Complete"))
           (do (println "Ingest? (y/n)")
               (if (= (read-line) "y")
                 (do (pmap-partitions ingest_map ard_partition)
                     (println "Ingest Complete"))
                 (do (println "Exiting!"))))))
       (catch com.fasterxml.jackson.core.JsonParseException jx
-        (log/error jx "Non-json response from ARD_HOST request")
+        (log/errorf "Non-json response from ARD_HOST request. exception: %s " (.getMessage jx))
         (System/exit 1))
       (catch Exception ex
-        (log/error ex "Error determining tile ingest status")
+        (log/errorf "Error determining tile ingest status. exception: %s" (.getMessage ex))
         (System/exit 1)))
     (System/exit 0)))
 
