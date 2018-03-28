@@ -33,14 +33,16 @@
                                :iwds-missing [] ; dependent on single iwds query
                                :dom-map dom-map)
           ard-error (:error ard-body)]
-
-      (if (nil? ard-error)
-        (do (log (str "ARD Status Report: " report-map))
-            (swap! ard-miss-atom assoc :tifs (:missing ard-body))
-            (dom-update report-map (count (:missing ard-body))))
-        (do (log (str "Error reaching services: " (:body ard-status)))
-            (dom-hide "busydiv")
-            (dom-set-fn "error-container" [(str "Error reaching ARD server: " ard-error)]))))))
+      (if (= false (:success ard-status))
+        (do (dom-hide "busydiv")
+            (dom-set-fn "error-container" ["No response from ARD_HOST!"]))
+        (do (if (nil? ard-error)
+              (do (log (str "ARD Status Report: " report-map))
+                  (swap! ard-miss-atom assoc :tifs (:missing ard-body))
+                  (dom-update report-map (count (:missing ard-body))))
+              (do (log (str "Error reaching services: " (:body ard-status)))
+                  (dom-hide "busydiv")
+                  (dom-set-fn "error-container" [(str "Error reaching ARD server: " ard-error)]))))))))
 
 (defn ingest-status-handler
   "Update DOM according to ingest request response"

@@ -25,8 +25,8 @@
 (defn ard-status
   "Determine the ARD ingest status for the given tile id."
   [tileid]
-  (let [ard-accessible  (validation/http-accessible? ard-host)
-        iwds-accessible (validation/http-accessible? iwds-host)
+  (let [ard-accessible  (validation/http-accessible? ard-host "ARD_HOST")
+        iwds-accessible (validation/http-accessible? iwds-host "IWDS_HOST")
         ard-message  (str "ARD Host: " ard-host " is not reachable. ") 
         iwds-message (str "IWDS Host: " iwds-host " is not reachable")]
 
