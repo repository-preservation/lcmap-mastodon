@@ -4,24 +4,24 @@
 
 (defn http-accessible?
   "Return whether an http resource is accessible."
-  [resource]
-  (let [response (http/get resource)
-        status   (:status @response)]
-    (try
+  [resource name]
+  (try
+    (let [response (http/get resource)
+          status   (:status @response)]
       (if (< status 300) 
         true 
-        (do (log/error (str resource " returned non-200 status: " status))
-            false))
-    (catch NullPointerException ex
-      (log/error (str resource " is unaccessible"))
-      false))))
+        (do (log/errorf "%s returned non-200 status: %s" resource status)
+            false)))
+    (catch Exception ex
+      (log/errorf "%s is unaccessible" name)
+      false)))
 
 (defn not-nil? 
   "Return whether val is not nil."
   [val name]
   (let [resp (not (nil? val))]
     (when (not resp)
-      (log/error (str name " is not defined")))
+      (log/errorf "%s is not defined" name))
     resp))
 
 (defn does-match? 
@@ -29,7 +29,7 @@
   [pattern val name]
   (let [resp (not (nil? (re-matches pattern val)))]
     (when (= false resp)
-      (log/error (str name " does not appear valid")))
+      (log/errorf "%s does not appear valid" name))
     resp))
 
 (defn is-int?
@@ -37,7 +37,7 @@
   [val name]
   (let [resp (int? val)]
     (when (not resp)
-      (log/error (str name " does not appear to be an int")))
+      (log/errorf "%s is not an int" name))
     resp))
 
 (defn validate-cli
@@ -48,8 +48,8 @@
            (not-nil? iwds_host "IWDS_HOST")
            (not-nil? ard_host "ARD_HOST")
            (is-int? par_level "PARTITION_LEVEL")
-           (http-accessible? iwds_host)
-           (http-accessible? ard_host)])))
+           (http-accessible? iwds_host "IWDS_HOST")
+           (http-accessible? ard_host "ARD_HOST")])))
 
 (defn validate-server
   "Wrapper func for server parameters."
@@ -59,5 +59,5 @@
            (not-nil? ard_host "ARD_HOST")
            (is-int? par_level "PARTITION_LEVEL")
            (not-nil? ard_path "ARD_PATH")
-           (http-accessible? iwds_host)])))
+           (http-accessible? iwds_host "IWDS_HOST")])))
 

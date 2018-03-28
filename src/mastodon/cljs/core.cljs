@@ -47,9 +47,7 @@
   [status body counter-map]
   (let [tifs (-> body (#(reduce conj %)) (keys) (#(map name %)))]
     (if (= 200 status)
-      (do (log "status is 200")
-          (log (str "ingested: " tifs))
-          (dom/set-div-content "ingesting-list" tifs)
+      (do (dom/set-div-content "ingesting-list" tifs)
           (doseq [ard_resp body]
             (if (= 200 (first (vals ard_resp)))
               (do (log (str "200 ard_resp: " ard_resp))
