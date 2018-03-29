@@ -12,11 +12,11 @@
   (is (= (validation/is-int? 9 "Foo") true)))
 
 (deftest validate-cli-test
-  (with-redefs [validation/http-accessible? (fn [x] true)]
+  (with-redefs [validation/http-accessible? (fn [x y] true)]
     (is (= (validation/validate-cli "005015" "iwdshost" "ardhost" 10) true))))
 
 (deftest validate-server-test
-  (with-redefs [validation/http-accessible? (fn [x] true)]
+  (with-redefs [validation/http-accessible? (fn [x y] true)]
     (is (= (validation/validate-server "iwdshost" "ardhost" 10 "/tmp/foo/") true))))
 
 
