@@ -23,7 +23,20 @@
         results (doall (pmap #(persist/ingest % iwds-host) tifs))]
     {:status 200 :body results}))
 
-(defn ard-status
+(defn http-deps-check
+  []
+  (let [ard-accessible  (validation/http-accessible? ard-host "ARD_HOST")
+        iwds-accessible (validation/http-accessible? iwds-host "IWDS_HOST")
+        ard-message  (str "ARD Host: " ard-host " is not reachable. ") 
+        iwds-message (str "IWDS Host: " iwds-host " is not reachable")]
+    (if (= #{true} (set [ard-accessible iwds-accessible]))
+      (do {:error nil})
+      (do (cond
+           (= true ard-accessible)  {:error iwds-message}
+           (= true iwds-accessible) {:error ard-message}
+           :else {:error (str ard-message iwds-message)})))))
+
+(defn ard-status-orig
   "Determine the ARD ingest status for the given tile id."
   [tileid]
   (let [ard-accessible  (validation/http-accessible? ard-host "ARD_HOST")
@@ -52,21 +65,55 @@
            (= true iwds-accessible) {:status 200 :body {:error ard-message}}
            :else {:status 200 :body {:error (str ard-message iwds-message)}})))))
 
-(defn filter-ard-status
-  "Determine the ARD ingest status for a given tile id, between the dates provided"
+(defn available-ard
+  "Return a vector of available ARD for the given tile id"
+  [tileid]
+  (let [hvmap    (util/hv-map tileid)
+        filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")]
+    (-> filepath (file/get-filenames "tar")
+                 (#(map ard/ard-manifest %))
+                 (flatten))))
+
+(defn available-ard-filtered
   [tileid from to]
-  (let [all-ard (ard-status tileid)
-        from-i (read-string from)
-        to-i (read-string to)]
-    (if (nil? (:body (:error all-ard)))
-      (do
-        (let [missing  (:missing (:body all-ard))
-              ingested (:ingested (:body all-ard))
-              froms    (filter (fn [i] (>= (-> i (util/tif-only) (ard/year-acquired) (read-string)) from-i)) missing)
-              tos      (filter (fn [i] (<= (-> i (util/tif-only) (ard/year-acquired) (read-string)) to-i)) missing)
-              inters   (vec (set/intersection (set froms) (set tos)))]
-         {:status 200 :body {:ingested ingested :missing inters}}))
-      (do all-ard))))
+  (let [ardtifs (available-ard tileid)
+        froms   (filter (fn [i] (>= (-> i (util/tif-only) (ard/year-acquired) (read-string)) from-i)) ardtifs)
+        tos     (filter (fn [i] (<= (-> i (util/tif-only) (ard/year-acquired) (read-string)) to-i)) ardtifs)]
+    (vec (set/intersection (set froms) (set tos)))))
+
+(defn ard-report
+  "Return hash-map of missing ARD and an ingested count"
+  [tifs]
+  (let [ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) ardtifs))
+        missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
+                             (#(apply merge-with concat %)) 
+                             (keys))
+        ingested_count (- (count ard_res) (count missing))])
+  {:missing missing :ingested ingested_count})
+
+(defn ard-status
+  ([tileid]
+   (try
+     (let [ardtifs (available-ard tileid)
+           report  (ard-report ardtifs)
+           deps-check (http-deps-check)]
+       (if (nil? (:error deps-check))
+         {:status 200 :body report}
+         {:status 200 :body {:error (:error deps-check)}}))
+      (catch Exception ex
+        (log/errorf "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))
+        {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))}})))
+  ([tileid from to]
+   (try
+     (let [ardtifs (available-ard-filtered tileid from to)
+           report  (ard-report ardtifs)
+           deps-check (http-deps-check)]
+       (if (nil? (:error deps-check))
+         {:status 200 :body report}
+         {:status 200 :body {:error (:error deps-check)}}))
+      (catch Exception ex
+        (log/errorf "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))
+        {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" (.getMessage ex))}}))))
 
 (defn get-base 
   "Hello Mastodon"
@@ -78,7 +125,7 @@
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-status tileid))
-    (compojure/GET   "/inventory/:tileid{[0-9]{6}}/:from/:to" [tileid from to] (filter-ard-status tileid from to))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}/:from{[0-9]{6}}/:to{[0-9]{6}}" [tileid from to] (ard-status tileid from to))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (def app (-> routes
