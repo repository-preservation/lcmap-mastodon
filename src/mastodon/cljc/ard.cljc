@@ -88,3 +88,16 @@
         tarpath (tar-path tar)]    
     (str rpath "/" tarpath "/" tar "/" tif)))
 
+(defn date-acquired
+  "Return the date acquired for the given layer name"
+  [tif]
+  (-> tif
+      (string/split #"_")
+      (nth 3)))
+
+(defn year-acquired
+  "Return the year acquired for the given layer namec"
+  [tif]
+  (-> tif
+      (date-acquired)
+      (subs 0 4)))
