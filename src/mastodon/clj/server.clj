@@ -1,6 +1,7 @@
 (ns mastodon.clj.server
    (:require [clojure.string           :as string]
              [clojure.tools.logging    :as log]
+             [clojure.set              :as set]
              [compojure.core           :as compojure]
              [compojure.route          :as route]
              [environ.core             :as environ]
@@ -51,6 +52,22 @@
            (= true iwds-accessible) {:status 200 :body {:error ard-message}}
            :else {:status 200 :body {:error (str ard-message iwds-message)}})))))
 
+(defn filter-ard-status
+  "Determine the ARD ingest status for a given tile id, between the dates provided"
+  [tileid from to]
+  (let [all-ard (ard-status tileid)
+        from-i (read-string from)
+        to-i (read-string to)]
+    (if (nil? (:body (:error all-ard)))
+      (do
+        (let [missing  (:missing (:body all-ard))
+              ingested (:ingested (:body all-ard))
+              froms    (filter (fn [i] (>= (-> i (util/tif-only) (ard/year-acquired) (read-string)) from-i)) missing)
+              tos      (filter (fn [i] (<= (-> i (util/tif-only) (ard/year-acquired) (read-string)) to-i)) missing)
+              inters   (vec (set/intersection (set froms) (set tos)))]
+         {:status 200 :body {:ingested ingested :missing inters}}))
+      (do all-ard))))
+
 (defn get-base 
   "Hello Mastodon"
   [request]
@@ -61,6 +78,7 @@
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-status tileid))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}/:from/:to" [tileid from to] (filter-ard-status tileid from to))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (def app (-> routes
