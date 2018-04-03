@@ -1,5 +1,6 @@
 (ns mastodon.cljc.util
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+  #? (:cljs [cljs.reader :refer [read-string]])))
 
 (defn get-map-val
   "Return particular value for a map, for the conditional key and value."
@@ -74,3 +75,14 @@
   (-> ardpath
       (string/split #"/")
       (last)))
+
+(defn try-string
+  [input]
+  #? (:clj (try
+             (read-string input)
+             (catch Exception ex
+               nil))
+      :cljs (try
+              (read-string input)
+              (catch :default e
+                nil))))
