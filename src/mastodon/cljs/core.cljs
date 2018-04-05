@@ -6,7 +6,8 @@
             [mastodon.cljc.util :as util]
             [clojure.string :as string]
             [cljs.core.async :refer [<! >! chan]]
-            [cljs.reader :refer [read-string]]))
+            [cljs.reader :refer [read-string]]
+            [cljs-time.core :as timecore]))
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
 (def ard-to-ingest-chan (chan 1))  ;; channel used to handle ARD to ingest
@@ -18,6 +19,12 @@
   "Log messages."
   [msg]
   (.log js/console msg))
+
+(defn ^:export year-select-options
+  []
+  (let [startyear   1982
+        currentyear (timecore/year (timecore/now))]
+    (clj->js (range startyear (+ currentyear 1)))))
 
 (defn report-assessment
   "Handle DOM update, store names of non-ingested ARD, based on Tile status check."
@@ -77,9 +84,9 @@
 
 (defn ^:export assess-ard
   "Exposed function for determining what ARD needs to be ingested."
-  [ard-host tile-id bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
+  [ard-host tile-id from to bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
   (let [ard-request-handler    (or ard-req-fn http/get-request)
-        ard-inventory-resource (util/ard-url-format ard-host  tile-id)
+        ard-inventory-resource (util/ard-url-format ard-host tile-id from to)
         dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn
                            :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
     (report-assessment ard-data-chan dom-map) ;; park func on ard-data-chan to update dom

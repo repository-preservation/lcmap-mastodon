@@ -1,5 +1,6 @@
 (ns mastodon.cljc.util
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+  #? (:cljs [cljs.reader :refer [read-string]])))
 
 (defn get-map-val
   "Return particular value for a map, for the conditional key and value."
@@ -43,10 +44,14 @@
 
 (defn ard-url-format
   "Return formatted url as a string for requesting source list from ARD server"
-  [host tile-id]
-  (let [hvm (hv-map tile-id)
-        host-fmt (trailing-slash host)]
+  ([host tile-id]
+   (let [hvm (hv-map tile-id)
+         host-fmt (trailing-slash host)]
     (str host-fmt "inventory/" (:h hvm) (:v hvm))))
+  ([host tile-id from to]
+   (let [hvm (hv-map tile-id)
+         host-fmt (trailing-slash host)]
+     (str host-fmt "inventory/" (:h hvm) (:v hvm) "?from=" from "&to=" to))))
 
 (defn iwds-url-format
   "Return formatted url as a string for requesting source list from IWDS"
@@ -63,3 +68,21 @@
                      (string/replace "]" "") 
                      (string/replace "\"" "") 
                      (string/split #",")))))
+
+(defn tif-only
+  "Return the layer name from a complete URL path"
+  [ardpath]
+  (-> ardpath
+      (string/split #"/")
+      (last)))
+
+(defn try-string
+  [input]
+  #? (:clj (try
+             (read-string input)
+             (catch Exception ex
+               nil))
+      :cljs (try
+              (read-string input)
+              (catch :default e
+                nil))))

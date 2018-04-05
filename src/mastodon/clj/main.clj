@@ -13,6 +13,8 @@
 (def iwds_host       (:iwds-host environ/env))
 (def ard_host        (:ard-host  environ/env))
 (def ard_path        (:ard-path  environ/env))
+(def from_date       (:from-date environ/env))
+(def to_date         (:to-date   environ/env))
 (def partition_level (if (nil? (:partition-level environ/env)) nil 
                        (read-string (:partition-level environ/env))))    
 
@@ -37,7 +39,7 @@
       (log/errorf "validation failed, exiting")
       (System/exit 1))
     (try
-      (let [ard_response   (http/get (util/ard-url-format ard_host tileid))
+      (let [ard_response   (http/get (util/ard-url-format ard_host tileid from_date to_date))
             response_map   (-> (:body @ard_response) (parse-string true))
             missing_vector (:missing response_map)
             ard_partition  (partition partition_level partition_level "" missing_vector)
@@ -65,5 +67,7 @@
       (catch Exception ex
         (log/errorf "Error determining tile ingest status. exception: %s" (.getMessage ex))
         (System/exit 1)))
-    (System/exit 0)))
+    (System/exit 0)
+)
+)
 

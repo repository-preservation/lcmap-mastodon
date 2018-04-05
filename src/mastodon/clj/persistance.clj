@@ -24,7 +24,7 @@
         {tif_name 500 :error (.getMessage ex)}))))
 
 (defn status-check
-  "Based on ingest status, put ARD into correct Atom"
+  "Return hash-map of ingest resource and IWDS ingest query response"
   [tif iwds_host ing_resource]
   (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" tif))
         tar      (ard/tar-name tif)
