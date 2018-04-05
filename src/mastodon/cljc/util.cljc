@@ -51,7 +51,7 @@
   ([host tile-id from to]
    (let [hvm (hv-map tile-id)
          host-fmt (trailing-slash host)]
-     (str host-fmt "inventory/" (:h hvm) (:v hvm) "/" from "/" to))))
+     (str host-fmt "inventory/" (:h hvm) (:v hvm) "?from=" from "&to=" to))))
 
 (defn iwds-url-format
   "Return formatted url as a string for requesting source list from IWDS"
