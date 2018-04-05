@@ -32,11 +32,13 @@
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
-            mastodon.cljs.core.assess_ard(ardhost, tile_id, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                    "ardmissing-counter",
-                                                                                    "iwdsmissing-list",
-                                                                                    "arderror-counter",
-                                                                                    "error-container");
+            var from    = $("#fromyear").val();
+            var to      = $("#toyear").val();
+            mastodon.cljs.core.assess_ard(ardhost, tile_id, from, to, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                              "ardmissing-counter",
+                                                                                              "iwdsmissing-list",
+                                                                                              "arderror-counter",
+                                                                                              "error-container");
           });
 
           var selectData = mastodon.cljs.core.year_select_options();

@@ -84,9 +84,9 @@
 
 (defn ^:export assess-ard
   "Exposed function for determining what ARD needs to be ingested."
-  [ard-host tile-id bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
+  [ard-host tile-id from to bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
   (let [ard-request-handler    (or ard-req-fn http/get-request)
-        ard-inventory-resource (util/ard-url-format ard-host tile-id)
+        ard-inventory-resource (util/ard-url-format ard-host tile-id from to)
         dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn
                            :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
     (report-assessment ard-data-chan dom-map) ;; park func on ard-data-chan to update dom
