@@ -6,7 +6,8 @@
             [mastodon.cljc.util :as util]
             [clojure.string :as string]
             [cljs.core.async :refer [<! >! chan]]
-            [cljs.reader :refer [read-string]]))
+            [cljs.reader :refer [read-string]]
+            [cljs-time.core :as timecore]))
 
 (def ard-data-chan (chan 1))       ;; channel holding ARD resource locations
 (def ard-to-ingest-chan (chan 1))  ;; channel used to handle ARD to ingest
@@ -18,6 +19,12 @@
   "Log messages."
   [msg]
   (.log js/console msg))
+
+(defn ^:export year-select-options
+  []
+  (let [startyear   1982
+        currentyear (timecore/year (timecore/now))]
+    (clj->js (range startyear (+ currentyear 1)))))
 
 (defn report-assessment
   "Handle DOM update, store names of non-ingested ARD, based on Tile status check."
