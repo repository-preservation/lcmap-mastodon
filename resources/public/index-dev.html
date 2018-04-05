@@ -10,9 +10,9 @@
     <script src="js/compiled/mastodon.js" type="text/javascript"></script>
     <script type="text/javascript">
       $(document).ready(function() {
-         mastodon.cljs.dom.disable_btn("chpsubmit");
+          mastodon.cljs.dom.disable_btn("chpsubmit");
 
-         $("#chpsubmit").click(function() {
+          $("#chpsubmit").click(function() {
             var ingest_partitioning = "10";
             var ardhost = $("#ardhost").val();
             mastodon.cljs.dom.show_div("busydiv");
@@ -37,6 +37,13 @@
                                                                                     "error-container");
           });
 
+          var selectData = mastodon.cljs.core.year_select_options();
+          var auxArr = [];
+          $.each(selectData, function(index, option) {
+              auxArr[index] = "<option value='" + option + "'>" + option + "</option>";
+          });
+          $('#fromyear').append(auxArr.join(''));
+          $('#toyear').append(auxArr.join(''));
       });
     </script>
   </head>
@@ -57,11 +64,18 @@
           <input type="text" class="form-control" id="idwshost" name="idwshost">
         </div>
         <!-- H & V -->
-        <div id="tile-group" class="form-group">
+        <div id="tile-group" class="form-group" style="width:33%;float:left;">
           <label for="tileid">Tile ID</label>
-          <input type="text" class="form-control" id="tileid" name="tileid" placeholder="111555" size="12">
+          <input type="text" class="form-control" id="tileid" name="tileid" placeholder="111555" style="width:90%">
         </div>
-
+        <div id="tile-group" class="form-group" style="width:33%;float:left;">
+          <label for="tileid">From Year</label>
+          <select id="fromyear" name="fromyear" style="width:90%"><option value=""></option></select>
+        </div>
+        <div id="tile-group" class="form-group" style="width:33%;float:left;">
+          <label for="tileid">To Year</label>
+          <select id="toyear" name="toyear" style="width:90%"><option value=""></option></select>
+        </div>
       </form>
       <!-- find better solution to preventing form submission -->
       <div id="form-buttons" class="leftside">
@@ -71,7 +85,7 @@
       <div id="busy-container" class="rightside">
         <div id="busydiv"><img src="images/Blocks.gif"></img></div>
       </div>     
-        * All units are in layers
+        All units are in layers
       <div id="counters-container" class="counter-div">
         <div id="arderror" class="counter-div ard-wrapper w3-container w3-pale-blue w3-leftbar w3-border-blue w3-rightbar">
           Errored
