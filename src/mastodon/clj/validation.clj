@@ -51,8 +51,7 @@
            (http-accessible? iwds_host "IWDS_HOST")
            (http-accessible? ard_host "ARD_HOST")])))
 
-(defn validate-server
-  "Wrapper func for server parameters."
+(defn validate-ard-server
   [iwds_host ard_host par_level ard_path]
   (= #{true} 
      (set [(not-nil? iwds_host "IWDS_HOST")
@@ -60,4 +59,20 @@
            (is-int? par_level "PARTITION_LEVEL")
            (not-nil? ard_path "ARD_PATH")
            (http-accessible? iwds_host "IWDS_HOST")])))
+
+(defn validate-aux
+  [iwds_host ard_host aux_host]
+  (= #{true} 
+     (set [(not-nil? iwds_host "IWDS_HOST")
+           (not-nil? ard_host "ARD_HOST")
+           (not-nil? aux_host "AUX_HOST")
+           (http-accessible? aux_host "AUX_HOST")
+           (http-accessible? iwds_host "IWDS_HOST")])))
+
+(defn validate-server
+  "Wrapper func for server parameters."
+  [type iwds_host ard_host aux_host par_level ard_path]
+  (cond
+   (= type "ard") (validate-ard-server iwds_host ard_host par_level ard_path)
+   (= type "aux") (validate-aux iwds_host ard_host aux_host)))
 
