@@ -11,6 +11,7 @@
             [clojure.tools.logging    :as log]))
 
 (def iwds_host       (:iwds-host environ/env))
+(def aux_host        (:aux-host  environ/env))
 (def ard_host        (:ard-host  environ/env))
 (def ard_path        (:ard-path  environ/env))
 (def from_date       (:from-date environ/env))
@@ -24,17 +25,8 @@
   (doseq [i collection]
     (doall (pmap infunc i))))
 
-(defn -main
-  ([]
-    (if (validation/validate-server iwds_host ard_host partition_level ard_path)
-      (do (try
-            (server/run-server #'mserver/app {:port 9876})
-            (catch Exception ex
-              (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
-              (System/exit 1)))) 
-      (do (log/errorf "server validation failed, exiting")
-          (System/exit 1))))
-  ([tileid & args]
+(defn ard-ingest
+  [tileid args]
     (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
       (log/errorf "validation failed, exiting")
       (System/exit 1))
@@ -66,8 +58,40 @@
         (System/exit 1))
       (catch Exception ex
         (log/errorf "Error determining tile ingest status. exception: %s" (.getMessage ex))
-        (System/exit 1)))
-    (System/exit 0)
-)
-)
+        (System/exit 1))))
+
+(defn aux-ingest
+  [tile-id args]
+  (if (validation/validate-aux iwds_host ard_host aux_host)
+    (do (try
+          (let [aux_response (http/get aux_host)
+                aux_data (util/get-aux-name aux_response tile-id)
+                ])))
+    (do (log/errorf "auxiliary host validation failed, exiting")
+        (System/exit 1))))
+
+(defn run-server
+  [type]
+  (if (validation/validate-server type iwds_host ard_host aux_host partition_level ard_path)
+    (do (try
+          (server/run-server #'mserver/app {:port 9876})
+          (catch Exception ex
+            (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
+            (System/exit 1)))) 
+    (do (log/errorf "server validation failed, exiting")
+        (System/exit 1))))
+
+(defn -main
+  ([type]
+   (when (not (contains? #{"ard" "aux"} type))
+     (log/errorf "invalid option for mastodon server: %s" type)
+     (System/exit 1))
+   (run-server type))
+  ([tileid type & args]
+   (cond 
+    (= type "aux") (aux-ingest tileid args)
+    (= type "ard") (ard-ingest tileid args)
+    :else (do (log/errorf "invalid option for data type: %s" type)
+              (System/exit 1)))
+   (System/exit 0)))
 

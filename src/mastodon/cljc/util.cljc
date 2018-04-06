@@ -69,6 +69,9 @@
                      (string/replace "\"" "") 
                      (string/split #",")))))
 
+(defn get-aux-name
+  [aux-response tileid])
+
 (defn tif-only
   "Return the layer name from a complete URL path"
   [ardpath]
@@ -86,3 +89,4 @@
               (read-string input)
               (catch :default e
                 nil))))
+
