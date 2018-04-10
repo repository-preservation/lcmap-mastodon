@@ -6,6 +6,9 @@
             [mastodon.cljc.util :as util]
             [clojure.tools.logging :as log]))
 
+(defn ingest-aux
+  [aux iwds_resource])
+
 (defn ingest 
   "Post ingest requests to IWDS resources"
   [ard iwds_resource]
@@ -25,10 +28,13 @@
 
 (defn status-check
   "Return hash-map of ingest resource and IWDS ingest query response"
-  [tif iwds_host ing_resource]
-  (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" tif))
-        tar      (ard/tar-name tif)
-        tarpath  (ard/tar-path tar)]
-    (hash-map (str ing_resource "/" tarpath "/" tar "/" tif) (:body @iwdsresp))))
+  ([aux iwds_host]
+   (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" aux))]
+     (hash-map aux (:body @iwdsresp))))
+  ([ard iwds_host ing_resource]
+   (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" ard))
+         tar      (ard/tar-name ard)
+         tarpath  (ard/tar-path tar)]
+     (hash-map (str ing_resource "/" tarpath "/" tar "/" ard) (:body @iwdsresp)))))
 
 

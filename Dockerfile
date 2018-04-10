@@ -17,5 +17,5 @@ COPY project.clj /project.clj
 COPY target/lcmap-mastodon-*-standalone.jar /
 
 RUN mkdir /data
-
-CMD /startup.sh
+ARG type
+CMD /startup.sh ${type:-ard}

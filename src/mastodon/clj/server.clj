@@ -12,9 +12,12 @@
              [mastodon.clj.validation  :as validation]
              [ring.middleware.json     :as ring-json]
              [ring.middleware.keyword-params :as ring-keyword-params]
-             [ring.middleware.defaults :as ring-defaults]))
+             [ring.middleware.defaults :as ring-defaults]
+             [org.httpkit.client       :as http]
+             [org.httpkit.server       :as http-server]))
 
 (def iwds-host (:iwds-host environ/env))
+(def aux-host  (:aux-host  environ/env))
 (def ard-host  (:ard-host  environ/env))
 (def ard-path  (:ard-path  environ/env))
 
@@ -80,20 +83,49 @@
         (log/errorf "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))
         {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))}})))
 
+(defn aux-status
+  [tileid]
+  (let [aux_resp (http/get aux-host)
+        aux_file (util/get-aux-name (:body @aux_resp) tileid)]
+    (persist/status-check aux_file iwds-host)))
+
+(defn aux-ingest
+  [{:keys [:body] :as req}])
+
 (defn get-base 
   "Hello Mastodon"
   [request]
-  {:status 200 :body ["Would you like some ARD with that?"]})
+  {:status 200 :body ["Would you like some data with that?"]})
 
-(compojure/defroutes routes
+(compojure/defroutes ard-routes
   (compojure/context "/" request
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-status tileid request))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
-(def app (-> routes
-             (ring-json/wrap-json-body {:keywords? true})
-             (ring-json/wrap-json-response)
-             (ring-defaults/wrap-defaults ring-defaults/api-defaults)
-             (ring-keyword-params/wrap-keyword-params)))
+(compojure/defroutes aux-routes
+  (compojure/context "/" request
+    (route/resources "/")
+    (compojure/GET   "/" [] (get-base request))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (aux-status tileid))
+    (compojure/POST  "/ingest" [] (aux-ingest request))))
+
+(defn response-handler
+  [routes]
+  (-> routes
+      (ring-json/wrap-json-body {:keywords? true})
+      (ring-json/wrap-json-response)
+      (ring-defaults/wrap-defaults ring-defaults/api-defaults)
+      (ring-keyword-params/wrap-keyword-params)))
+
+(def ard-app (response-handler ard-routes))
+(def aux-app (response-handler aux-routes))
+
+(defn run-server
+  [server-type]
+  (cond
+   (= server-type "ard") (http-server/run-server ard-app {:port 9876})
+   (= server-type "aux") (http-server/run-server aux-app {:port 9876})
+   :else (throw (Exception. (format "Wrong type for run-server: %s" server-type)))))
+

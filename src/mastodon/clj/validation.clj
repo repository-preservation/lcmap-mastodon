@@ -53,6 +53,7 @@
 
 (defn validate-ard-server
   [iwds_host ard_host par_level ard_path]
+  (log/errorf "in validate-ard-server ")
   (= #{true} 
      (set [(not-nil? iwds_host "IWDS_HOST")
            (not-nil? ard_host "ARD_HOST")
@@ -62,7 +63,8 @@
 
 (defn validate-aux
   [iwds_host ard_host aux_host]
-  (= #{true} 
+  (log/errorf "in validate-aux")
+ (= #{true} 
      (set [(not-nil? iwds_host "IWDS_HOST")
            (not-nil? ard_host "ARD_HOST")
            (not-nil? aux_host "AUX_HOST")
@@ -73,6 +75,7 @@
   "Wrapper func for server parameters."
   [type iwds_host ard_host aux_host par_level ard_path]
   (cond
-   (= type "ard") (validate-ard-server iwds_host ard_host par_level ard_path)
-   (= type "aux") (validate-aux iwds_host ard_host aux_host)))
+   (= type "ard") (do (validate-ard-server iwds_host ard_host par_level ard_path) (log/errorf "type is ard")) 
+   (= type "aux") (do (validate-aux iwds_host ard_host aux_host) (log/errorf "type is aux")) 
+   :else false))
 
