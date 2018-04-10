@@ -6,8 +6,7 @@
             [mastodon.clj.persistance :as persist]
             [mastodon.clj.validation  :as validation]
             [org.httpkit.client       :as http]
-            [org.httpkit.server       :as server]
-            [mastodon.clj.server      :as mserver]
+            [mastodon.clj.server      :as server]
             [clojure.tools.logging    :as log]))
 
 (def iwds_host       (:iwds-host environ/env))
@@ -64,22 +63,34 @@
   [tile-id args]
   (if (validation/validate-aux iwds_host ard_host aux_host)
     (do (try
-          (let [aux_response (http/get aux_host)
-                aux_data (util/get-aux-name aux_response tile-id)
-                ])))
+          (let [aux_response (http/get (util/ard-url-format ard_host tile-id))
+                response_map (-> (:body @aux_response) (parse-string true))
+                autoingest   (first args)
+                ingested     (= ["[]"] (vals response_map))
+                aux_data     (keys (first response_map))]
+
+        (if (= autoingest "-y")
+          (do (when (not ingested)
+                (persist/ingest-aux aux_data iwds_host)) 
+              (log/infof "Ingest Complete"))
+          (do (println "Ingest? (y/n)")
+              (if (= (read-line) "y")
+                (do (when (not ingested)
+                      (persist/ingest-aux aux_data iwds_host))
+                    (println "Ingest Complete"))
+                (do (println "Exiting!")))))
+
+            )))
     (do (log/errorf "auxiliary host validation failed, exiting")
         (System/exit 1))))
 
 (defn run-server
   [type]
-  (if (validation/validate-server type iwds_host ard_host aux_host partition_level ard_path)
-    (do (try
-          (server/run-server #'mserver/app {:port 9876})
-          (catch Exception ex
-            (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
-            (System/exit 1)))) 
-    (do (log/errorf "server validation failed, exiting")
-        (System/exit 1))))
+  (try
+    (server/run-server type)
+    (catch Exception ex
+      (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
+      (System/exit 1))))
 
 (defn -main
   ([type]
@@ -94,4 +105,5 @@
     :else (do (log/errorf "invalid option for data type: %s" type)
               (System/exit 1)))
    (System/exit 0)))
+
 

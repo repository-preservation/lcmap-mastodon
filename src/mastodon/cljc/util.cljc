@@ -70,7 +70,9 @@
                      (string/split #",")))))
 
 (defn get-aux-name
-  [aux-response tileid])
+  [aux-response tileid]
+  (let [tar-match (re-find (re-pattern (format "AUX_.*_%s_.*.tar" tileid)) aux-response)]
+    (subs tar-match 0 39)))
 
 (defn tif-only
   "Return the layer name from a complete URL path"
