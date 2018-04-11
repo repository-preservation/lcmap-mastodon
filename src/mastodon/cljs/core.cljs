@@ -1,7 +1,6 @@
 (ns mastodon.cljs.core
 (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [mastodon.cljs.http :as http]
-            [mastodon.cljc.ard  :as ard]
             [mastodon.cljs.dom  :as dom]
             [mastodon.cljc.util :as util]
             [clojure.string :as string]

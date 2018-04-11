@@ -9,6 +9,4 @@ sed -i "s!<IWDSHOST>!${IWDS_HOST}!g" ${INDEX}
 sed -i "s!<INGESTHOST>!${ARD_HOST}!g" ${INDEX}
 sed -i "s!<INGESTPARTITIONING>!${PARTITION_LEVEL}!g" ${INDEX}
 
-echo "type is: ${TYPE}"
-
-/usr/sbin/nginx -g 'daemon off;' & java -jar /lcmap-mastodon-${VERSION}-standalone.jar ${TYPE}
+/usr/sbin/nginx -g 'daemon off;' & java -jar /lcmap-mastodon-${VERSION}-standalone.jar

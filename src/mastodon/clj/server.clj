@@ -5,7 +5,7 @@
              [compojure.core           :as compojure]
              [compojure.route          :as route]
              [environ.core             :as environ]
-             [mastodon.cljc.ard        :as ard]
+             [mastodon.cljc.data       :as data]
              [mastodon.cljc.util       :as util]
              [mastodon.clj.file        :as file]
              [mastodon.clj.persistance :as persist]
@@ -48,15 +48,15 @@
   (let [hvmap    (util/hv-map tileid)
         filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")]
     (-> filepath (file/get-filenames "tar")
-                 (#(map ard/ard-manifest %))
+                 (#(map data/ard-manifest %))
                  (flatten))))
 
 (defn filtered-ard
   "Return vector of available ARD for a given tile id, between the provided years"
   [tileid from to]
   (let [ardtifs (available-ard tileid)
-        froms   (filter (fn [i] (>= (-> i (util/tif-only) (ard/year-acquired) (read-string)) from)) ardtifs)
-        tos     (filter (fn [i] (<= (-> i (util/tif-only) (ard/year-acquired) (read-string)) to)) ardtifs)]
+        froms   (filter (fn [i] (>= (-> i (util/tif-only) (data/year-acquired) (read-string)) from)) ardtifs)
+        tos     (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) ardtifs)]
     (vec (set/intersection (set froms) (set tos)))))
 
 (defn ard-report
@@ -87,7 +87,7 @@
   [tileid]
   (let [aux_resp (http/get aux-host)
         aux_file (util/get-aux-name (:body @aux_resp) tileid)]
-    (persist/status-check aux_file iwds-host)))
+    {:status 200 :body (persist/status-check aux_file iwds-host)}))
 
 (defn aux-ingest
   [{:keys [:body] :as req}])

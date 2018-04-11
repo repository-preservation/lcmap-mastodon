@@ -1,6 +1,6 @@
 (ns mastodon.cljc.util-test
   (:require [clojure.test :refer :all]
-            [mastodon.cljc.ard :as ard]
+            [mastodon.cljc.data :as data]
             [mastodon.cljc.util :as util]))
 
 (def xmap (hash-map :a "a" :b "b" :c "c" :d "foo"))
@@ -44,12 +44,12 @@
        (util/iwds-url-format "http://magichost.org" "043999"))))
 
 (deftest key-for-value-test
-  (is (= :SR (util/key-for-value ard/L8-ard-map "SRB2")))
-  (is (= :SR (util/key-for-value ard/L8-ard-map "PIXELQA")))
-  (is (= :BT (util/key-for-value ard/L8-ard-map "BTB10")))
-  (is (= :SR (util/key-for-value ard/L457-ard-map "SRB1")))
-  (is (= :SR (util/key-for-value ard/L457-ard-map "PIXELQA")))
-  (is (= :BT (util/key-for-value ard/L457-ard-map "BTB6"))))
+  (is (= :SR (util/key-for-value data/L8-ard-map "SRB2")))
+  (is (= :SR (util/key-for-value data/L8-ard-map "PIXELQA")))
+  (is (= :BT (util/key-for-value data/L8-ard-map "BTB10")))
+  (is (= :SR (util/key-for-value data/L457-ard-map "SRB1")))
+  (is (= :SR (util/key-for-value data/L457-ard-map "PIXELQA")))
+  (is (= :BT (util/key-for-value data/L457-ard-map "BTB6"))))
 
 (deftest with-suffix-test
   (is (= '("foo.tar") 
