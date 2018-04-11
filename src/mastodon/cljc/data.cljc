@@ -1,4 +1,4 @@
-(ns mastodon.cljc.ard
+(ns mastodon.cljc.data
   (:require [clojure.string :as string]
             [clojure.set :as set]
             [mastodon.cljc.util :as util]))
@@ -12,6 +12,10 @@
   "Band mapping for Landsat mission 8."
   (hash-map :SR '("SRB2" "SRB3" "SRB4" "SRB5" "SRB6" "SRB7" "PIXELQA")
             :BT '("BTB10")))
+
+(def aux-vector
+  "Layer list for Auxiliary data"
+  '("ASPECT" "DEM" "MPW" "POSIDEX" "SLOPE" "TRENDS"))
 
 (def tar-map
   "Aggregated map for each Landsat mission."
@@ -44,6 +48,12 @@
         key-first (keyword (first tar-all))
         ard-files (key-last (key-first tar-map))]
     (map (fn [i] (str tar-pre "_" i ".tif")) ard-files)))
+
+(defn aux-manifest
+  "Return AUX tar files contents."
+  [aux-tar]
+  (let [aux_name (-> aux-tar (string/trim) (string/replace ".tar" ""))]
+     (doall (map (fn [i] (format "%s_%s.tif" aux_name i)) aux-vector))))
 
 (defn expand-tars
   "Return set of tifs from list of tars."

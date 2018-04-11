@@ -9,12 +9,13 @@
             [mastodon.clj.server      :as server]
             [clojure.tools.logging    :as log]))
 
-(def iwds_host       (:iwds-host environ/env))
-(def aux_host        (:aux-host  environ/env))
-(def ard_host        (:ard-host  environ/env))
-(def ard_path        (:ard-path  environ/env))
-(def from_date       (:from-date environ/env))
-(def to_date         (:to-date   environ/env))
+(def iwds_host       (:iwds-host   environ/env))
+(def aux_host        (:aux-host    environ/env))
+(def ard_host        (:ard-host    environ/env))
+(def ard_path        (:ard-path    environ/env))
+(def from_date       (:from-date   environ/env))
+(def to_date         (:to-date     environ/env))
+(def server_type     (:server-type environ/env))   
 (def partition_level (if (nil? (:partition-level environ/env)) nil 
                        (read-string (:partition-level environ/env))))    
 
@@ -66,21 +67,29 @@
           (let [aux_response (http/get (util/ard-url-format ard_host tile-id))
                 response_map (-> (:body @aux_response) (parse-string true))
                 autoingest   (first args)
-                ingested     (= ["[]"] (vals response_map))
-                aux_data     (keys (first response_map))]
+                ingested     (not= ["[]"] (vals response_map))
+                aux_data     (-> response_map (keys) (first) (name))
+                aux_full     (str aux_host aux_data)]
 
         (if (= autoingest "-y")
           (do (when (not ingested)
-                (persist/ingest-aux aux_data iwds_host)) 
+                (persist/ingest aux_full iwds_host)) 
               (log/infof "Ingest Complete"))
           (do (println "Ingest? (y/n)")
               (if (= (read-line) "y")
                 (do (when (not ingested)
-                      (persist/ingest-aux aux_data iwds_host))
+                      (persist/ingest aux_full iwds_host))
                     (println "Ingest Complete"))
                 (do (println "Exiting!")))))
 
-            )))
+            )
+
+        (catch Exception ex
+          (log/errorf "Error with aux ingest. exception: %s" (.getMessage ex))
+          (System/exit 1))
+
+
+))
     (do (log/errorf "auxiliary host validation failed, exiting")
         (System/exit 1))))
 
@@ -93,11 +102,11 @@
       (System/exit 1))))
 
 (defn -main
-  ([type]
-   (when (not (contains? #{"ard" "aux"} type))
-     (log/errorf "invalid option for mastodon server: %s" type)
+  ([]
+   (when (not (contains? #{"ard" "aux"} server_type))
+     (log/errorf "invalid option for mastodon server: %s" server_type)
      (System/exit 1))
-   (run-server type))
+   (run-server server_type))
   ([tileid type & args]
    (cond 
     (= type "aux") (aux-ingest tileid args)
