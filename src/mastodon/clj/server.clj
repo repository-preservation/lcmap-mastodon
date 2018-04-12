@@ -59,10 +59,13 @@
         tos     (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) ardtifs)]
     (vec (set/intersection (set froms) (set tos)))))
 
-(defn ard-report
+(defn data-report
   "Return hash-map of missing ARD and an ingested count"
-  [tifs]
-  (let [ard_res  (doall (pmap #(persist/status-check % iwds-host (str ard-host "/ard")) tifs))
+  [tifs type]
+  (let [status_fnc (if (= "ard" type) 
+                     #(persist/status-check % iwds-host (str ard-host "/ard"))
+                     #(persist/status-check % iwds-host))
+        ard_res  (doall (pmap status_fnc tifs))
         missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
                              (#(apply merge-with concat %)) 
                              (keys))
@@ -77,7 +80,7 @@
            tifs (filtered-ard tileid from to)
            deps (http-deps-check)]
        (if (nil? (:error deps))
-         {:status 200 :body (ard-report tifs)}
+         {:status 200 :body (data-report tifs "ard")}
          {:status 200 :body {:error (:error deps)}}))
       (catch Exception ex
         (log/errorf "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))
@@ -85,12 +88,17 @@
 
 (defn aux-status
   [tileid]
-  (let [aux_resp (http/get aux-host)
-        aux_file (util/get-aux-name (:body @aux_resp) tileid)]
-    {:status 200 :body (persist/status-check aux_file iwds-host)}))
-
-(defn aux-ingest
-  [{:keys [:body] :as req}])
+  (try
+    (let [aux_resp (http/get aux-host)
+          aux_file (util/get-aux-name (:body @aux_resp) tileid)
+          aux_tifs (data/aux-manifest aux_file)
+          deps (http-deps-check)]
+      (if (nil? (:error deps))
+        {:status 200 :body (data-report aux_tifs "aux")}
+        {:status 200 :body {:error (:error deps)}}))
+      (catch Exception ex
+        (log/errorf "Error determining tile: %s AUX data status. exception: %s" tileid (.getMessage ex))
+        {:status 200 :body {:error (format "Error determining tile: %s AUX data status. exception: %s" tileid (.getMessage ex))}})))
 
 (defn get-base 
   "Hello Mastodon"
@@ -109,7 +117,7 @@
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (aux-status tileid))
-    (compojure/POST  "/ingest" [] (aux-ingest request))))
+    (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (defn response-handler
   [routes]

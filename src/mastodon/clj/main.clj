@@ -25,18 +25,24 @@
   (doseq [i collection]
     (doall (pmap infunc i))))
 
-(defn ard-ingest
+(defn data-ingest
   [tileid args]
     (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
       (log/errorf "validation failed, exiting")
       (System/exit 1))
     (try
-      (let [ard_response   (http/get (util/ard-url-format ard_host tileid from_date to_date))
+      (let [data_url       (if (= "ard" server_type)
+                             (util/ard-url-format ard_host tileid from_date to_date)
+                             (util/ard-url-format ard_host tileid))
+            ard_response   (http/get data_url)
             response_map   (-> (:body @ard_response) (parse-string true))
             missing_vector (:missing response_map)
             ard_partition  (partition partition_level partition_level "" missing_vector)
             ingest_map     #(persist/ingest % iwds_host)
             autoingest     (first args)]
+
+        (log/infof "response_map: %s" response_map)
+        (log/infof "data_url: %s" data_url)
 
         (when (:error @ard_response)
           (log/errorf "Error response from ARD_HOST: %s" (:error @ard_response))
@@ -60,42 +66,10 @@
         (log/errorf "Error determining tile ingest status. exception: %s" (.getMessage ex))
         (System/exit 1))))
 
-(defn aux-ingest
-  [tile-id args]
-  (if (validation/validate-aux iwds_host ard_host aux_host)
-    (do (try
-          (let [aux_response (http/get (util/ard-url-format ard_host tile-id))
-                response_map (-> (:body @aux_response) (parse-string true))
-                autoingest   (first args)
-                ingested     (not= ["[]"] (vals response_map))
-                aux_data     (-> response_map (keys) (first) (name))
-                aux_full     (str aux_host aux_data)]
-
-        (if (= autoingest "-y")
-          (do (when (not ingested)
-                (persist/ingest aux_full iwds_host)) 
-              (log/infof "Ingest Complete"))
-          (do (println "Ingest? (y/n)")
-              (if (= (read-line) "y")
-                (do (when (not ingested)
-                      (persist/ingest aux_full iwds_host))
-                    (println "Ingest Complete"))
-                (do (println "Exiting!")))))
-
-            )
-
-        (catch Exception ex
-          (log/errorf "Error with aux ingest. exception: %s" (.getMessage ex))
-          (System/exit 1))
-
-
-))
-    (do (log/errorf "auxiliary host validation failed, exiting")
-        (System/exit 1))))
-
 (defn run-server
   [type]
   (try
+    (log/infof "Running Mastodon for data type: %s" type)
     (server/run-server type)
     (catch Exception ex
       (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
@@ -107,12 +81,8 @@
      (log/errorf "invalid option for mastodon server: %s" server_type)
      (System/exit 1))
    (run-server server_type))
-  ([tileid type & args]
-   (cond 
-    (= type "aux") (aux-ingest tileid args)
-    (= type "ard") (ard-ingest tileid args)
-    :else (do (log/errorf "invalid option for data type: %s" type)
-              (System/exit 1)))
+  ([tileid & args]
+   (data-ingest tileid args)
    (System/exit 0)))
 
 
