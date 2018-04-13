@@ -24,15 +24,26 @@
                     data iwds_resource (.getMessage ex))
         {file_name 500 :error (.getMessage ex)}))))
 
+(defn ard-resource-path
+  [name ing_resource]
+  (let [tar     (data/ard-tar-name name)
+        tarpath (data/tar-path tar)]
+    (format "%s/%s/%s/%s" ing_resource tarpath tar name)))
+
+(defn aux-resource-path
+  [name ing_resource]
+  (let [tar (data/aux-tar-name name)]
+    (format "%s/%s/%s" ing_resource tar name)))
+
 (defn status-check
   "Return hash-map of ingest resource and IWDS ingest query response"
-  ([data iwds_host]
-   (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" data))]
-     (hash-map data (:body @iwdsresp))))
-  ([data iwds_host ing_resource]
-   (let [iwdsresp (http/get (str iwds_host "/inventory?only=source&source=" data))
-         tar      (data/tar-name data)
-         tarpath  (data/tar-path tar)]
-     (hash-map (str ing_resource "/" tarpath "/" tar "/" data) (:body @iwdsresp)))))
+  [data iwds_host data_resource]
+  (let [iwdsresp  (http/get (str iwds_host "/inventory?only=source&source=" data))
+        body      (:body @iwdsresp)]
 
+    (if (re-find #"AUX_" data) 
+      (do
+        (hash-map (aux-resource-path data data_resource) body))
+      (do
+        (hash-map (ard-resource-path data data_resource) body)))))
 

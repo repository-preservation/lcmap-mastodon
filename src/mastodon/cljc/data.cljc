@@ -24,7 +24,7 @@
             :LT05 L457-ard-map
             :LT04 L457-ard-map))
 
-(defn tar-name
+(defn ard-tar-name
   "Derive an ARD tif files original containing Tar file name."
   [tif-name]
   (let [base_name   (string/replace tif-name ".tif" "")
@@ -34,10 +34,17 @@
         tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
       (str (string/replace base_name base_suffix tar_suffix) ".tar")))
 
+(defn aux-tar-name
+  "Determine AUX tar file name from tif name"
+  [tif-name]
+  (let [base_name (string/replace tif-name ".tif" "")
+        base_list (string/split base_name #"_")]
+    (-> base_list (pop) (#(string/join "_" %)) (str ".tar"))))
+
 (defn full-name
   "ARD tar name and band tif name."
   [tif-name]
-  (str (tar-name tif-name) "/" tif-name))
+  (str (ard-tar-name tif-name) "/" tif-name))
 
 (defn ard-manifest
   "Return ARD tar files contents."
@@ -94,7 +101,7 @@
 (defn tif-path 
   "Return the path to an ARD tif file, given a tif name and a resource path."
   [tif rpath]
-  (let [tar (tar-name tif)
+  (let [tar (ard-tar-name tif)
         tarpath (tar-path tar)]    
     (str rpath "/" tarpath "/" tar "/" tif)))
 
