@@ -5,7 +5,7 @@
 (deftest tar-name-test
   (let [tif-name "LC08_CU_022010_20131211_20171016_C01_V01_PIXELQA.tif"
         tar-name "LC08_CU_022010_20131211_20171016_C01_V01_SR.tar"]
-    (is (= tar-name (data/tar-name tif-name)))))
+    (is (= tar-name (data/ard-tar-name tif-name)))))
 
 (deftest full-name-test
   (is (= "LE07_CU_005015_20021221_20170919_C01_V01_SR.tar/LE07_CU_005015_20021221_20170919_C01_V01_SRB1.tif" 

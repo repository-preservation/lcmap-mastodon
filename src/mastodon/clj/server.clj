@@ -62,10 +62,8 @@
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
   [tifs type]
-  (let [status_fnc (if (= "ard" type) 
-                     #(persist/status-check % iwds-host (str ard-host "/ard"))
-                     #(persist/status-check % iwds-host))
-        ard_res  (doall (pmap status_fnc tifs))
+  (let [ingest_host (if (= "aux" type) (str aux-host) (str ard-host "/ard"))
+        ard_res  (doall (pmap #(persist/status-check % iwds-host ingest_host) tifs))
         missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
                              (#(apply merge-with concat %)) 
                              (keys))
@@ -91,7 +89,7 @@
   (try
     (let [aux_resp (http/get aux-host)
           aux_file (util/get-aux-name (:body @aux_resp) tileid)
-          aux_tifs (data/aux-manifest aux_file)
+          aux_tifs (doall (data/aux-manifest aux_file)) 
           deps (http-deps-check)]
       (if (nil? (:error deps))
         {:status 200 :body (data-report aux_tifs "aux")}
@@ -132,6 +130,11 @@
 
 (defn run-server
   [server-type]
+  (log/infof "Mastodon server type: %s" server-type)
+  (log/infof "iwds-host: %s" iwds-host)
+  (log/infof "aux-host: %s" aux-host)
+  (log/infof "ard-host: %s" ard-host)
+  (log/infof "ard-path: %s" ard-path)
   (cond
    (= server-type "ard") (http-server/run-server ard-app {:port 9876})
    (= server-type "aux") (http-server/run-server aux-app {:port 9876})

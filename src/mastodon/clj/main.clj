@@ -41,9 +41,6 @@
             ingest_map     #(persist/ingest % iwds_host)
             autoingest     (first args)]
 
-        (log/infof "response_map: %s" response_map)
-        (log/infof "data_url: %s" data_url)
-
         (when (:error @ard_response)
           (log/errorf "Error response from ARD_HOST: %s" (:error @ard_response))
           (System/exit 1))
