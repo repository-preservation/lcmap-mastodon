@@ -17,7 +17,7 @@
 
 (deftest validate-server-test
   (with-redefs [validation/http-accessible? (fn [x y] true)]
-    (is (= (validation/validate-server "iwdshost" "ardhost" 10 "/tmp/foo/") true))))
+    (is (= (validation/validate-server "aux" "iwdshost" "ardhost" "auxhost" 10 "/tmp/foo/") true))))
 
 
 
