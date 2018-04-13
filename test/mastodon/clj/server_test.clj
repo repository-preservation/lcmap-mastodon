@@ -36,7 +36,7 @@
 
 (deftest data-report-test
   (with-redefs [persist/status-check faux-status-check]
-    (is (= (server/data-report ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
+    (is (= (server/data-report ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"] "ard")
            {:missing ["LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"]
             :ingested 2}))))
 

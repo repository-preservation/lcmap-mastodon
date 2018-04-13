@@ -73,7 +73,7 @@
   "Wrapper func for server parameters."
   [type iwds_host ard_host aux_host par_level ard_path]
   (cond
-   (= type "ard") (do (validate-ard-server iwds_host ard_host par_level ard_path) (log/errorf "type is ard")) 
-   (= type "aux") (do (validate-aux iwds_host ard_host aux_host) (log/errorf "type is aux")) 
+   (= type "ard") (do (validate-ard-server iwds_host ard_host par_level ard_path)) 
+   (= type "aux") (do (validate-aux iwds_host ard_host aux_host)) 
    :else false))
 
