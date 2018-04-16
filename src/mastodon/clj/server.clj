@@ -20,6 +20,7 @@
 (def aux-host  (:aux-host  environ/env))
 (def ard-host  (:ard-host  environ/env))
 (def ard-path  (:ard-path  environ/env))
+(def server-type (:server-type environ/env))
 
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD."
@@ -103,18 +104,17 @@
   [request]
   {:status 200 :body ["Would you like some data with that?"]})
 
-(compojure/defroutes ard-routes
-  (compojure/context "/" request
-    (route/resources "/")
-    (compojure/GET   "/" [] (get-base request))
-    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (ard-status tileid request))
-    (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
+(defn get-status
+  [tileid request]
+  (if (= server-type "ard")
+    (ard-status tileid request)
+    (aux-status tileid)))
 
-(compojure/defroutes aux-routes
+(compojure/defroutes routes
   (compojure/context "/" request
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
-    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (aux-status tileid))
+    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (defn response-handler
@@ -125,8 +125,7 @@
       (ring-defaults/wrap-defaults ring-defaults/api-defaults)
       (ring-keyword-params/wrap-keyword-params)))
 
-(def ard-app (response-handler ard-routes))
-(def aux-app (response-handler aux-routes))
+(def app (response-handler routes))
 
 (defn run-server
   [server-type]
@@ -135,8 +134,5 @@
   (log/infof "aux-host: %s" aux-host)
   (log/infof "ard-host: %s" ard-host)
   (log/infof "ard-path: %s" ard-path)
-  (cond
-   (= server-type "ard") (http-server/run-server ard-app {:port 9876})
-   (= server-type "aux") (http-server/run-server aux-app {:port 9876})
-   :else (throw (Exception. (format "Wrong type for run-server: %s" server-type)))))
+  (http-server/run-server app {:port 9876}))
 
