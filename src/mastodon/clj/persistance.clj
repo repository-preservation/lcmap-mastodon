@@ -9,19 +9,19 @@
 (defn ingest 
   "Post ingest requests to IWDS resources"
   [data iwds_resource]
-  (let [file_name (last (string/split data #"/"))]
-    (try 
-      (let [iwds_path (str iwds_resource "/inventory")
-            post_opts {:body (json/encode {"url" data}) :timeout 120000
-                       :headers {"Content-Type" "application/json" "Accept" "application/json"}}
-            post_resp (http/post iwds_path post_opts)
-            response {file_name (:status @post_resp)}]
-        (log/infof "ingest attempt: %s" response)
-        response)
-      (catch Exception ex 
-        (log/errorf "caught exception during ingest. ard: %s  iwds: %s  exception: %" 
-                    data iwds_resource (.getMessage ex))
-        {file_name 500 :error (.getMessage ex)}))))
+  (try
+    (let [file_name (last (string/split data #"/"))
+          iwds_path (str iwds_resource "/inventory")
+          post_opts {:body (json/encode {"url" data}) :timeout 120000
+                     :headers {"Content-Type" "application/json" "Accept" "application/json"}}
+          post_resp (http/post iwds_path post_opts)
+          response {file_name (:status @post_resp)}]
+      (log/infof "ingest attempt: %s" response)
+      response)
+    (catch Exception ex 
+      (log/errorf "caught exception during persist/ingest. data: %s  iwds: %s  exception: %" 
+                  data iwds_resource (.getMessage ex))
+      {data 500 :error (.getMessage ex)})))
 
 (defn ard-resource-path
   "Return formatted path for ARD resource"
