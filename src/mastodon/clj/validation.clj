@@ -52,6 +52,7 @@
            (http-accessible? ard_host "ARD_HOST")])))
 
 (defn validate-ard-server
+  "Return whether provided params are valid for ARD server duty"
   [iwds_host ard_host par_level ard_path]
   (= #{true} 
      (set [(not-nil? iwds_host "IWDS_HOST")
@@ -60,7 +61,8 @@
            (not-nil? ard_path "ARD_PATH")
            (http-accessible? iwds_host "IWDS_HOST")])))
 
-(defn validate-aux
+(defn validate-aux-server
+  "Return whether provided params are valid for Auxiliary data server duty"
   [iwds_host ard_host aux_host]
   (= #{true} 
      (set [(not-nil? iwds_host "IWDS_HOST")
@@ -74,6 +76,6 @@
   [type iwds_host ard_host aux_host par_level ard_path]
   (cond
    (= type "ard") (do (validate-ard-server iwds_host ard_host par_level ard_path)) 
-   (= type "aux") (do (validate-aux iwds_host ard_host aux_host)) 
+   (= type "aux") (do (validate-aux-server iwds_host ard_host aux_host)) 
    :else false))
 
