@@ -33,10 +33,10 @@
     (= {:h "002" :v "999"} 
        (util/hv-map "002999"))))
 
-(deftest ard-url-format-test
+(deftest inventory-url-format-test
   (is
     (= "http://magichost.org/inventory/043999"
-       (util/ard-url-format "http://magichost.org" "043999"))))
+       (util/inventory-url-format "http://magichost.org" "043999"))))
 
 (deftest iwds-url-format-test
   (is

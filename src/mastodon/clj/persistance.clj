@@ -9,7 +9,6 @@
 (defn ingest 
   "Post ingest requests to IWDS resources"
   [data iwds_resource]
-  (log/infof "persist/ingest: data: %s  iwds_resource: %s" data iwds_resource)
   (let [file_name (last (string/split data #"/"))]
     (try 
       (let [iwds_path (str iwds_resource "/inventory")
@@ -25,12 +24,14 @@
         {file_name 500 :error (.getMessage ex)}))))
 
 (defn ard-resource-path
+  "Return formatted path for ARD resource"
   [name ing_resource]
   (let [tar     (data/ard-tar-name name)
         tarpath (data/tar-path tar)]
     (format "%s/%s/%s/%s" ing_resource tarpath tar name)))
 
 (defn aux-resource-path
+  "Return formatted path for Auxiliary data resource"
   [name ing_resource]
   (let [tar (data/aux-tar-name name)]
     (format "%s/%s/%s" ing_resource tar name)))
@@ -39,11 +40,7 @@
   "Return hash-map of ingest resource and IWDS ingest query response"
   [data iwds_host data_resource]
   (let [iwdsresp  (http/get (str iwds_host "/inventory?only=source&source=" data))
-        body      (:body @iwdsresp)]
-
-    (if (re-find #"AUX_" data) 
-      (do
-        (hash-map (aux-resource-path data data_resource) body))
-      (do
-        (hash-map (ard-resource-path data data_resource) body)))))
+        body      (:body @iwdsresp)
+        path_func (if (re-find #"AUX_" data) aux-resource-path ard-resource-path)]
+    (hash-map (path_func data data_resource) body)))
 
