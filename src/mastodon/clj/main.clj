@@ -27,10 +27,10 @@
 
 (defn data-ingest
   [tileid args]
-    (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
-      (log/errorf "validation failed, exiting")
-      (System/exit 1))
     (try
+      (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
+        (log/errorf "validation failed, exiting")
+        (System/exit 1))
       (let [data_url       (if (= "ard" server_type)
                              (util/inventory-url-format ard_host tileid from_date to_date)
                              (util/inventory-url-format ard_host tileid))
@@ -65,10 +65,11 @@
 
 (defn -main
   ([]
-   (when (not (contains? #{"ard" "aux"} server_type))
-     (log/errorf "invalid option for mastodon server: %s" server_type)
-     (System/exit 1))
    (try
+     (when (not (contains? #{"ard" "aux"} server_type))
+       (log/errorf "invalid option for mastodon server: %s" server_type)
+       (System/exit 1))
+
      (log/infof "Running Mastodon for data type: %s" server_type)
      (server/run-server server_type)
      (catch Exception ex
