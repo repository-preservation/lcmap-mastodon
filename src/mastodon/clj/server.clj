@@ -72,6 +72,7 @@
   {:missing missing :ingested ingested_count}))
 
 (defn ard-status
+  "Return ARD ingest status for given tile id"
   [tileid {:keys [params] :as req}]
   (try
      (let [from (or (util/try-string (:from params)) 0)
@@ -86,6 +87,7 @@
         {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))}})))
 
 (defn aux-status
+  "Return Auxiliary data ingest status for given tile id"
   [tileid]
   (try
     (let [aux_resp (http/get aux-host)
@@ -105,6 +107,7 @@
   {:status 200 :body ["Would you like some data with that?"]})
 
 (defn get-status
+  "Route inventory status request to proper function"
   [tileid request]
   (if (= server-type "ard")
     (ard-status tileid request)
@@ -129,7 +132,6 @@
 
 (defn run-server
   [server-type]
-  (log/infof "Mastodon server type: %s" server-type)
   (log/infof "iwds-host: %s" iwds-host)
   (log/infof "aux-host: %s" aux-host)
   (log/infof "ard-host: %s" ard-host)
