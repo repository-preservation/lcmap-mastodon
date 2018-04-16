@@ -32,8 +32,8 @@
       (System/exit 1))
     (try
       (let [data_url       (if (= "ard" server_type)
-                             (util/ard-url-format ard_host tileid from_date to_date)
-                             (util/ard-url-format ard_host tileid))
+                             (util/inventory-url-format ard_host tileid from_date to_date)
+                             (util/inventory-url-format ard_host tileid))
             ard_response   (http/get data_url)
             response_map   (-> (:body @ard_response) (parse-string true))
             missing_vector (:missing response_map)
@@ -63,21 +63,17 @@
         (log/errorf "Error determining tile ingest status. exception: %s" (.getMessage ex))
         (System/exit 1))))
 
-(defn run-server
-  [type]
-  (try
-    (log/infof "Running Mastodon for data type: %s" type)
-    (server/run-server type)
-    (catch Exception ex
-      (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
-      (System/exit 1))))
-
 (defn -main
   ([]
    (when (not (contains? #{"ard" "aux"} server_type))
      (log/errorf "invalid option for mastodon server: %s" server_type)
      (System/exit 1))
-   (run-server server_type))
+   (try
+     (log/infof "Running Mastodon for data type: %s" server_type)
+     (server/run-server server_type)
+     (catch Exception ex
+       (log/errorf "error starting Mastodon server. exception: %s" (.getMessage ex))
+       (System/exit 1))))
   ([tileid & args]
    (data-ingest tileid args)
    (System/exit 0)))

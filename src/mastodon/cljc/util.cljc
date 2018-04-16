@@ -42,7 +42,7 @@
     (hash-map :h (first match)
               :v (last match))))
 
-(defn ard-url-format
+(defn inventory-url-format
   "Return formatted url as a string for requesting source list from ARD server"
   ([host tile-id]
    (let [hvm (hv-map tile-id)
