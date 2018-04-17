@@ -1,4 +1,4 @@
-(ns mastodon.cljc.ard-test
+(ns mastodon.cljc.data-test
   (:require [clojure.test :refer :all] 
             [mastodon.cljc.data :as data]))
 
