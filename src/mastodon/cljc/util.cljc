@@ -9,12 +9,6 @@
     (if (= conditional-val (ck map-obj))
       (desired-key map-obj))))
 
-(defn collect-map-values
-  "Return a collection of values for specified key, if another specified key/value
-   pair exists in the map."
-  [map-list desired-key & [conditional-key conditional-value]]
-  (map #(get-map-val % desired-key conditional-key conditional-value) map-list))
-
 (defn key-for-value
   "Return the key from provided map whose value object includes the provided value."
   [in-map in-value]
@@ -52,22 +46,6 @@
    (let [hvm (hv-map tile-id)
          host-fmt (trailing-slash host)]
      (str host-fmt "inventory/" (:h hvm) (:v hvm) "?from=" from "&to=" to))))
-
-(defn iwds-url-format
-  "Return formatted url as a string for requesting source list from IWDS"
-  [host tile-id]
-  (let [host-fmt (trailing-slash host)]
-    (str host-fmt "inventory?only=source&tile=" tile-id)))
-
-(defn string-to-list 
-  "Convert a list represented as a string into a list"
-  [instring]
-  (if (nil? instring)
-    []
-    (do (-> instring (string/replace "[" "") 
-                     (string/replace "]" "") 
-                     (string/replace "\"" "") 
-                     (string/split #",")))))
 
 (defn get-aux-name
   [aux-response tileid]
