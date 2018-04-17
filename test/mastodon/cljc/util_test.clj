@@ -18,16 +18,6 @@
     (= "foo"
        (util/get-map-val xmap :d))))
 
-(deftest collect-map-values-test
-  (is
-    (= '("foo" "bar" "baz")
-       (util/collect-map-values xmaplist :d :c "c"))))
-
-(deftest collect-map-values-nil-conditional-test
-  (is
-    (= '("foo" "bar" "baz")
-       (util/collect-map-values xmaplist :d))))
-
 (deftest hv-map-test
   (is 
     (= {:h "002" :v "999"} 
@@ -37,11 +27,6 @@
   (is
     (= "http://magichost.org/inventory/043999"
        (util/inventory-url-format "http://magichost.org" "043999"))))
-
-(deftest iwds-url-format-test
-  (is
-    (= "http://magichost.org/inventory?only=source&tile=043999"
-       (util/iwds-url-format "http://magichost.org" "043999"))))
 
 (deftest key-for-value-test
   (is (= :SR (util/key-for-value data/L8-ard-map "SRB2")))
@@ -61,9 +46,22 @@
 (deftest trailing-slash-withoutslash-test
   (is (= (util/trailing-slash "foo") "foo/")))
 
-(deftest string-to-list-test
-  (is (= (set (util/string-to-list "[foo,bar,huh]")) 
-         (set ["foo" "bar" "huh"]))))
+(deftest get-aux-name-test
+  (let [html  "<html><head>auxhead</head><body>AUX_CU_005015_20000731_20171031_V01.tar</body></html>"]
+    (is (= (util/get-aux-name html "005015")
+           "AUX_CU_005015_20000731_20171031_V01.tar"))))
+
+(deftest tif-only-test
+  (is (= (util/tif-only "/path/to/ard/brightness.tif")
+         "brightness.tif")))
+
+(deftest try-string-nil-test
+  (is (= (util/try-string nil)
+         nil)))
+
+(deftest try-string-val-test
+  (is (= (util/try-string "9")
+         9)))
 
 
 
