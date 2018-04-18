@@ -25,9 +25,13 @@
 (defn bulk-ingest
   "Generate ingest requests for list of posted ARD."
   [{:keys [:body] :as req}]
-  (let [tifs    (string/split (:urls body) #",")
-        results (doall (pmap #(persist/ingest % iwds-host) tifs))]
-    {:status 200 :body results}))
+  (try
+    (let [tifs    (string/split (:urls body) #",")
+          results (doall (pmap #(persist/ingest % iwds-host) tifs))]
+      {:status 200 :body results})
+    (catch Exception ex
+      (log/errorf "exception in server/bulk-ingest. request: %s message: %s" req (.getMessage ex) )
+      {:status 200 :body {:error (format "exception with bulk-ingest %s" (.getMessage ex))}})))
 
 (defn http-deps-check
   "Return error response if external http dependencies are not reachable"
@@ -48,70 +52,65 @@
   [tileid]
   (let [hvmap    (util/hv-map tileid)
         filepath (str ard-path (:h hvmap) "/" (:v hvmap) "/*")]
-    (-> filepath (file/get-filenames "tar")
-                 (#(map data/ard-manifest %))
-                 (flatten))))
+    (-> filepath 
+        (file/get-filenames "tar")
+        (#(map data/ard-manifest %))
+        (flatten))))
 
 (defn filtered-ard
   "Return vector of available ARD for a given tile id, between the provided years"
   [tileid from to]
-  (let [ardtifs (available-ard tileid)
-        froms   (filter (fn [i] (>= (-> i (util/tif-only) (data/year-acquired) (read-string)) from)) ardtifs)
-        tos     (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) ardtifs)]
+  (let [tifs  (available-ard tileid)
+        froms (filter (fn [i] (>= (-> i (util/tif-only) (data/year-acquired) (read-string)) from)) tifs)
+        tos   (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) tifs)]
     (vec (set/intersection (set froms) (set tos)))))
 
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
   [tifs type]
-  (let [ingest_host (if (= "aux" type) (str aux-host) (str ard-host "/ard"))
-        ard_res  (doall (pmap #(persist/status-check % iwds-host ingest_host) tifs))
-        missing  (-> ard_res (#(filter (fn [i] (= (vals i) '("[]"))) %)) 
-                             (#(apply merge-with concat %)) 
-                             (keys))
-        ingested_count (- (count ard_res) (count missing))]
-  {:missing missing :ingested ingested_count}))
+  (try
+    (let [ingest_host (if (= "aux" type) (str aux-host) (str ard-host "/ard"))
+          ard_res  (doall (pmap #(persist/status-check % iwds-host ingest_host) tifs))
+          missing  (-> ard_res 
+                       (#(filter (fn [i] (= (vals i) '("[]"))) %))
+                       (#(apply merge-with concat %)) 
+                       (keys))
+          ingested_count (- (count ard_res) (count missing))]
+      {:missing missing :ingested ingested_count})
+    (catch Exception ex
+      (throw (ex-info (format "exception in server/data-report. args: %s %s  msg: %s" tifs type (.getMessage ex)))))))
 
-(defn ard-status
-  "Return ARD ingest status for given tile id"
+(defn ard-tifs
+  "Return vector of ARD tif names for a given tileid"
   [tileid {:keys [params] :as req}]
-  (try
-     (let [from (or (util/try-string (:from params)) 0)
-           to   (or (util/try-string (:to params)) 3000)
-           tifs (filtered-ard tileid from to)
-           deps (http-deps-check)]
-       (if (nil? (:error deps))
-         {:status 200 :body (data-report tifs "ard")}
-         {:status 200 :body {:error (:error deps)}}))
-      (catch Exception ex
-        (log/errorf "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))
-        {:status 200 :body {:error (format "Error determining tile: %s ARD status. exception: %s" tileid (.getMessage ex))}})))
+  (let [from (or (util/try-string (:from params)) 0)
+        to   (or (util/try-string (:to params)) 3000)]
+    (filtered-ard tileid from to)))
 
-(defn aux-status
-  "Return Auxiliary data ingest status for given tile id"
+(defn aux-tifs
+  "Return vector of Auxiliary tif names for a given tileid"
   [tileid]
+  (let [aux_resp (http/get aux-host)
+        aux_file (util/get-aux-name (:body @aux_resp) tileid)]
+    (doall (data/aux-manifest aux_file))))
+
+(defn get-status
+  "Return ingest status for a given tild id"
+  [tileid request]
   (try
-    (let [aux_resp (http/get aux-host)
-          aux_file (util/get-aux-name (:body @aux_resp) tileid)
-          aux_tifs (doall (data/aux-manifest aux_file)) 
+    (let [tifs (if (= server-type "ard") (ard-tifs tileid request) (aux-tifs tileid))
           deps (http-deps-check)]
       (if (nil? (:error deps))
-        {:status 200 :body (data-report aux_tifs "aux")}
+        {:status 200 :body (data-report tifs server-type)}
         {:status 200 :body {:error (:error deps)}}))
       (catch Exception ex
-        (log/errorf "Error determining tile: %s AUX data status. exception: %s" tileid (.getMessage ex))
-        {:status 200 :body {:error (format "Error determining tile: %s AUX data status. exception: %s" tileid (.getMessage ex))}})))
+        (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (.getMessage ex))
+        {:status 200 :body {:error (format "Error determining tile: %s tile data status. exception: %s" tileid (.getMessage ex))}})))
 
 (defn get-base 
   "Hello Mastodon"
   [request]
   {:status 200 :body ["Would you like some data with that?"]})
-
-(defn get-status
-  "Route inventory status request to proper function"
-  [tileid request]
-  (if (= server-type "ard")
-    (ard-status tileid request)
-    (aux-status tileid)))
 
 (compojure/defroutes routes
   (compojure/context "/" request
