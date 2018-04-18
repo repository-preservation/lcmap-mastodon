@@ -58,26 +58,20 @@
                 persist/status-check (fn [tif x y] {"LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif" "[]"})
                 validation/http-accessible? (fn [x y] true)
                 server/ard-host "http://ardhost.gov"
-                server/iwds-host "http://iwdshost.gov"]
+                server/iwds-host "http://iwdshost.gov"
+                server/server-type "ard"]
 
-    (is (= (server/ard-status "005015" {})
+    (is (= (server/get-status "005015" {})
            {:status 200, :body {:ingested 0, :missing '("LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif")}}))))
 
 (deftest aux-status-test
   (with-fake-http [{:url "http://auxhost.com/aux" :method :get} {:status 200 :body "<html><head>auxhead</head><body>AUX_CU_005015_20000731_20171031_V01.tar</body></html>"}]
     (with-redefs [server/aux-host "http://auxhost.com/aux"
+                  server/server-type "aux"
                   server/http-deps-check (fn [] {})
                   server/data-report (fn [a b] {:missing ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"] :ingested 3})]
-      (is (= (server/aux-status "005015")
+      (is (= (server/get-status "005015" {})
              {:status 200 
               :body {:missing ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"] 
                      :ingested 3}})))))
-
-(deftest get-status-test
-  (with-redefs [server/server-type "ard"
-                server/ard-status (fn [a b] "hello from ard-status")]
-    (is (= (server/get-status "005015" {}) "hello from ard-status")))
-  (with-redefs [server/server-type "aux"
-                server/aux-status (fn [a] "hello from aux-status")]
-    (is (= (server/get-status "005015" {}) "hello from aux-status"))))
 
