@@ -81,7 +81,7 @@
 
       (dom-update busy-div ingesting-div inprogress-div))))
 
-(defn ^:export assess-ard
+(defn ^:export assess-data
   "Exposed function for determining what ARD needs to be ingested."
   [ard-host tile-id from to bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
   (let [ard-request-handler    (or ard-req-fn http/get-request)
