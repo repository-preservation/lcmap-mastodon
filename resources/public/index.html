@@ -34,11 +34,11 @@
             var dev     = $("#devcheck").prop("checked");
             var from    = $("#fromyear").val();
             var to      = $("#toyear").val();
-            mastodon.cljs.core.assess_ard(ardhost, tile_id, from, to, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                              "ardmissing-counter",
-                                                                                              "iwdsmissing-list",
-                                                                                              "arderror-counter",
-                                                                                              "error-container");
+            mastodon.cljs.core.assess_data(ardhost, tile_id, from, to, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                               "ardmissing-counter",
+                                                                                               "iwdsmissing-list",
+                                                                                               "arderror-counter",
+                                                                                               "error-container");
           });
 
           var selectData = mastodon.cljs.core.year_select_options();
