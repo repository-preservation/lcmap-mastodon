@@ -4,29 +4,32 @@
             [org.satta.glob :as glob]
             [mastodon.cljc.util :as util]))
 
-(defn strip-path 
+(defn strip-path
   "Return the filename, minus the path"
   [filepath]
-  (try
-    (last (string/split filepath #"/"))
-    (catch Exception ex
-      (log/debugf "exception in file/strip-path. arg: %s  message: %s" filepath (.getMessage ex)))
-    (finally nil)))
+  (-> filepath
+      (str)
+      (string/split #"/")
+      (last)))
 
 (defn jfile-name 
   "Convert java.io.File object into string of file name"
   [jfile]
-  (when (nil? jfile) (log/debugf "nil passed to file/jfile-name"))
   (strip-path (str jfile)))
 
 (defn get-filenames
-  "Return list of files for a given filesystem path patter"
+  "Return list of files for a given filesystem path pattern"
   ([filepath]
    (try
-     (map jfile-name (glob/glob filepath))
+     (-> filepath
+         (str)
+         (glob/glob)
+         (#(map jfile-name %)))
      (catch Exception ex
-       (log/debugf "exception in file/get-filenames. arg: %s  message: %s" filepath (.getMessage ex)))
-     (finally nil)))
+       (log/debugf "invalid arg passed to file/get-filenames: %s message: %s" filepath (.getMessage ex)))
+     (finally [nil])))
   ([filepath suffix]
-   (-> filepath (get-filenames) (util/with-suffix suffix))))
+   (-> filepath
+       (get-filenames)
+       (util/with-suffix suffix))))
 
