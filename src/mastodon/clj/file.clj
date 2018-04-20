@@ -26,8 +26,8 @@
          (glob/glob)
          (#(map jfile-name %)))
      (catch Exception ex
-       (log/debugf "invalid arg passed to file/get-filenames: %s message: %s" filepath (.getMessage ex)))
-     (finally [nil])))
+       (log/debugf "invalid arg passed to file/get-filenames: %s message: %s" filepath (util/exception-cause-trace ex "mastodon"))
+       [nil])))
   ([filepath suffix]
    (-> filepath
        (get-filenames)

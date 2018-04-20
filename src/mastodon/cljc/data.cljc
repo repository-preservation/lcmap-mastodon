@@ -27,25 +27,19 @@
 (defn ard-tar-name
   "Derive an ARD tif files original containing Tar file name."
   [tif-name]
-  (try
-    (let [base_name   (string/replace tif-name ".tif" "")
-          base_list   (string/split base_name #"_")
-          base_suffix (last base_list)
-          base_prefix (keyword (first base_list))
-          tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
-      (str (string/replace base_name base_suffix tar_suffix) ".tar"))
-    (catch Exception ex
-      (throw (ex-info (format "Exception in data/ard-tar-name: %s" (.getMessage ex)) {})))))
+  (let [base_name   (string/replace tif-name ".tif" "")
+        base_list   (string/split base_name #"_")
+        base_suffix (last base_list)
+        base_prefix (keyword (first base_list))
+        tar_suffix  (name (util/key-for-value (base_prefix tar-map) base_suffix))]
+    (str (string/replace base_name base_suffix tar_suffix) ".tar")))
 
 (defn aux-tar-name
   "Determine AUX tar file name from tif name"
   [tif-name]
-  (try
-    (let [base_name (string/replace tif-name ".tif" "")
-          base_list (string/split base_name #"_")]
-      (-> base_list (pop) (#(string/join "_" %)) (str ".tar")))
-    (catch Exception ex
-      (throw (ex-info (format "Exception in data/aux-tar-name: %s" (.getMessage ex)) {})))))
+  (let [base_name (string/replace tif-name ".tif" "")
+        base_list (string/split base_name #"_")]
+    (-> base_list (pop) (#(string/join "_" %)) (str ".tar"))))
 
 (defn ard-manifest
   "Return ARD tar files contents."
