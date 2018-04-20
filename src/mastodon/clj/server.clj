@@ -78,7 +78,7 @@
           ingested_count (- (count ard_res) (count missing))]
       {:missing missing :ingested ingested_count})
     (catch Exception ex
-      (throw (ex-info (format "exception in server/data-report. args: %s %s  msg: %s" tifs type (.getMessage ex)))))))
+      (throw (ex-info (format "exception in server/data-report. args: %s %s  msg: %s" tifs type (util/exception-cause-trace ex "mastodon")))))))
 
 (defn ard-tifs
   "Return vector of ARD tif names for a given tileid"
@@ -103,9 +103,9 @@
       (if (nil? (:error deps))
         {:status 200 :body (data-report tifs server-type)}
         {:status 200 :body {:error (:error deps)}}))
-      (catch Exception ex
-        (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (.getMessage ex))
-        {:status 200 :body {:error (format "Error determining tile: %s tile data status. exception: %s" tileid (.getMessage ex))}})))
+    (catch Exception ex
+      (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))
+      {:status 200 :body {:error (format "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))}})))
 
 (defn get-base 
   "Hello Mastodon"

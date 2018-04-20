@@ -19,9 +19,10 @@
       (log/infof "ingest attempt: %s" response)
       response)
     (catch Exception ex 
-      (log/errorf "caught exception during persist/ingest. data: %s  iwds: %s  exception: %" 
-                  data iwds_resource (.getMessage ex))
-      {data 500 :error (.getMessage ex)})))
+      (let [msg (format "caught exception during persist/ingest. data: %s  iwds: %s  exception: %s"
+                        data iwds_resource (util/exception-cause-trace ex "mastodon"))]
+        (log/errorf msg)
+        {data 500 :error msg}))))
 
 (defn ard-resource-path
   "Return formatted path for ARD resource"
