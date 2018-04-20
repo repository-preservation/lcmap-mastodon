@@ -1,5 +1,6 @@
 (ns mastodon.cljc.util-test
   (:require [clojure.test :refer :all]
+            [clojure.string :as string]
             [mastodon.cljc.data :as data]
             [mastodon.cljc.util :as util]))
 
@@ -63,5 +64,12 @@
   (is (= (util/try-string "9")
          9)))
 
+(deftest exception-cause-trace-test
+  (try (+ 1 "foo")
+       (catch Exception ex
+         (let [out (util/exception-cause-trace ex "mastodon")]
+           (is (= (keys out) '(:cause :trace)))
+           (doseq [i (:trace out)]
+             (is (string/includes? (str (first i)) "mastodon")))))))
 
 

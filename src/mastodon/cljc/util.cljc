@@ -70,3 +70,14 @@
               (catch :default e
                 nil))))
 
+(defn exception-cause-trace
+  "Returns the exceptions cause and stack trace.
+   Supply a keyword to filter the trace optionally"
+  ([exception]
+   (let [ex-map (Throwable->map exception)]
+     (select-keys ex-map [:cause :trace])))
+  ([exception trace-filter]
+   (let [exc (exception-cause-trace exception)
+         filter_fn (fn [i] (-> i (#(string/join #" " %)) (string/includes? (str trace-filter))))
+         filtered_trace (filter filter_fn (:trace exc))]
+     (assoc exc :trace filtered_trace))))
