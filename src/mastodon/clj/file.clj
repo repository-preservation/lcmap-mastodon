@@ -1,12 +1,16 @@
 (ns mastodon.clj.file
-  (:require [clojure.string :as string] 
+  (:require [clojure.string :as string]
+            [clojure.tools.logging :as log]
             [org.satta.glob :as glob]
             [mastodon.cljc.util :as util]))
 
-(defn strip-path 
+(defn strip-path
   "Return the filename, minus the path"
   [filepath]
-  (last (string/split filepath #"/")))
+  (-> filepath
+      (str)
+      (string/split #"/")
+      (last)))
 
 (defn jfile-name 
   "Convert java.io.File object into string of file name"
@@ -14,9 +18,18 @@
   (strip-path (str jfile)))
 
 (defn get-filenames
-  "Return list of files for a given filesystem path patter"
+  "Return list of files for a given filesystem path pattern"
   ([filepath]
-   (map jfile-name (glob/glob filepath)))
+   (try
+     (-> filepath
+         (str)
+         (glob/glob)
+         (#(map jfile-name %)))
+     (catch Exception ex
+       (log/debugf "invalid arg passed to file/get-filenames: %s message: %s" filepath (util/exception-cause-trace ex "mastodon"))
+       [nil])))
   ([filepath suffix]
-   (-> filepath (get-filenames) (util/with-suffix suffix))))
+   (-> filepath
+       (get-filenames)
+       (util/with-suffix suffix))))
 
