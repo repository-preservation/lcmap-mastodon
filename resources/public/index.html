@@ -34,11 +34,11 @@
             var dev     = $("#devcheck").prop("checked");
             var from    = $("#fromyear").val();
             var to      = $("#toyear").val();
-            mastodon.cljs.core.assess_ard(ardhost, tile_id, from, to, "busydiv", "chpsubmit", "ardingested-counter", 
-                                                                                              "ardmissing-counter",
-                                                                                              "iwdsmissing-list",
-                                                                                              "arderror-counter",
-                                                                                              "error-container");
+            mastodon.cljs.core.assess_data(ardhost, tile_id, from, to, "busydiv", "chpsubmit", "ardingested-counter", 
+                                                                                               "ardmissing-counter",
+                                                                                               "iwdsmissing-list",
+                                                                                               "arderror-counter",
+                                                                                               "error-container");
           });
 
           var selectData = mastodon.cljs.core.year_select_options();
@@ -46,8 +46,8 @@
           $.each(selectData, function(index, option) {
               auxArr[index] = "<option value='" + option + "'>" + option + "</option>";
           });
-          $('#fromyear').append(auxArr.join(''));
-          $('#toyear').append(auxArr.join(''));
+          //ARD $('#fromyear').append(auxArr.join(''));
+          //ARD $('#toyear').append(auxArr.join(''));
       });
 
     </script>
@@ -57,7 +57,7 @@
 
     <div class="col-sm-6 col-sm-offset-3" style="width:675px;">
 
-      <h1>LCMAP ARD Management</h1>
+      <h1>LCMAP Data Inventory Management</h1>
 
       <!-- OUR FORM -->
       <form action="" method="POST">
@@ -70,6 +70,11 @@
         <div id="idws-group" class="form-group">
           <label for="idwshost">IWDS Host</label> <IWDSHOST>
           <input type="hidden" class="form-control" id="idwshost" name="idwshost" value="<IWDSHOST>">
+        </div>
+        <!-- AUX -->
+        <div id="idws-group" class="form-group">
+          <label for="idwshost">AUX Host</label> <IWDSHOST>
+          <input type="hidden" class="form-control" id="auxhost" name="auxhost" value="<AUXHOST>">
         </div>
         <!-- H & V -->
         <div id="tile-group" class="form-group" style="width:33%;float:left;">
@@ -90,7 +95,7 @@
       <!-- find better solution to preventing form submission -->
       <div id="form-buttons" class="leftside">
         <button id="frmsubmit" type="submit" class="btn btn-success">Check Tile Status <span class="fa fa-arrow-right"></span></button>
-        <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing ARD Layers<span class="fa fa-arrow-right"></span></button>
+        <button id="chpsubmit" type="submit" class="btn btn-success">Ingest Missing Layers<span class="fa fa-arrow-right"></span></button>
       </div>
       <div id="busy-container" class="rightside">
         <div id="busydiv"><img src="images/Blocks.gif"></img></div>
@@ -117,7 +122,7 @@
         </div>
      </div>
      <div id="ingesting-div" class="leftside">
-       <b>Ingested Layers</b>
+       <b>Last Ingested Layers</b>
        <div id="ingesting-list"></div>
      </div>
      <div id="iwdsmissing" class="rightside">

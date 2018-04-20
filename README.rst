@@ -8,9 +8,9 @@ Tools for facilitating LCMAP data curation.
 
 Features
 --------
-* Report on ARD ingest status on a per tile basis
-* Ingest available ARD that has not been ingested
-* Report on ARD that has been ingested, which is now missing 
+* Report on IWDS inventory status for Analysis Ready and Auxiliary data on a per tile basis
+* Handle parallelization of data ingest requests
+* Identify data that has been ingested, which is now missing 
 
 Running
 -------
@@ -19,13 +19,13 @@ are handled over HTTP, via NGINX.
 
 .. code-block:: bash
 
-   docker run -p 8080:80 -v /workspace/data:/data -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
+   docker run -p 8080:80 -v /workspace/data:/data -e "SERVER_TYPE=${SERVER_TYPE}" -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
    -e "IWDS_HOST=${IWDS_HOST}" -e "PARTITION_LEVEL=${PARTITION_LEVEL}" --ip="192.168.43.4" usgseros/lcmap-mastodon
 
 
 Configuration
 -------------
-There are four environment variables, and up to two configurations that need to be defined.
+There are up to six environment variables, and two configurations that need to be defined.
 
 You need to mount a volume to your container at `/data`. This should be the base dir
 to where the ARD tarballs can be found
@@ -39,8 +39,9 @@ The ${ARD_PATH} environment variable is used by a glob function to determine wha
 tarballs are available for a given Tile ID.  The value is determined by the directory 
 structure where the ARD is kept
 
-Data are expected to be organized by Landsat Mission. From the mounted dir, the directory
-structure should mirror this: <mission>/ARD_Tile/<year acquired>/CU/<HHH>/<VVV>/
+Analysis Ready Data (ARD) are expected to be organized by Landsat Mission. From the 
+mounted dir, the directory structure should mirror this: 
+<mission>/ARD_Tile/<year acquired>/CU/<HHH>/<VVV>/
 
 HHH and VVV constituting the 3 digit tile-id.  The H and V values DO NOT need to be included
 in your ${ARD_PATH} definition.
@@ -56,8 +57,14 @@ instance
 The ${IWDS_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
 instance
 
+The ${SERVER_TYPE} environment variable tells the lcmap-mastodon instance what kind of data it is 
+working with. Valid values include "ard" and "aux".
+
+${AUX_HOST} needs to be defined if ${SERVER_TYPE} is defined as "aux". It is the hostname or ip
+address where auxiliary data is provided.
+
 The ${PARTITION_LEVEL} environment variable determines the level of parallelization applied to
-the ingest process. 
+the ingest process 
 
 Unless requests to the application are being routed through a DNS server, you'll need to declare what
 IP address the container should use with `--ip`. This value should correspond to the ${ARD_HOST} 
@@ -93,7 +100,7 @@ With your jar built, and your environment setup
   
     java -jar target/lcmap-mastodon-0.1.13-standalone.jar 005015
 
-And follow the prompts. If you want to automatically ingest any non-ingested ARD, 
+And follow the prompts. If you want to automatically ingest any non-ingested data, 
 add `-y` after the tile id.
 
 

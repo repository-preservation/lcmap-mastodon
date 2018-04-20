@@ -9,12 +9,6 @@
     (if (= conditional-val (ck map-obj))
       (desired-key map-obj))))
 
-(defn collect-map-values
-  "Return a collection of values for specified key, if another specified key/value
-   pair exists in the map."
-  [map-list desired-key & [conditional-key conditional-value]]
-  (map #(get-map-val % desired-key conditional-key conditional-value) map-list))
-
 (defn key-for-value
   "Return the key from provided map whose value object includes the provided value."
   [in-map in-value]
@@ -42,7 +36,7 @@
     (hash-map :h (first match)
               :v (last match))))
 
-(defn ard-url-format
+(defn inventory-url-format
   "Return formatted url as a string for requesting source list from ARD server"
   ([host tile-id]
    (let [hvm (hv-map tile-id)
@@ -53,21 +47,10 @@
          host-fmt (trailing-slash host)]
      (str host-fmt "inventory/" (:h hvm) (:v hvm) "?from=" from "&to=" to))))
 
-(defn iwds-url-format
-  "Return formatted url as a string for requesting source list from IWDS"
-  [host tile-id]
-  (let [host-fmt (trailing-slash host)]
-    (str host-fmt "inventory?only=source&tile=" tile-id)))
-
-(defn string-to-list 
-  "Convert a list represented as a string into a list"
-  [instring]
-  (if (nil? instring)
-    []
-    (do (-> instring (string/replace "[" "") 
-                     (string/replace "]" "") 
-                     (string/replace "\"" "") 
-                     (string/split #",")))))
+(defn get-aux-name
+  [aux-response tileid]
+  (let [tar-match (re-find (re-pattern (format "AUX_.*_%s_.*.tar" tileid)) aux-response)]
+    (subs tar-match 0 39)))
 
 (defn tif-only
   "Return the layer name from a complete URL path"
@@ -86,3 +69,15 @@
               (read-string input)
               (catch :default e
                 nil))))
+
+(defn exception-cause-trace
+  "Returns the exceptions cause and stack trace.
+   Supply a keyword to filter the trace optionally"
+  ([exception]
+   (let [ex-map (Throwable->map exception)]
+     (select-keys ex-map [:cause :trace])))
+  ([exception trace-filter]
+   (let [exc (exception-cause-trace exception)
+         filter_fn (fn [i] (-> i (#(string/join #" " %)) (string/includes? (str trace-filter))))
+         filtered_trace (filter filter_fn (:trace exc))]
+     (assoc exc :trace filtered_trace))))

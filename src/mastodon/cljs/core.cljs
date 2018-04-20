@@ -1,7 +1,6 @@
 (ns mastodon.cljs.core
 (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [mastodon.cljs.http :as http]
-            [mastodon.cljc.ard  :as ard]
             [mastodon.cljs.dom  :as dom]
             [mastodon.cljc.util :as util]
             [clojure.string :as string]
@@ -82,11 +81,11 @@
 
       (dom-update busy-div ingesting-div inprogress-div))))
 
-(defn ^:export assess-ard
+(defn ^:export assess-data
   "Exposed function for determining what ARD needs to be ingested."
   [ard-host tile-id from to bsy-div ing-btn ing-ctr mis-ctr iwds-miss-list error-ctr error-div & [ard-req-fn]]
   (let [ard-request-handler    (or ard-req-fn http/get-request)
-        ard-inventory-resource (util/ard-url-format ard-host tile-id from to)
+        ard-inventory-resource (util/inventory-url-format ard-host tile-id from to)
         dom-map  (hash-map :ing-ctr ing-ctr :mis-ctr mis-ctr :bsy-div bsy-div :ing-btn ing-btn
                            :iwds-miss-list iwds-miss-list :error-ctr error-ctr :error-div error-div)]
     (report-assessment ard-data-chan dom-map) ;; park func on ard-data-chan to update dom

@@ -7,7 +7,6 @@
             [mastodon.cljs.data :as testdata]
             [mastodon.cljs.dom :as dom]
             [mastodon.cljc.util :as util]
-            [mastodon.cljc.ard :as ard]
             [cljs.core.async :as async]))
 
 (defn test-async
