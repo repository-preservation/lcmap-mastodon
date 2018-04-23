@@ -19,16 +19,6 @@
     (= "foo"
        (util/get-map-val xmap :d))))
 
-(deftest hv-map-test
-  (is 
-    (= {:h "002" :v "999"} 
-       (util/hv-map "002999"))))
-
-(deftest inventory-url-format-test
-  (is
-    (= "http://magichost.org/inventory/043999"
-       (util/inventory-url-format "http://magichost.org" "043999"))))
-
 (deftest key-for-value-test
   (is (= :SR (util/key-for-value data/L8-ard-map "SRB2")))
   (is (= :SR (util/key-for-value data/L8-ard-map "PIXELQA")))
@@ -46,6 +36,16 @@
 
 (deftest trailing-slash-withoutslash-test
   (is (= (util/trailing-slash "foo") "foo/")))
+
+(deftest hv-map-test
+  (is 
+    (= {:h "002" :v "999"} 
+       (util/hv-map "002999"))))
+
+(deftest inventory-url-format-test
+  (is
+    (= "http://magichost.org/inventory/043999"
+       (util/inventory-url-format "http://magichost.org" "043999"))))
 
 (deftest get-aux-name-test
   (let [html  "<html><head>auxhead</head><body>AUX_CU_005015_20000731_20171031_V01.tar</body></html>"]
@@ -71,5 +71,4 @@
            (is (= (keys out) '(:cause :trace)))
            (doseq [i (:trace out)]
              (is (string/includes? (str (first i)) "mastodon")))))))
-
 
