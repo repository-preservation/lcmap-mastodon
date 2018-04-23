@@ -16,6 +16,11 @@
       (async done
         (async/take! ch (fn [_] (done))))))
 
+(deftest year-select-options-test
+  (let [years (js->clj (mc/year-select-options))]
+    (is (= years (filter int? years)))
+    (is (= 1982 (first years)))))
+
 (deftest report-assessment-test
   (with-redefs [mc/log (fn [x] x)]
       (let [achan  (async/chan 1) 
@@ -56,4 +61,5 @@
 
         (is (= {:status 200, :tifs '("boo.tif" "who.tif"), :body [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}]}
            (mc/ingest-status-handler 200 [{:foo.tar/boo.tif 200} {:mang.tar/who.tif 200}] {"div1" 4})))))
+
 

@@ -1,6 +1,15 @@
 (ns mastodon.clj.validation-test
+  (:use org.httpkit.fake)
   (:require [clojure.test :refer :all] 
             [mastodon.clj.validation :as validation]))
+
+(deftest http-accessible?-test
+  (with-fake-http [{:url "http://foo.com" :method :get} {:status 200 :body "okay"}]
+    (is (= true (validation/http-accessible? "http://foo.com" "iwds")))))
+
+(deftest http-accessible?-false-test
+  (with-fake-http [{:url "http://foo.com" :method :get} {:status 403 :body "forbidden"}]
+    (is (= false (validation/http-accessible? "http://foo.com" "iwds")))))
 
 (deftest not-nil?-test
   (is (= (validation/not-nil? 9 "foo") true)))
