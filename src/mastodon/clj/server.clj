@@ -30,8 +30,8 @@
           results (doall (pmap #(persist/ingest % iwds-host) tifs))]
       {:status 200 :body results})
     (catch Exception ex
-      (log/errorf "exception in server/bulk-ingest. request: %s message: %s" req (.getMessage ex) )
-      {:status 200 :body {:error (format "exception with bulk-ingest %s" (.getMessage ex))}})))
+      (log/errorf "exception in server/bulk-ingest. request: %s message: %s" req (util/exception-cause-trace ex "mastodon"))
+      {:status 200 :body {:error (format "exception with bulk-ingest %s" (util/exception-cause-trace ex "mastodon"))}})))
 
 (defn http-deps-check
   "Return error response if external http dependencies are not reachable"
