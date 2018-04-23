@@ -65,7 +65,7 @@
      (log/infof "Running Mastodon for data type: %s" server_type)
      (server/run-server server_type)
      (catch Exception ex
-       (log/errorf "error starting Mastodon server. exception: %s" (util/exception-cause-trace ex))
+       (log/errorf "error starting Mastodon server. exception: %s" (util/exception-cause-trace ex "mastodon"))
        (System/exit 1))))
   ([tileid & args]
    (try
