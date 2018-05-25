@@ -20,7 +20,7 @@ are handled over HTTP, via NGINX.
 .. code-block:: bash
 
    docker run -p 8080:80 -v /workspace/data:/data -e "SERVER_TYPE=${SERVER_TYPE}" -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
-   -e "IWDS_HOST=${IWDS_HOST}" -e "PARTITION_LEVEL=${PARTITION_LEVEL}" --ip="192.168.43.4" usgseros/lcmap-mastodon
+   -e "CHIPMUNK_HOST=${CHIPMUNK_HOST}" -e "PARTITION_LEVEL=${PARTITION_LEVEL}" --ip="192.168.43.4" usgseros/lcmap-mastodon
 
 
 Configuration
@@ -54,7 +54,7 @@ in your ${ARD_PATH} definition.
 The ${ARD_HOST} environment variable is your hostname or IP address for the deployed lcmap-mastodon
 instance
 
-The ${IWDS_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
+The ${CHIPMUNK_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
 instance
 
 The ${SERVER_TYPE} environment variable tells the lcmap-mastodon instance what kind of data it is 
@@ -84,7 +84,7 @@ the UI will be available at http://127.0.0.1:8080
 CLI Interaction
 ---------------
 You have the option to manage ingest from the command line as well.  Just build an uberjar with
-leiningen, and export environment variables for the ${IWDS_HOST}, ${PARTITION_LEVEL}, and ${ARD_HOST}.
+leiningen, and export environment variables for the ${CHIPMUNK_HOST}, ${PARTITION_LEVEL}, and ${ARD_HOST}.
 The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance which 
 exposes the ARD over HTTP for ingest.
 
