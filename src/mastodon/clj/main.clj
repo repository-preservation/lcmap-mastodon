@@ -9,7 +9,8 @@
             [mastodon.clj.server      :as server]
             [clojure.tools.logging    :as log]))
 
-(def iwds_host       (:iwds-host   environ/env))
+;(def iwds_host       (:iwds-host   environ/env))
+(def chipmunk_host   (:chipmunk-host environ/env))
 (def aux_host        (:aux-host    environ/env))
 (def ard_host        (:ard-host    environ/env))
 (def ard_path        (:ard-path    environ/env))
@@ -27,7 +28,7 @@
 
 (defn data-ingest
   [tileid args]
-  (when (not (validation/validate-cli tileid iwds_host ard_host partition_level))
+  (when (not (validation/validate-cli tileid chipmunk_host ard_host partition_level))
     (log/errorf "validation failed, exiting")
     (System/exit 1))
   (let [data_url       (if (= "ard" server_type)
@@ -37,7 +38,7 @@
         response_map   (-> (:body @ard_response) (parse-string true))
         missing_vector (:missing response_map)
         ard_partition  (partition partition_level partition_level "" missing_vector)
-        ingest_map     #(persist/ingest % iwds_host)
+        ingest_map     #(persist/ingest % chipmunk_host)
         autoingest     (first args)]
 
     (if (:error @ard_response)
