@@ -22,7 +22,7 @@
 
 (deftest validate-cli-test
   (with-redefs [validation/http-accessible? (fn [x y] true)]
-    (is (= (validation/validate-cli "005015" "iwdshost" "ardhost" 10) true))))
+    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10}) true))))
 
 (deftest validate-server-test
   (with-redefs [validation/http-accessible? (fn [x y] true)]
