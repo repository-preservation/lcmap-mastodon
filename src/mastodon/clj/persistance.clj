@@ -7,7 +7,7 @@
             [clojure.tools.logging :as log]))
 
 (defn ingest 
-  "Post ingest requests to IWDS resources"
+  "Post ingest requests to Chipmunk service"
   [data chipmunk_resource]
   (try
     (let [file_name (last (string/split data #"/"))

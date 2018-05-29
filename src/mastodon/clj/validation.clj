@@ -42,14 +42,14 @@
 
 (defn validate-cli
   "Wrapper func for CLI parameters."
-  [tileid chipmunk_host ard_host par_level]
+  [tileid config]
   (= #{true} 
      (set [(does-match? #"[0-9]{6}" tileid "Tile ID")
-           (not-nil? chipmunk_host "CHIPMUNK_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (is-int? par_level "PARTITION_LEVEL")
-           (http-accessible? chipmunk_host "CHIPMUNK_HOST")
-           (http-accessible? ard_host "ARD_HOST")])))
+           (not-nil? (:chipmunk_host config) "CHIPMUNK_HOST")
+           (not-nil? (:ard_host config) "ARD_HOST")
+           (is-int? (:partition_level config) "PARTITION_LEVEL")
+           (http-accessible? (:chipmunk_host config) "CHIPMUNK_HOST")
+           (http-accessible? (:ard_host config) "ARD_HOST")])))
 
 (defn validate-ard-server
   "Return whether provided params are valid for ARD server duty"
