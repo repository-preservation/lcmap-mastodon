@@ -67,7 +67,7 @@
   (try
     (let [available-only (set/difference (set available-tifs) (set ingested-tifs))
           ingested-only  (set/difference (set ingested-tifs) (set available-tifs))]
-      {:missing available-only :ingested (count ingested-tifs)})))
+      {:missing (vec available-only) :ingested (count ingested-tifs)})))
 
 (defn ard-tifs
   "Return vector of ARD tif names for a given tileid"
