@@ -34,8 +34,10 @@
   []
   (let [ard-accessible  (validation/http-accessible? (:ard_host config) "ARD_HOST")
         iwds-accessible (validation/http-accessible? (:chipmunk_host config) "CHIPMUNK_HOST")
+        nemo-accessible (validation/http-accessible? (:nemo_host config) "NEMO_HOST")
         ard-message  (str "ARD Host: " (:ard_host config) " is not reachable. ") 
-        iwds-message (str "CHIPMUNK Host: " (:chipmunk_host config) " is not reachable")]
+        iwds-message (str "CHIPMUNK Host: " (:chipmunk_host config) " is not reachable")
+        nemo-message (str "NEMO Host: " (:nemo_host config) " is not reachable")]
     (if (= #{true} (set [ard-accessible iwds-accessible]))
       (do {:error nil})
       (do (cond
@@ -125,5 +127,7 @@
   (log/infof "aux-host: %s" (:aux_host config))
   (log/infof "ard-host: %s" (:ard_host config))
   (log/infof "ard-path: %s" (:ard_path config))
+  (log/infof "nemo-host: %s" (:nemo_host config))
+  (log/infof "server-type: %s" (:server_type config))
   (http-server/run-server app {:port 9876}))
 
