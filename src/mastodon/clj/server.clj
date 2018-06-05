@@ -99,6 +99,11 @@
       (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))
       {:status 200 :body {:error (format "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))}})))
 
+(defn get-config
+  "Return config/config"
+  [request]
+  {:status 200 :body config})
+
 (defn get-base 
   "Hello Mastodon"
   [request]
@@ -109,6 +114,7 @@
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
+    (compojure/GET   "/config" [] (get-config request))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (defn response-handler
