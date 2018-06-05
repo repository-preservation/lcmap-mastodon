@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+
+  cassandra:
+    image: cassandra:3.9
+    network_mode: "host"
+
+  chipmunk:
+    image: "chipmunk_mv"
+    network_mode: "host"
+    environment:
+      - DB_HOST=localhost
+      - DB_PORT=9042
+      - DB_KEYSPACE=chipmunk_local
+      - HTTP_PORT=5656
+      - Xms=4352m
+      - Xmx=4352m
+
+  nemo:
+    image: "usgseros/lcmap-nemo:build"
+    network_mode: "host"
+    environment:
+      - DB_HOST=localhost
+      - DB_PORT=9042
+      - DB_KEYSPACE=chipmunk_local
+      - DB_USER=cassandra
+      - DB_PASS=cassandra
+      - DB_TABLES=inventory_by_tile
+      - HTTP_PORT=5657
+      - Xms=4352m
+      - Xmx=4352m
+
+  mastodon:
+    image: "mastodon10"
+    network_mode: "host"
+    volumes:
+      - "/home/caustin/workspace/data:/data"
+    environment:
+      - SERVER_TYPE=ard
+      - ARD_PATH=/data/ard/{tm,etm,oli_tirs}/ARD_Tile/*/CU/
+      - ARD_HOST=http://127.0.0.1
+      - CHIPMUNK_HOST=http://127.0.0.1:5656
+      - PARTITION_LEVEL=10
+      - NEMO_HOST=http://127.0.0.1:5657
+
+
