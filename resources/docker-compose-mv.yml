@@ -7,7 +7,7 @@ services:
     network_mode: "host"
 
   chipmunk:
-    image: "chipmunk_mv"
+    image: "usgseros/lcmap-chipmunk:develop-1.0.0-SNAPSHOT"
     network_mode: "host"
     environment:
       - DB_HOST=localhost
