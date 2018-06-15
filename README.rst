@@ -25,7 +25,7 @@ are handled over HTTP, via NGINX.
 
 Configuration
 -------------
-There are up to six environment variables, and two configurations that need to be defined.
+There are up to eight environment variables, and two configurations that need to be defined.
 
 You need to mount a volume to your container at `/data`. This should be the base dir
 to where the ARD tarballs can be found
@@ -87,6 +87,9 @@ You have the option to manage ingest from the command line as well.  Just build 
 leiningen, and export environment variables for the ${IWDS_HOST}, ${PARTITION_LEVEL}, and ${ARD_HOST}.
 The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance which 
 exposes the ARD over HTTP for ingest.
+
+Optionally, you can export FROM_DATE and TO_DATE environment variables, to filter by year the ARD you're 
+concerned with.  Format is: YYYY.
 
 To build the standalone jar file:
 
