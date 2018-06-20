@@ -25,7 +25,7 @@ are handled over HTTP, via NGINX.
 
 Configuration
 -------------
-There are up to eight environment variables, and two configurations that need to be defined.
+There are up to 10 environment variables, and two configurations that need to be defined.
 
 You need to mount a volume to your container at `/data`. This should be the base dir
 to where the ARD tarballs can be found
@@ -65,6 +65,11 @@ address where auxiliary data is provided.
 
 The ${PARTITION_LEVEL} environment variable determines the level of parallelization applied to
 the ingest process 
+
+INVENTORY_TIMEOUT (ms) Defaults to 120000 (2 mins). It sets the HTTP request timeout for requests
+against the IWDS_HOST for data ingest status.
+
+INGEST_TIMEOUT (ms) Defaults to 120000 (2 mins). Sets the HTTP request timeout for data ingest requests.
 
 Unless requests to the application are being routed through a DNS server, you'll need to declare what
 IP address the container should use with `--ip`. This value should correspond to the ${ARD_HOST} 

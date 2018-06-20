@@ -5,6 +5,7 @@
              [compojure.core           :as compojure]
              [compojure.route          :as route]
              [environ.core             :as environ]
+             [mastodon.clj.config :refer [config]]
              [mastodon.cljc.data       :as data]
              [mastodon.cljc.util       :as util]
              [mastodon.clj.file        :as file]
@@ -135,5 +136,7 @@
   (log/infof "aux-host: %s" aux-host)
   (log/infof "ard-host: %s" ard-host)
   (log/infof "ard-path: %s" ard-path)
+  (log/infof "inventory-timeout: %s" (:inventory-timeout config))
+  (log/infof "ingest-timeout: %s" (:ingest-timeout config))
   (http-server/run-server app {:port 9876}))
 
