@@ -2,6 +2,8 @@
   (:require [org.httpkit.client :as http]
             [cheshire.core :as json]
             [clojure.string :as string]
+            [environ.core :as environ]
+            [mastodon.clj.config :refer [config]]
             [mastodon.cljc.data :as data]
             [mastodon.cljc.util :as util]
             [clojure.tools.logging :as log]))
@@ -12,7 +14,7 @@
   (try
     (let [file_name (last (string/split data #"/"))
           iwds_path (str iwds_resource "/inventory")
-          post_opts {:body (json/encode {"url" data}) :timeout 120000
+          post_opts {:body (json/encode {"url" data}) :timeout (:ingest-timeout config)
                      :headers {"Content-Type" "application/json" "Accept" "application/json"}}
           post_resp (http/post iwds_path post_opts)
           response {file_name (:status @post_resp)}]
@@ -40,7 +42,8 @@
 (defn status-check
   "Return hash-map of ingest resource and IWDS ingest query response"
   [data iwds_host data_resource]
-  (let [iwdsresp  (http/get (str iwds_host "/inventory?only=source&source=" data))
+  (let [options   {:timeout (:inventory-timeout config)}
+        iwdsresp  (http/get  (str iwds_host "/inventory?only=source&source=" data) options)
         body      (:body @iwdsresp)
         path_func (if (re-find #"AUX_" data) aux-resource-path ard-resource-path)]
     (hash-map (path_func data data_resource) body)))
