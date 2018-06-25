@@ -17,9 +17,6 @@
 
 (defn data-ingest
   [tileid args]
-  (when (not (validation/validate-cli tileid config))
-    (log/errorf "validation failed, exiting")
-    (System/exit 1))
   (let [data_url       (util/inventory-url-format (:ard_host config) tileid (:from_date config) (:to_date config))
         ard_response   (http/get data_url)
         response_map   (-> (:body @ard_response) (parse-string true))
@@ -43,25 +40,23 @@
                 (println "Ingest Complete"))
             (do (println "Exiting!")))))))
 
-(defn -main
+(defn -main 
   ([]
    (try
-     (when (not (contains? #{"ard" "aux"} (:server_type config)))
-       (log/errorf "invalid option for mastodon server: %s" (:server_type config))
+     (when (not (validation/validate-server config))
+       (log/errorf "validation failed, exiting")
        (System/exit 1))
-
-     (log/infof "Running Mastodon for data type: %s" (:server_type config))
      (server/run-server config)
      (catch Exception ex
        (log/errorf "error starting Mastodon server. exception: %s" (util/exception-cause-trace ex "mastodon"))
        (System/exit 1))))
   ([tileid & args]
    (try
+     (when (not (validation/validate-cli tileid config))
+       (log/errorf "validation failed, exiting")
+       (System/exit 1))
      (data-ingest tileid args)
      (System/exit 0)
-     (catch com.fasterxml.jackson.core.JsonParseException jx
-       (log/errorf "Non-json response from ARD_HOST request. exception: %s " (util/exception-cause-trace jx "mastodon"))
-       (System/exit 1))
      (catch Exception ex
        (log/errorf "Error determining tile ingest status. exception: %s" (util/exception-cause-trace ex "mastodon"))
        (System/exit 1)))))
