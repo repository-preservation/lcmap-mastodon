@@ -2,7 +2,7 @@
   (:require [org.httpkit.client :as http]
             [clojure.tools.logging :as log]))
 
-(defn http-accessible?
+(defn http?
   "Return whether an http resource is accessible."
   [resource name]
   (try
@@ -16,7 +16,7 @@
       (log/errorf "%s is unaccessible" name)
       false)))
 
-(defn not-nil? 
+(defn present?
   "Return whether val is not nil."
   [val name]
   (let [resp (not (nil? val))]
@@ -24,7 +24,7 @@
       (log/errorf "%s is not defined" name))
     resp))
 
-(defn does-match? 
+(defn match? 
   "Return whether val matches pattern."
   [pattern val name]
   (let [resp (not (nil? (re-matches pattern val)))]
@@ -32,7 +32,7 @@
       (log/errorf "%s does not appear valid" name))
     resp))
 
-(defn is-int?
+(defn int?
   "Return whether val is an int."
   [val name]
   (let [resp (int? val)]
@@ -44,38 +44,37 @@
   "Wrapper func for CLI parameters."
   [tileid config]
   (= #{true} 
-     (set [(does-match? #"[0-9]{6}" tileid "Tile ID")
-           (not-nil? (:chipmunk_host config) "CHIPMUNK_HOST")
-           (not-nil? (:ard_host config) "ARD_HOST")
-           (is-int? (:partition_level config) "PARTITION_LEVEL")
-           (http-accessible? (:chipmunk_host config) "CHIPMUNK_HOST")
-           (http-accessible? (:ard_host config) "ARD_HOST")])))
+     (set [(match?   #"[0-9]{6}" tileid        "Tile ID")
+           (present? (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (present? (:ard_host config)        "ARD_HOST")
+           (int?     (:partition_level config) "PARTITION_LEVEL")
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?    (:ard_host config)        "ARD_HOST")])))
 
-(defn validate-ard-server
-  "Return whether provided params are valid for ARD server duty"
-  [chipmunk_host ard_host par_level ard_path]
+(defmulti validate-server
+  (fn [x] (keyword (:server_type config))))
+
+(defmethod validate-server :default [x] 
+  (log/errorf "invalid SERVER_TYPE")
+  false)
+
+(defmethod validate-server :ard
+  [config]
   (= #{true} 
-     (set [(not-nil? chipmunk_host "CHIPMUNK_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (is-int? par_level "PARTITION_LEVEL")
-           (not-nil? ard_path "ARD_PATH")
-           (http-accessible? chipmunk_host "CHIPMUNK_HOST")])))
+     (set [(present? (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (present? (:ard_host config)        "ARD_HOST")
+           (int?     (:partition_level config) "PARTITION_LEVEL")
+           (present? (:ard_path config)        "ARD_PATH")
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?    (:nemo_host config)       "NEMO_HOST")])))
 
-(defn validate-aux-server
-  "Return whether provided params are valid for Auxiliary data server duty"
-  [chipmunk_host ard_host aux_host]
+(defmethod validate-server :aux
+  [config]
   (= #{true} 
-     (set [(not-nil? chipmunk_host "CHIPMUNK_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (not-nil? aux_host "AUX_HOST")
-           (http-accessible? aux_host "AUX_HOST")
-           (http-accessible? chipmunk_host "CHIPMUNK_HOST")])))
+     (set [(present? (:chipmunk_host config) "CHIPMUNK_HOST")
+           (present? (:ard_host config)      "ARD_HOST")
+           (present? (:aux_host config)      "AUX_HOST")
+           (http?    (:aux_host config)      "AUX_HOST")
+           (http?    (:chipmunk_host config) "CHIPMUNK_HOST")])))
 
-(defn validate-server
-  "Wrapper func for server parameters."
-  [type chipmunk_host ard_host aux_host par_level ard_path]
-  (cond
-   (= type "ard") (do (validate-ard-server chipmunk_host ard_host par_level ard_path)) 
-   (= type "aux") (do (validate-aux-server chipmunk_host ard_host aux_host)) 
-   :else false))
 
