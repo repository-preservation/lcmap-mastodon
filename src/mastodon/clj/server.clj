@@ -29,39 +29,20 @@
       (log/errorf "exception in server/bulk-ingest. request: %s message: %s" req (util/exception-cause-trace ex "mastodon"))
       {:status 200 :body {:error (format "exception with bulk-ingest %s" (util/exception-cause-trace ex "mastodon"))}})))
 
-(defn http-deps-check
-  "Return error response if external http dependencies are not reachable"
-  []
-  (let [ard-accessible  (validation/http-accessible? (:ard_host config) "ARD_HOST")
-        iwds-accessible (validation/http-accessible? (:chipmunk_host config) "CHIPMUNK_HOST")
-        nemo-accessible (validation/http-accessible? (:nemo_host config) "NEMO_HOST")
-        ard-message  (str "ARD Host: " (:ard_host config) " is not reachable. ") 
-        iwds-message (str "CHIPMUNK Host: " (:chipmunk_host config) " is not reachable")
-        nemo-message (str "NEMO Host: " (:nemo_host config) " is not reachable")]
-    (if (= #{true} (set [ard-accessible iwds-accessible]))
-      (do {:error nil})
-      (do (cond
-           (= true ard-accessible)  {:error iwds-message}
-           (= true iwds-accessible) {:error ard-message}
-           :else {:error (str ard-message iwds-message)})))))
-
 (defn available-ard
   "Return a vector of available ARD for the given tile id"
-  [tileid]
-  (let [hvmap    (util/hv-map tileid)
-        filepath (str (:ard_path config) (:h hvmap) "/" (:v hvmap) "/*")]
-    (-> filepath 
-        (file/get-filenames "tar")
-        (#(map data/ard-manifest %))
-        (flatten))))
-
-(defn filtered-ard
-  "Return vector of available ARD for a given tile id, between the provided years"
-  [tileid from to]
-  (let [tifs  (available-ard tileid)
+  ([tileid]
+   (let [hvmap    (util/hv-map tileid)
+         filepath (str (:ard_path config) (:h hvmap) "/" (:v hvmap) "/*")]
+     (-> filepath 
+         (file/get-filenames "tar")
+         (#(map data/ard-manifest %))
+         (flatten))))
+  ([tileid from to]
+   (let [tifs  (available-ard tileid)
         froms (filter (fn [i] (>= (-> i (util/tif-only) (data/year-acquired) (read-string)) from)) tifs)
         tos   (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) tifs)]
-    (vec (set/intersection (set froms) (set tos)))))
+    (vec (set/intersection (set froms) (set tos))))))
 
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
@@ -71,16 +52,19 @@
           ingested-only  (set/difference (set ingested-tifs) (set available-tifs))]
       {:missing (vec available-only) :ingested (count ingested-tifs)})))
 
-(defn ard-tifs
-  "Return vector of ARD tif names for a given tileid"
+(defmulti data-tifs
+  (fn [x] (keyword (:server_type config))))
+
+(defmethod data-tifs :default [x] nil)
+
+(defmethod data-tifs :ard
   [tileid {:keys [params] :as req}]
   (let [from (or (util/try-string (:from params)) 0)
         to   (or (util/try-string (:to params)) 3000)]
-    (filtered-ard tileid from to)))
+    (available-ard tileid from to)))
 
-(defn aux-tifs
-  "Return vector of Auxiliary tif names for a given tileid"
-  [tileid]
+(defmethod data-tifs :aux
+  [tileid request]
   (let [aux_resp (http/get (:aux_host config))
         aux_file (util/get-aux-name (:body @aux_resp) tileid)]
     (doall (data/aux-manifest aux_file))))
@@ -89,12 +73,9 @@
   "Return ingest status for a given tile id"
   [tileid request]
   (try
-    (let [available-tifs (if (= (:server_type config) "ard") (ard-tifs tileid request) (aux-tifs tileid))
-          ingested-tifs (warehouse/ingested-tifs tileid)
-          deps (http-deps-check)]
-      (if (nil? (:error deps))
-        {:status 200 :body (data-report available-tifs ingested-tifs)}
-        {:status 200 :body {:error (:error deps)}}))
+    (let [available-tifs (data-tifs tileid request)
+          ingested-tifs (warehouse/ingested-tifs tileid)]
+      {:status 200 :body (data-report available-tifs ingested-tifs)})
     (catch Exception ex
       (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))
       {:status 200 :body {:error (format "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))}})))
@@ -129,11 +110,17 @@
 
 (defn run-server
   [config]
-  (log/infof "chipmunk-host: %s" (:chipmunk_host config))
-  (log/infof "aux-host: %s" (:aux_host config))
-  (log/infof "ard-host: %s" (:ard_host config))
-  (log/infof "ard-path: %s" (:ard_path config))
-  (log/infof "nemo-host: %s" (:nemo_host config))
-  (log/infof "server-type: %s" (:server_type config))
+  (log/infof "ard-host: %s"          (:ard_host config))
+  (log/infof "ard-path: %s"          (:ard_path config))
+  (log/infof "aux-host: %s"          (:aux_host config))
+  (log/infof "chipmunk-host: %s"     (:chipmunk_host config))
+  (log/infof "from-date: %s"         (:from_date config))
+  (log/infof "nemo-host: %s"         (:nemo_host config))
+  (log/infof "nemo-inventory: %s"    (:nemo_inventory config))
+  (log/infof "partition-level: %s"   (:partition_level config))
+  (log/infof "server-type: %s"       (:server_type config))
+  (log/infof "to-date: %s"           (:to_date config))
+  (log/infof "inventory-timeout: %s" (:inventory_timeout config))
+  (log/infof "ingest-timeout: %s"    (:ingest_timeout config))
   (http-server/run-server app {:port 9876}))
 
