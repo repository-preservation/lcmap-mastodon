@@ -31,4 +31,18 @@ faux-ard-container:
 chipmunkip:
 	docker inspect -f "{{ .NetworkSettings.Networks.resources_lcmap_chipmunk.IPAddress }}" ${NAME}
 
+deps-up-d:
+	docker-compose -f resources/docker-compose.yml up -d cassandra
+	sleep 20
+	docker-compose -f resources/docker-compose.yml up -d chipmunk
+	sleep 10
+	bin/seed
+	docker-compose -f resources/docker-compose.yml up -d nemo
+
+deps-down:
+	docker-compose -f resources/docker-compose.yml down
+
+
+
+
 
