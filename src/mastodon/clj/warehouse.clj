@@ -6,6 +6,6 @@
 (defn ingested-tifs
   "Return names of ingestd tifs"
   [tileid]
-  (let [response (http/get (str (:nemo_inventory config) tileid))
+  (let [response (http/get (str (:nemo_inventory config) tileid) {:timeout (:inventory-timeout config)})
         rsp_json (json/decode (:body @response))]
     (map #(get % "source") rsp_json)))
