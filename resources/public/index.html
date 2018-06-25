@@ -15,7 +15,7 @@
          mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
-            var ingest_partitioning = "10";
+            var ingest_partitioning = $("#ingest_partitioning").val();
             var ardhost = $("#ardhost").val();
             mastodon.cljs.dom.show_div("busydiv");
             mastodon.cljs.dom.disable_btn("chpsubmit");
