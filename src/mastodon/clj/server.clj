@@ -53,9 +53,9 @@
       {:missing (vec available-only) :ingested (count ingested-tifs)})))
 
 (defmulti data-tifs
-  (fn [x] (keyword (:server_type config))))
+  (fn [tileid request] (keyword (:server_type config))))
 
-(defmethod data-tifs :default [x] nil)
+(defmethod data-tifs :default [tileid request] nil)
 
 (defmethod data-tifs :ard
   [tileid {:keys [params] :as req}]
