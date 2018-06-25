@@ -5,28 +5,28 @@
 
 (deftest http-accessible?-test
   (with-fake-http [{:url "http://foo.com" :method :get} {:status 200 :body "okay"}]
-    (is (= true (validation/http-accessible? "http://foo.com" "iwds")))))
+    (is (= true (validation/http? "http://foo.com" "iwds")))))
 
 (deftest http-accessible?-false-test
   (with-fake-http [{:url "http://foo.com" :method :get} {:status 403 :body "forbidden"}]
-    (is (= false (validation/http-accessible? "http://foo.com" "iwds")))))
+    (is (= false (validation/http? "http://foo.com" "iwds")))))
 
-(deftest not-nil?-test
-  (is (= (validation/not-nil? 9 "foo") true)))
+(deftest present?-test
+  (is (= (validation/present? 9 "foo") true)))
 
-(deftest does-match?-test
-  (is (= (validation/does-match? #"[0-9]{6}" "005015" "TileID") true)))
+(deftest match?-test
+  (is (= (validation/match? #"[0-9]{6}" "005015" "TileID") true)))
 
 (deftest is-int?-test
-  (is (= (validation/is-int? 9 "Foo") true)))
+  (is (= (validation/int? 9 "Foo") true)))
 
 (deftest validate-cli-test
-  (with-redefs [validation/http-accessible? (fn [x y] true)]
+  (with-redefs [validation/http? (fn [x y] true)]
     (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10}) true))))
 
 (deftest validate-server-test
-  (with-redefs [validation/http-accessible? (fn [x y] true)]
-    (is (= (validation/validate-server "aux" "iwdshost" "ardhost" "auxhost" 10 "/tmp/foo/") true))))
+  (with-redefs [validation/http? (fn [x y] true)]
+    (is (= (validation/validate-server {:server_type "aux" :chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :partition_level 10 :ard_path "/tmp/foo/"} ) true))))
 
 
 

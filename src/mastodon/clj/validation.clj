@@ -1,5 +1,6 @@
 (ns mastodon.clj.validation
   (:require [org.httpkit.client :as http]
+            [clojure.core :as core]
             [clojure.tools.logging :as log]))
 
 (defn http?
@@ -35,7 +36,7 @@
 (defn int?
   "Return whether val is an int."
   [val name]
-  (let [resp (int? val)]
+  (let [resp (core/int? val)]
     (when (not resp)
       (log/errorf "%s is not an int" name))
     resp))
@@ -52,7 +53,7 @@
            (http?    (:ard_host config)        "ARD_HOST")])))
 
 (defmulti validate-server
-  (fn [x] (keyword (:server_type config))))
+  (fn [config] (keyword (:server_type config))))
 
 (defmethod validate-server :default [x] 
   (log/errorf "invalid SERVER_TYPE")

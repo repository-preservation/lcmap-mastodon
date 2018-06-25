@@ -23,12 +23,6 @@
     (is (= (server/bulk-ingest {:body {:urls "list,of,ard"}})
            {:status 200 :body '("tif" "tif" "tif")}))))
 
-(deftest http-deps-check-test
-  (with-redefs [config/config {:ard_host "ard-host.com" :chipmunk_host "chip-host.com"} 
-                validation/http-accessible? (fn [host name] false)]
-    (is (= {:error "ARD Host: ard-host.com is not reachable. CHIPMUNK Host: chip-host.com is not reachable"}
-           (server/http-deps-check)))))
-
 (deftest available-ard-test
   (with-redefs [file/get-filenames (fn [a b] ["LC08_CU_005015_20130415_20171016_C01_V01_SR.tar" "LT05_CU_005015_19840508_20170912_C01_V01_BT.tar"])] 
     (is (= (server/available-ard "005015")
@@ -55,16 +49,14 @@
 (deftest ard-status-test
   (with-redefs [config/config {:server_type "ard" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
                 server/data-tifs         (fn [tile req] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
-                warehouse/ingested-tifs (fn [tile]     ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])
-                server/http-deps-check (fn [] {})]
+                warehouse/ingested-tifs (fn [tile]     ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])]
     (is (= (server/get-status "005015" {})
            {:status 200 :body {:missing ["LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"] :ingested 2}}))))
 
 (deftest aux-status-test
   (with-redefs [config/config {:server_type "aux" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
                 server/data-tifs         (fn [tile req] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"])
-                warehouse/ingested-tifs (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif"])
-                server/http-deps-check (fn [] {})]
+                warehouse/ingested-tifs (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif"])]
     (is (= (server/get-status "005015" {})
            {:status 200 :body {:missing ["AUX_CU_005015_20000731_20171031_V01_TRENDS.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif"] :ingested 1}}))))
 
