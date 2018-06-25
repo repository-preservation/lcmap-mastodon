@@ -9,6 +9,12 @@
   []
   (or (:nemo-inventory environ/env) "/inventory_by_tile?tile="))
 
+(defn try-read
+  [val]
+  (try (read-string val)
+       (catch Exception ex
+         nil)))
+
 (def config
   {:nemo_host      (nemo-host)
    :nemo_inventory (str (nemo-host) (nemo-inventory))
@@ -19,6 +25,7 @@
    :from_date      (:from-date     environ/env)
    :to_date        (:to-date       environ/env)
    :server_type    (:server-type   environ/env)
-   :partition_level (try (read-string (:partition-level environ/env))
-                         (catch Exception ex
-                             nil))})
+   :ingest_timeout    (or (try-read (:ingest-timeout    environ/env)) 120000)
+   :inventory_timeout (or (try-read (:inventory-timeout environ/env)) 120000)
+   :partition_level   (or (try-read (:partition-level   environ/env)) 10)})
+
