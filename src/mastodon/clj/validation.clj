@@ -14,7 +14,7 @@
         (do (log/errorf "%s returned non-200 status: %s" resource status)
             false)))
     (catch Exception ex
-      (log/errorf "%s is unaccessible" name)
+      (log/errorf "%s is unaccessible %s" name resource)
       false)))
 
 (defn present?
