@@ -14,6 +14,10 @@
               "http://192.168.43.5/ard/tm/ARD_Tile/1984/CU/005/015/LT05_CU_005015_19840508_20170912_C01_V01_BT.tar/LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"
               "http://192.168.43.5/ard/tm/ARD_Tile/1982/CU/005/015/LT04_CU_005015_19821119_20170912_C01_V01_SR.tar/LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
 
+(def filelist ["LC08_CU_005015_20130415_20171016_C01_V01_SR.tar"
+               "LT05_CU_005015_19840508_20170912_C01_V01_BT.tar"
+               "LT04_CU_005015_19821119_20170912_C01_V01_SR.tar"])
+
 (deftest bulk-ingest-test
   (with-redefs [persist/ingest (fn [a b] "tif")]
     (is (= (server/bulk-ingest {:body {:urls "list,of,ard"}})
@@ -38,9 +42,9 @@
           "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif")))))
 
 (deftest filtered-ard-test
-  (with-redefs [server/available-ard (fn [i] tiflist)]
-    (is (= (server/filtered-ard "005015" 1983 1994)
-           ["http://192.168.43.5/ard/tm/ARD_Tile/1984/CU/005/015/LT05_CU_005015_19840508_20170912_C01_V01_BT.tar/LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"]))))
+  (with-redefs [file/get-filenames (fn [path sfx] filelist)]
+    (is (= (server/available-ard "005015" 1983 1994)
+           ["LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"]))))
 
 (deftest data-report-test
   (is (= (server/data-report ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"]
@@ -50,7 +54,7 @@
 
 (deftest ard-status-test
   (with-redefs [config/config {:server_type "ard" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
-                server/ard-tifs         (fn [tile req] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
+                server/data-tifs         (fn [tile req] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
                 warehouse/ingested-tifs (fn [tile]     ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])
                 server/http-deps-check (fn [] {})]
     (is (= (server/get-status "005015" {})
@@ -58,7 +62,7 @@
 
 (deftest aux-status-test
   (with-redefs [config/config {:server_type "aux" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
-                server/aux-tifs         (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"])
+                server/data-tifs         (fn [tile req] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"])
                 warehouse/ingested-tifs (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif"])
                 server/http-deps-check (fn [] {})]
     (is (= (server/get-status "005015" {})
