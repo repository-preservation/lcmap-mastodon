@@ -64,7 +64,7 @@ ${NEMO_HOST} is the url to the deployed `lcmap-nemo <https://github.com/USGS-ERO
 ${CHIPMUNK_HOST} is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
 ${DATA_TYPE} tells the lcmap-mastodon instance what kind of data it is working with. 
-Valid values include "ard" and "aux". Defaults to "ard".
+Valid values include "ard" and "aux".
 
 ${PARTITION_LEVEL} determines the level of parallelization applied to the ingest process 
 
