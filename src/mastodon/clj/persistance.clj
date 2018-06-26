@@ -21,7 +21,7 @@
 
 (defmethod resource-path :aux [tif]
   (let [ing_resource (:aux_host config)
-        tar (data/aux-tar-name name)]
+        tar (data/aux-tar-name tif)]
     (format "%s/%s/%s" ing_resource tar tif)))
 
 (defn ingest 
