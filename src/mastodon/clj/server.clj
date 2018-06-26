@@ -74,7 +74,7 @@
   [tileid request]
   (try
     (let [available-tifs (data-tifs tileid request)
-          ingested-tifs (warehouse/ingested-tifs tileid)]
+          ingested-tifs  (warehouse/ingested-tifs tileid)]
       {:status 200 :body (data-report available-tifs ingested-tifs)})
     (catch Exception ex
       (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))

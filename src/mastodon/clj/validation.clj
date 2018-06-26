@@ -41,22 +41,37 @@
       (log/errorf "%s is not an int" name))
     resp))
 
-(defn validate-cli
-  "Wrapper func for CLI parameters."
+(defmulti validate-cli
+  (fn [tileid config] (keyword (:data_type config))))
+
+(defmethod validate-cli :default [tileid config]
+  (log/errorf "invalid DATA_TYPE"))
+
+(defmethod validate-cli :ard
   [tileid config]
   (= #{true} 
-     (set [(match?   #"[0-9]{6}" tileid        "Tile ID")
-           (present? (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (present? (:ard_host config)        "ARD_HOST")
-           (int?     (:partition_level config) "PARTITION_LEVEL")
-           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (http?    (:ard_host config)        "ARD_HOST")])))
+     (set [(match?    #"[0-9]{6}" tileid        "Tile ID")
+           (present?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (present?  (:ard_host config)        "ARD_HOST")
+           (int?      (:partition_level config) "PARTITION_LEVEL")
+           (http?     (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?     (:ard_host config)        "ARD_HOST")])))
+
+(defmethod validate-cli :aux
+  [tileid config]
+  (= #{true} 
+     (set [(match?    #"[0-9]{6}" tileid        "Tile ID")
+           (present?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (present?  (:ard_host config)        "ARD_HOST")
+           (int?      (:partition_level config) "PARTITION_LEVEL")
+           (http?     (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?     (:ard_host config)        "ARD_HOST")])))
 
 (defmulti validate-server
   (fn [config] (keyword (:data_type config))))
 
 (defmethod validate-server :default [x] 
-  (log/errorf "invalid SERVER_TYPE")
+  (log/errorf "invalid DATA_TYPE")
   false)
 
 (defmethod validate-server :ard
@@ -76,6 +91,7 @@
            (present? (:ard_host config)      "ARD_HOST")
            (present? (:aux_host config)      "AUX_HOST")
            (http?    (:aux_host config)      "AUX_HOST")
-           (http?    (:chipmunk_host config) "CHIPMUNK_HOST")])))
+           (http?    (:chipmunk_host config) "CHIPMUNK_HOST")
+           (http?    (:nemo_host config)     "NEMO_HOST")])))
 
 
