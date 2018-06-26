@@ -53,7 +53,7 @@
            (http?    (:ard_host config)        "ARD_HOST")])))
 
 (defmulti validate-server
-  (fn [config] (keyword (:server_type config))))
+  (fn [config] (keyword (:data_type config))))
 
 (defmethod validate-server :default [x] 
   (log/errorf "invalid SERVER_TYPE")

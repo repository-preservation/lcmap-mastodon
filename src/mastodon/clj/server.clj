@@ -53,7 +53,7 @@
       {:missing (vec available-only) :ingested (count ingested-tifs)})))
 
 (defmulti data-tifs
-  (fn [tileid request] (keyword (:server_type config))))
+  (fn [tileid request] (keyword (:data_type config))))
 
 (defmethod data-tifs :default [tileid request] nil)
 
@@ -118,7 +118,7 @@
   (log/infof "nemo-host: %s"         (:nemo_host config))
   (log/infof "nemo-inventory: %s"    (:nemo_inventory config))
   (log/infof "partition-level: %s"   (:partition_level config))
-  (log/infof "server-type: %s"       (:server_type config))
+  (log/infof "server-type: %s"       (:data_type config))
   (log/infof "to-date: %s"           (:to_date config))
   (log/infof "inventory-timeout: %s" (:inventory_timeout config))
   (log/infof "ingest-timeout: %s"    (:ingest_timeout config))

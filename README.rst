@@ -26,7 +26,7 @@ At a minimum, you'll need to set the following variables
    -e "ARD_HOST=${ARD_HOST}"\
    -e "NEMO_HOST=${NEMO_HOST}" \
    -e "CHIPMUNK_HOST=${CHIPMUNK_HOST}" \
-   -e "SERVER_TYPE=${SERVER_TYPE}" \ 
+   -e "DATA_TYPE=${DATA_TYPE}" \ 
    -e "PARTITION_LEVEL=${PARTITION_LEVEL}" \
    usgseros/lcmap-mastodon
 
@@ -63,13 +63,13 @@ ${NEMO_HOST} is the url to the deployed `lcmap-nemo <https://github.com/USGS-ERO
 
 ${CHIPMUNK_HOST} is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
-${SERVER_TYPE} tells the lcmap-mastodon instance what kind of data it is working with. 
-Valid values include "ard" and "aux".
+${DATA_TYPE} tells the lcmap-mastodon instance what kind of data it is working with. 
+Valid values include "ard" and "aux". Defaults to "ard".
 
 ${PARTITION_LEVEL} determines the level of parallelization applied to the ingest process 
 
 
-${AUX_HOST} needs to be defined if ${SERVER_TYPE} is defined as "aux". It is the urlhostname or ip
+${AUX_HOST} needs to be defined if ${DATA_TYPE} is defined as "aux". It is the hostname or ip
 address where auxiliary data is provided.
 
 

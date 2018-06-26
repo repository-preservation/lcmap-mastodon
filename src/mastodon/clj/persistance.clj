@@ -8,7 +8,7 @@
             [clojure.tools.logging :as log]))
 
 (defmulti resource-path
-  (fn [x] (keyword (:server_type config))))
+  (fn [x] (keyword (:data_type config))))
 
 (defmethod resource-path :default [x]
   nil)
