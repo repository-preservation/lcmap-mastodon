@@ -10,7 +10,7 @@ sed -i "s!<AUXHOST>!${AUX_HOST}!g"    ${INDEX}
 sed -i "s!<INGESTHOST>!${ARD_HOST}!g" ${INDEX}
 sed -i "s!<INGESTPARTITIONING>!${PARTITION_LEVEL}!g" ${INDEX}
 
-if [ ${SERVER_TYPE} == "ard" ]; then
+if [ ${DATA_TYPE} == "ard" ]; then
   #uncomment javascript populating year select dropdowns
   sed -i "s/\/\/ARD//g" ${INDEX}
 fi
