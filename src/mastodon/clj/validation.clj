@@ -28,10 +28,14 @@
 (defn match? 
   "Return whether val matches pattern."
   [pattern val name]
-  (let [resp (not (nil? (re-matches pattern val)))]
-    (when (= false resp)
-      (log/errorf "%s does not appear valid" name))
-    resp))
+  (try
+    (let [resp (not (nil? (re-matches pattern val)))]
+      (when (= false resp)
+        (log/errorf "%s does not appear valid" name))
+      resp)
+    (catch Exception ex
+      (log/errorf "exception in validation/match? params %s %s %s" pattern val name)
+      false)))
 
 (defn int?
   "Return whether val is an int."
@@ -50,22 +54,19 @@
 (defmethod validate-cli :ard
   [tileid config]
   (= #{true} 
-     (set [(match?    #"[0-9]{6}" tileid        "Tile ID")
-           (present?  (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (present?  (:ard_host config)        "ARD_HOST")
-           (int?      (:partition_level config) "PARTITION_LEVEL")
-           (http?     (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (http?     (:ard_host config)        "ARD_HOST")])))
+     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
+           (int?   (:partition_level config) "PARTITION_LEVEL")
+           (http?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?  (:ard_host config)        "ARD_HOST")])))
 
 (defmethod validate-cli :aux
   [tileid config]
   (= #{true} 
-     (set [(match?    #"[0-9]{6}" tileid        "Tile ID")
-           (present?  (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (present?  (:ard_host config)        "ARD_HOST")
-           (int?      (:partition_level config) "PARTITION_LEVEL")
-           (http?     (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (http?     (:ard_host config)        "ARD_HOST")])))
+     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
+           (int?   (:partition_level config) "PARTITION_LEVEL")
+           (http?  (:aux_host config)        "AUX_HOST")
+           (http?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?  (:ard_host config)        "ARD_HOST")])))
 
 (defmulti validate-server
   (fn [config] (keyword (:data_type config))))
@@ -77,21 +78,19 @@
 (defmethod validate-server :ard
   [config]
   (= #{true} 
-     (set [(present? (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (present? (:ard_host config)        "ARD_HOST")
-           (int?     (:partition_level config) "PARTITION_LEVEL")
+     (set [(int?     (:partition_level config) "PARTITION_LEVEL")
            (present? (:ard_path config)        "ARD_PATH")
+           (present? (:ard_host config)        "ARD_HOST")
            (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
            (http?    (:nemo_host config)       "NEMO_HOST")])))
 
 (defmethod validate-server :aux
   [config]
   (= #{true} 
-     (set [(present? (:chipmunk_host config) "CHIPMUNK_HOST")
-           (present? (:ard_host config)      "ARD_HOST")
-           (present? (:aux_host config)      "AUX_HOST")
-           (http?    (:aux_host config)      "AUX_HOST")
-           (http?    (:chipmunk_host config) "CHIPMUNK_HOST")
-           (http?    (:nemo_host config)     "NEMO_HOST")])))
+     (set [(int?     (:partition_level config) "PARTITION_LEVEL")
+           (present? (:ard_host config)        "ARD_HOST")
+           (http?    (:aux_host config)        "AUX_HOST")
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?    (:nemo_host config)       "NEMO_HOST")])))
 
 
