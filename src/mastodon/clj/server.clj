@@ -47,10 +47,9 @@
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
   [available-tifs ingested-tifs]
-  (try
-    (let [available-only (set/difference (set available-tifs) (set ingested-tifs))
-          ingested-only  (set/difference (set ingested-tifs) (set available-tifs))]
-      {:missing (vec available-only) :ingested (count ingested-tifs)})))
+  (let [available-only (set/difference (set available-tifs) (set ingested-tifs))
+        ingested-only  (set/difference (set ingested-tifs) (set available-tifs))]
+    {:missing (vec available-only) :ingested (count ingested-tifs)}))
 
 (defmulti data-tifs
   (fn [tileid request] (keyword (:data_type config))))
