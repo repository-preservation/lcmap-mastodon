@@ -16,3 +16,7 @@
     (is (= '("foo")
            (file/get-filenames "/path/to/nowheresville/")))))
 
+(deftest get-filenames-test-suffix
+  (with-redefs [glob/glob (fn [path] '("/tmp/foo.tar" "/tmp/bar.tif"))]
+    (is (= '("foo.tar")
+           (file/get-filenames "/path/to/nowheresville/" "tar")))))
