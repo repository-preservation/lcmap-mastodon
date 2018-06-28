@@ -1,3 +1,6 @@
+TAG:=`head -n 1 project.clj | grep -o '[0-9]*\.[0-9]*\.[0-9]*'`
+IMAGE:=usgseros/lcmap-mastdon
+
 checkdeps:
 	lein deps
 
@@ -20,10 +23,10 @@ clean:
 	rm -rf resources/public/js
 
 docker-build: build-min
-	docker build -t usgseros/lcmap-mastodon:0.1.9 .
+	docker build -t $(IMAGE):$(TAG) .
 
 docker-push:
-	docker push usgseros/lcmap-mastodon:0.1.9
+	docker push $(IMAGE):$(TAG)
 
 faux-ard-container:
 	cd resources/nginx; docker build -t faux-ard .
