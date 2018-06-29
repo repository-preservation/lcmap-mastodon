@@ -1,8 +1,9 @@
 (ns mastodon.clj.validation
   (:require [org.httpkit.client :as http]
+            [clojure.core :as core]
             [clojure.tools.logging :as log]))
 
-(defn http-accessible?
+(defn http?
   "Return whether an http resource is accessible."
   [resource name]
   (try
@@ -13,10 +14,10 @@
         (do (log/errorf "%s returned non-200 status: %s" resource status)
             false)))
     (catch Exception ex
-      (log/errorf "%s is unaccessible" name)
+      (log/errorf "%s is unaccessible %s" name resource)
       false)))
 
-(defn not-nil? 
+(defn present?
   "Return whether val is not nil."
   [val name]
   (let [resp (not (nil? val))]
@@ -24,58 +25,72 @@
       (log/errorf "%s is not defined" name))
     resp))
 
-(defn does-match? 
+(defn match? 
   "Return whether val matches pattern."
   [pattern val name]
-  (let [resp (not (nil? (re-matches pattern val)))]
-    (when (= false resp)
-      (log/errorf "%s does not appear valid" name))
-    resp))
+  (try
+    (let [resp (not (nil? (re-matches pattern val)))]
+      (when (= false resp)
+        (log/errorf "%s does not appear valid" name))
+      resp)
+    (catch Exception ex
+      (log/errorf "exception in validation/match? params %s %s %s" pattern val name)
+      false)))
 
-(defn is-int?
+(defn int?
   "Return whether val is an int."
   [val name]
-  (let [resp (int? val)]
+  (let [resp (core/int? val)]
     (when (not resp)
       (log/errorf "%s is not an int" name))
     resp))
 
-(defn validate-cli
-  "Wrapper func for CLI parameters."
-  [tileid iwds_host ard_host par_level]
-  (= #{true} 
-     (set [(does-match? #"[0-9]{6}" tileid "Tile ID")
-           (not-nil? iwds_host "IWDS_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (is-int? par_level "PARTITION_LEVEL")
-           (http-accessible? iwds_host "IWDS_HOST")
-           (http-accessible? ard_host "ARD_HOST")])))
+(defmulti validate-cli
+  (fn [tileid config] (keyword (:data_type config))))
 
-(defn validate-ard-server
-  "Return whether provided params are valid for ARD server duty"
-  [iwds_host ard_host par_level ard_path]
-  (= #{true} 
-     (set [(not-nil? iwds_host "IWDS_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (is-int? par_level "PARTITION_LEVEL")
-           (not-nil? ard_path "ARD_PATH")
-           (http-accessible? iwds_host "IWDS_HOST")])))
+(defmethod validate-cli :default [tileid config]
+  (log/errorf "invalid DATA_TYPE"))
 
-(defn validate-aux-server
-  "Return whether provided params are valid for Auxiliary data server duty"
-  [iwds_host ard_host aux_host]
+(defmethod validate-cli :ard
+  [tileid config]
   (= #{true} 
-     (set [(not-nil? iwds_host "IWDS_HOST")
-           (not-nil? ard_host "ARD_HOST")
-           (not-nil? aux_host "AUX_HOST")
-           (http-accessible? aux_host "AUX_HOST")
-           (http-accessible? iwds_host "IWDS_HOST")])))
+     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
+           (int?   (:partition_level config) "PARTITION_LEVEL")
+           (http?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?  (:ard_host config)        "ARD_HOST")])))
 
-(defn validate-server
-  "Wrapper func for server parameters."
-  [type iwds_host ard_host aux_host par_level ard_path]
-  (cond
-   (= type "ard") (do (validate-ard-server iwds_host ard_host par_level ard_path)) 
-   (= type "aux") (do (validate-aux-server iwds_host ard_host aux_host)) 
-   :else false))
+(defmethod validate-cli :aux
+  [tileid config]
+  (= #{true} 
+     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
+           (int?   (:partition_level config) "PARTITION_LEVEL")
+           (http?  (:aux_host config)        "AUX_HOST")
+           (http?  (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?  (:ard_host config)        "ARD_HOST")])))
+
+(defmulti validate-server
+  (fn [config] (keyword (:data_type config))))
+
+(defmethod validate-server :default [x] 
+  (log/errorf "invalid DATA_TYPE")
+  false)
+
+(defmethod validate-server :ard
+  [config]
+  (= #{true} 
+     (set [(int?     (:partition_level config) "PARTITION_LEVEL")
+           (present? (:ard_path config)        "ARD_PATH")
+           (present? (:ard_host config)        "ARD_HOST")
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?    (:nemo_host config)       "NEMO_HOST")])))
+
+(defmethod validate-server :aux
+  [config]
+  (= #{true} 
+     (set [(int?     (:partition_level config) "PARTITION_LEVEL")
+           (present? (:ard_host config)        "ARD_HOST")
+           (http?    (:aux_host config)        "AUX_HOST")
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
+           (http?    (:nemo_host config)       "NEMO_HOST")])))
+
 

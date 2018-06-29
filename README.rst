@@ -17,16 +17,22 @@ Running
 The LCMAP Mastodon application is deployed as a Docker container.  All interactions
 are handled over HTTP, via NGINX.
 
+At a minimum, you'll need to set the following variables
 .. code-block:: bash
 
-   docker run -p 8080:80 -v /workspace/data:/data -e "SERVER_TYPE=${SERVER_TYPE}" -e "ARD_PATH=${ARD_PATH}" -e "ARD_HOST=${ARD_HOST}"\
-   -e "IWDS_HOST=${IWDS_HOST}" -e "PARTITION_LEVEL=${PARTITION_LEVEL}" --ip="192.168.43.4" usgseros/lcmap-mastodon
+   docker run \
+   -v /workspace/data:/data \
+   -e "ARD_PATH=${ARD_PATH}" \
+   -e "ARD_HOST=${ARD_HOST}"\
+   -e "NEMO_HOST=${NEMO_HOST}" \
+   -e "CHIPMUNK_HOST=${CHIPMUNK_HOST}" \
+   -e "DATA_TYPE=${DATA_TYPE}" \ 
+   -e "PARTITION_LEVEL=${PARTITION_LEVEL}" \
+   usgseros/lcmap-mastodon
 
 
 Configuration
 -------------
-There are up to 10 environment variables, and two configurations that need to be defined.
-
 You need to mount a volume to your container at `/data`. This should be the base dir
 to where the ARD tarballs can be found
 
@@ -34,10 +40,10 @@ to where the ARD tarballs can be found
 
    -v /localardpath/data:/data
 
+And the following environment variables:
 
-The ${ARD_PATH} environment variable is used by a glob function to determine what ARD 
-tarballs are available for a given Tile ID.  The value is determined by the directory 
-structure where the ARD is kept
+${ARD_PATH} is used by a glob function to determine what ARD tarballs are available for a 
+given Tile ID.  The value is determined by the directory structure where the ARD is kept
 
 Analysis Ready Data (ARD) are expected to be organized by Landsat Mission. From the 
 mounted dir, the directory structure should mirror this: 
@@ -51,34 +57,27 @@ in your ${ARD_PATH} definition.
    export ARD_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
 
 
-The ${ARD_HOST} environment variable is your hostname or IP address for the deployed lcmap-mastodon
-instance
+${ARD_HOST} is your hostname or IP address for the deployed lcmap-mastodon instance
 
-The ${IWDS_HOST} environment variable is the hostname or IP address for the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_
-instance
+${NEMO_HOST} is the url to the deployed `lcmap-nemo <https://github.com/USGS-EROS/lcmap-nemo>`_ instance 
 
-The ${SERVER_TYPE} environment variable tells the lcmap-mastodon instance what kind of data it is 
-working with. Valid values include "ard" and "aux".
+${CHIPMUNK_HOST} is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
-${AUX_HOST} needs to be defined if ${SERVER_TYPE} is defined as "aux". It is the hostname or ip
+${DATA_TYPE} tells the lcmap-mastodon instance what kind of data it is working with. 
+Valid values include "ard" and "aux".
+
+${PARTITION_LEVEL} determines the level of parallelization applied to the ingest process
+
+${AUX_HOST} needs to be defined if ${DATA_TYPE} is defined as "aux". It is the hostname or ip
 address where auxiliary data is provided.
 
-The ${PARTITION_LEVEL} environment variable determines the level of parallelization applied to
-the ingest process 
+Optionally, you can define the following:
 
-INVENTORY_TIMEOUT (ms) Defaults to 120000 (2 mins). It sets the HTTP request timeout for requests
-against the IWDS_HOST for data ingest status.
+${INVENTORY_TIMEOUT} defines, in milliseconds, the HTTP request timeout for inventory queries against lcmap-nemo 
+Defaults to 120000 (2 minutes).
 
-INGEST_TIMEOUT (ms) Defaults to 120000 (2 mins). Sets the HTTP request timeout for data ingest requests.
-
-Unless requests to the application are being routed through a DNS server, you'll need to declare what
-IP address the container should use with `--ip`. This value should correspond to the ${ARD_HOST} 
-environment variable mentioned previously
-
-.. code-block:: bash
-
-   --ip="192.168.43.4"
-
+${INGEST_TIMEOUT} defines, in milliseconds, the HTTP request timeout for ingest requests against lcmap-chipmunk.
+Defaults to 120000 (2 minutes).
 
 User Interface
 --------------
@@ -89,9 +88,12 @@ the UI will be available at http://127.0.0.1:8080
 CLI Interaction
 ---------------
 You have the option to manage ingest from the command line as well.  Just build an uberjar with
-leiningen, and export environment variables for the ${IWDS_HOST}, ${PARTITION_LEVEL}, and ${ARD_HOST}.
-The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance which 
-exposes the ARD over HTTP for ingest.
+leiningen, and export environment variables for the ${CHIPMUNK_HOST}, ${PARTITION_LEVEL}, ${DATA_TYPE}
+and ${ARD_HOST}.  The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance
+which exposes the ARD over HTTP for ingest.
+
+If you want to ingest Auxiliary data instead of ARD, you'll need to set the DATA_TYPE accordingly, and also
+define ${AUX_HOST}.
 
 Optionally, you can export FROM_DATE and TO_DATE environment variables, to filter by year the ARD you're 
 concerned with.  Format is: YYYY.

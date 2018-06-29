@@ -3,30 +3,52 @@
   (:require [clojure.test :refer :all] 
             [mastodon.clj.validation :as validation]))
 
-(deftest http-accessible?-test
+(deftest http?-test
   (with-fake-http [{:url "http://foo.com" :method :get} {:status 200 :body "okay"}]
-    (is (= true (validation/http-accessible? "http://foo.com" "iwds")))))
+    (is (= true (validation/http? "http://foo.com" "iwds")))))
 
-(deftest http-accessible?-false-test
+(deftest http?-false-test
   (with-fake-http [{:url "http://foo.com" :method :get} {:status 403 :body "forbidden"}]
-    (is (= false (validation/http-accessible? "http://foo.com" "iwds")))))
+    (is (= false (validation/http? "http://foo.com" "iwds")))))
 
-(deftest not-nil?-test
-  (is (= (validation/not-nil? 9 "foo") true)))
+(deftest http?-exception-test
+  (is (= false (validation/http? nil "iwds"))))
 
-(deftest does-match?-test
-  (is (= (validation/does-match? #"[0-9]{6}" "005015" "TileID") true)))
+(deftest present?-true-test
+  (is (= (validation/present? 9 "foo") true)))
 
-(deftest is-int?-test
-  (is (= (validation/is-int? 9 "Foo") true)))
+(deftest present?-false-test
+  (is (= (validation/present? nil "foo") false)))
 
-(deftest validate-cli-test
-  (with-redefs [validation/http-accessible? (fn [x y] true)]
-    (is (= (validation/validate-cli "005015" "iwdshost" "ardhost" 10) true))))
+(deftest match?-true-test
+  (is (= (validation/match? #"[0-9]{6}" "005015" "TileID") true)))
 
-(deftest validate-server-test
-  (with-redefs [validation/http-accessible? (fn [x y] true)]
-    (is (= (validation/validate-server "aux" "iwdshost" "ardhost" "auxhost" 10 "/tmp/foo/") true))))
+(deftest match?-false-test
+  (is (= (validation/match? #"[0-9]{6}" "005015xx" "TileID") false)))
 
+(deftest match?-exception-test
+  (is (= (validation/match? nil "005015" "TileID") false)))
+
+(deftest int?-true-test
+  (is (= (validation/int? 9 "Foo") true)))
+
+(deftest int?-false-test
+  (is (= (validation/int? nil "Foo") false)))
+
+(deftest validate-cli-ard-test
+  (with-redefs [validation/http? (fn [x y] true)]
+    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10 :data_type "ard"}) true))))
+
+(deftest validate-cli-aux-test
+  (with-redefs [validation/http? (fn [x y] true)]
+    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :partition_level 10 :data_type "aux"}) true))))
+
+(deftest validate-ard-server-test
+  (with-redefs [validation/http? (fn [x y] true)]
+    (is (= (validation/validate-server {:data_type "ard" :chipmunk_host "iwdshost" :ard_host "ardhost" :nemo_host "nemohost" :partition_level 10 :ard_path "/tmp/foo/"} ) true))))
+
+(deftest validate-aux-server-test
+  (with-redefs [validation/http? (fn [x y] true)]
+    (is (= (validation/validate-server {:data_type "aux" :chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :nemo_host "nemohost" :partition_level 10} ) true))))
 
 

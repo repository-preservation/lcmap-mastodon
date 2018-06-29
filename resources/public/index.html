@@ -15,7 +15,7 @@
          mastodon.cljs.dom.disable_btn("chpsubmit");
 
          $("#chpsubmit").click(function() {
-            var ingest_partitioning = "10";
+            var ingest_partitioning = $("#ingest_partitioning").val();
             var ardhost = $("#ardhost").val();
             mastodon.cljs.dom.show_div("busydiv");
             mastodon.cljs.dom.disable_btn("chpsubmit");
@@ -28,7 +28,6 @@
             mastodon.cljs.dom.show_div("busydiv");
             mastodon.cljs.dom.set_div_content("error-container", "");
             var ardhost = $("#ardhost").val();
-            var idwhost = $("#idwshost").val();
             var tile_id = $("#tileid").val();             
             var region  = $("#region").val();
             var dev     = $("#devcheck").prop("checked");
@@ -66,10 +65,15 @@
           <label for="ardhost">ARD Host</label> <ARDHOST>
           <input type="hidden" class="form-control" id="ardhost" name="ardhost" value="<ARDHOST>">
         </div>
-        <!-- IDWS -->
-        <div id="idws-group" class="form-group">
-          <label for="idwshost">IWDS Host</label> <IWDSHOST>
-          <input type="hidden" class="form-control" id="idwshost" name="idwshost" value="<IWDSHOST>">
+        <!-- CHIPMUNK -->
+        <div id="chipmunk-group" class="form-group">
+          <label for="chipmunkhost">CHIPMUNK Host</label> <CHIPMUNKHOST>
+          <input type="hidden" class="form-control" id="chipmunkhost" name="chipmunkhost" value="<CHIPMUNKHOST>">
+        </div>
+        <!-- NEMO -->
+        <div id="nemo-group" class="form-group">
+          <label for="nemohost">NEMO Host</label> <NEMOHOST>
+          <input type="hidden" class="form-control" id="nemohost" name="nemohost" value="<NEMOHOST>">
         </div>
         <!-- AUX -->
         <div id="idws-group" class="form-group">

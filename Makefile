@@ -1,3 +1,6 @@
+TAG:=`head -n 1 project.clj | grep -o '[0-9]*\.[0-9]*\.[0-9]*'`
+IMAGE:=usgseros/lcmap-mastdon
+
 checkdeps:
 	lein deps
 
@@ -13,22 +16,37 @@ runtests:
 	lein doo phantom test once
 	lein test	
 
-build-min:
+build-min-js:
 	lein cljsbuild once min
 
 clean:
 	rm -rf resources/public/js
 
-docker-build: build-min
-	docker build -t usgseros/lcmap-mastodon:0.1.9 .
+docker-build:
+	lein uberjar
+	docker build -t $(IMAGE):$(TAG) .
 
 docker-push:
-	docker push usgseros/lcmap-mastodon:0.1.9
+	docker push $(IMAGE):$(TAG)
 
 faux-ard-container:
 	cd resources/nginx; docker build -t faux-ard .
 
 chipmunkip:
 	docker inspect -f "{{ .NetworkSettings.Networks.resources_lcmap_chipmunk.IPAddress }}" ${NAME}
+
+deps-up-d:
+	docker-compose -f resources/docker-compose.yml up -d cassandra
+	sleep 20
+	docker-compose -f resources/docker-compose.yml up -d chipmunk
+	sleep 10
+	bin/seed
+	docker-compose -f resources/docker-compose.yml up -d nemo
+
+deps-down:
+	docker-compose -f resources/docker-compose.yml down
+
+
+
 
 

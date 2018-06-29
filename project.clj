@@ -1,4 +1,4 @@
-(defproject lcmap-mastodon "1.1.4"
+(defproject lcmap-mastodon "2.0.0"
   :description "Functions for LCMAP data curation"
   :url "https://eros.usgs.gov"
   :license {:name "Unlicense"
@@ -76,6 +76,7 @@
   ;; https://github.com/bhauman/lein-figwheel/wiki/Using-the-Figwheel-REPL-within-NRepl
   :profiles {:dev {:dependencies [[binaryage/devtools "0.9.4"]
                                   [figwheel-sidecar "0.5.13"]
+				  [org.clojure/test.check "0.10.0-alpha3"]
                                   [com.cemerick/piggieback "0.2.2"]]
                    
                    :source-paths ["src" "dev"] ;; need to add dev source path here to get user.clj loaded
