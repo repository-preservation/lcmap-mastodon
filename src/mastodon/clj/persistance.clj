@@ -2,6 +2,8 @@
   (:require [org.httpkit.client :as http]
             [cheshire.core :as json]
             [clojure.string :as string]
+            [environ.core :as environ]
+            [mastodon.clj.config :refer [config]]
             [mastodon.cljc.data :as data]
             [mastodon.clj.config :refer [config]]
             [mastodon.cljc.util :as util]
@@ -41,6 +43,4 @@
                         tif chipmunk_resource (util/exception-cause-trace ex "mastodon"))]
         (log/errorf msg)
         {tif 500 :error msg}))))
-
-
 

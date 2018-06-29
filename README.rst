@@ -95,6 +95,9 @@ which exposes the ARD over HTTP for ingest.
 If you want to ingest Auxiliary data instead of ARD, you'll need to set the DATA_TYPE accordingly, and also
 define ${AUX_HOST}.
 
+Optionally, you can export FROM_DATE and TO_DATE environment variables, to filter by year the ARD you're 
+concerned with.  Format is: YYYY.
+
 To build the standalone jar file:
 
 .. code-block:: bash
