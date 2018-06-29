@@ -16,13 +16,14 @@ runtests:
 	lein doo phantom test once
 	lein test	
 
-build-min:
+build-min-js:
 	lein cljsbuild once min
 
 clean:
 	rm -rf resources/public/js
 
-docker-build: build-min
+docker-build:
+	lein uberjar
 	docker build -t $(IMAGE):$(TAG) .
 
 docker-push:
