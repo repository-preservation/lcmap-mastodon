@@ -8,16 +8,14 @@ Tools for facilitating LCMAP data curation.
 
 Features
 --------
-* Report on IWDS inventory status for Analysis Ready and Auxiliary data on a per tile basis
+* Provide both a UI and a CLI for directing data ingest to the IWDS
 * Handle parallelization of data ingest requests
-* Identify data that has been ingested, which is now missing 
 
 Running
 -------
 The LCMAP Mastodon application is deployed as a Docker container.  All interactions
-are handled over HTTP, via NGINX.
+are handled over HTTP.
 
-At a minimum, you'll need to set the following variables
 .. code-block:: bash
 
    docker run \
@@ -42,12 +40,12 @@ to where the ARD tarballs can be found
 
 And the following environment variables:
 
-${ARD_PATH} is used by a glob function to determine what ARD tarballs are available for a 
+${ARD_PATH} - is used by a glob function to determine what ARD tarballs are available for a 
 given Tile ID.  The value is determined by the directory structure where the ARD is kept
 
 Analysis Ready Data (ARD) are expected to be organized by Landsat Mission. From the 
 mounted dir, the directory structure should mirror this: 
-<mission>/ARD_Tile/<year acquired>/CU/<HHH>/<VVV>/
+<mission>/ARD_Tile/<year acquired>/<region>/<HHH>/<VVV>/
 
 HHH and VVV constituting the 3 digit tile-id.  The H and V values DO NOT need to be included
 in your ${ARD_PATH} definition.
@@ -57,26 +55,27 @@ in your ${ARD_PATH} definition.
    export ARD_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
 
 
-${ARD_HOST} is your hostname or IP address for the deployed lcmap-mastodon instance
+${ARD_HOST}      - is the host or IP address for the deployed lcmap-mastodon instance
 
-${NEMO_HOST} is the url to the deployed `lcmap-nemo <https://github.com/USGS-EROS/lcmap-nemo>`_ instance 
+${NEMO_HOST}     - is the url to the deployed `lcmap-nemo <https://github.com/USGS-EROS/lcmap-nemo>`_ instance 
 
-${CHIPMUNK_HOST} is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
+${CHIPMUNK_HOST} - is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
-${DATA_TYPE} tells the lcmap-mastodon instance what kind of data it is working with. 
-Valid values include "ard" and "aux".
+${DATA_TYPE} - tells the lcmap-mastodon instance what kind of data it is working with. 
+Valid values are "ard" and "aux".
 
-${PARTITION_LEVEL} determines the level of parallelization applied to the ingest process
+${PARTITION_LEVEL} - determines the level of parallelization applied to the ingest process. For instance, setting this
+to 10 results in 10 simultaneous data ingest requests.
 
-${AUX_HOST} needs to be defined if ${DATA_TYPE} is defined as "aux". It is the hostname or ip
-address where auxiliary data is provided.
+${AUX_HOST} - needs to be defined if ${DATA_TYPE} is defined as "aux". It is the host or ip address where auxiliary 
+data is provided.
 
 Optionally, you can define the following:
 
-${INVENTORY_TIMEOUT} defines, in milliseconds, the HTTP request timeout for inventory queries against lcmap-nemo 
+${INVENTORY_TIMEOUT} - defines, in milliseconds, the HTTP request timeout for inventory queries against lcmap-nemo 
 Defaults to 120000 (2 minutes).
 
-${INGEST_TIMEOUT} defines, in milliseconds, the HTTP request timeout for ingest requests against lcmap-chipmunk.
+${INGEST_TIMEOUT} - defines, in milliseconds, the HTTP request timeout for ingest requests against lcmap-chipmunk.
 Defaults to 120000 (2 minutes).
 
 User Interface
@@ -108,9 +107,9 @@ With your jar built, and your environment setup
 
 .. code-block:: bash
   
-    java -jar target/lcmap-mastodon-0.1.13-standalone.jar 005015
+    java -jar target/lcmap-mastodon-0.1.13-standalone.jar <6 digit tile id>
 
-And follow the prompts. If you want to automatically ingest any non-ingested data, 
+And follow the prompts. If you want to automatically ingest any previously uningested data, 
 add `-y` after the tile id.
 
 
