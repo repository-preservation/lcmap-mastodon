@@ -10,7 +10,6 @@
              [mastodon.clj.file        :as file]
              [mastodon.clj.persistance :as persist]
              [mastodon.clj.validation  :as validation]
-             [mastodon.clj.warehouse   :as warehouse]
              [ring.middleware.json     :as ring-json]
              [ring.middleware.keyword-params :as ring-keyword-params]
              [ring.middleware.defaults :as ring-defaults]
@@ -73,7 +72,7 @@
   [tileid request]
   (try
     (let [available-tifs (data-tifs tileid request)
-          ingested-tifs  (warehouse/ingested-tifs tileid)]
+          ingested-tifs  (persist/ingested-tifs tileid)]
       {:status 200 :body (data-report available-tifs ingested-tifs)})
     (catch Exception ex
       (log/errorf "Error determining tile: %s tile data status. exception: %s" tileid (util/exception-cause-trace ex "mastodon"))
@@ -114,8 +113,6 @@
   (log/infof "aux-host: %s"          (:aux_host config))
   (log/infof "chipmunk-host: %s"     (:chipmunk_host config))
   (log/infof "from-date: %s"         (:from_date config))
-  (log/infof "nemo-host: %s"         (:nemo_host config))
-  (log/infof "nemo-inventory: %s"    (:nemo_inventory config))
   (log/infof "partition-level: %s"   (:partition_level config))
   (log/infof "server-type: %s"       (:data_type config))
   (log/infof "to-date: %s"           (:to_date config))
