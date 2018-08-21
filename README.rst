@@ -22,7 +22,6 @@ are handled over HTTP.
    -v /workspace/data:/data \
    -e "ARD_PATH=${ARD_PATH}" \
    -e "ARD_HOST=${ARD_HOST}"\
-   -e "NEMO_HOST=${NEMO_HOST}" \
    -e "CHIPMUNK_HOST=${CHIPMUNK_HOST}" \
    -e "DATA_TYPE=${DATA_TYPE}" \ 
    -e "PARTITION_LEVEL=${PARTITION_LEVEL}" \
@@ -57,8 +56,6 @@ in your ${ARD_PATH} definition.
 
 ${ARD_HOST}      - is the host or IP address for the deployed lcmap-mastodon instance
 
-${NEMO_HOST}     - is the url to the deployed `lcmap-nemo <https://github.com/USGS-EROS/lcmap-nemo>`_ instance 
-
 ${CHIPMUNK_HOST} - is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
 ${DATA_TYPE} - tells the lcmap-mastodon instance what kind of data it is working with. 
@@ -72,7 +69,7 @@ data is provided.
 
 Optionally, you can define the following:
 
-${INVENTORY_TIMEOUT} - defines, in milliseconds, the HTTP request timeout for inventory queries against lcmap-nemo 
+${INVENTORY_TIMEOUT} - defines, in milliseconds, the HTTP request timeout for inventory queries against lcmap-chipmunk 
 Defaults to 120000 (2 minutes).
 
 ${INGEST_TIMEOUT} - defines, in milliseconds, the HTTP request timeout for ingest requests against lcmap-chipmunk.
