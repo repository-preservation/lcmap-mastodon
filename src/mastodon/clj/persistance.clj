@@ -44,3 +44,11 @@
         (log/errorf msg)
         {tif 500 :error msg}))))
 
+(defn ingested-tifs
+  "Return names of ingestd tifs"
+  [tileid]
+  (let [response (http/get (str (:chipmunk_inventory config) tileid) {:timeout (:inventory_timeout config)})
+        rsp_json (json/decode (:body @response))]
+    (map #(get % "source") rsp_json)))
+
+

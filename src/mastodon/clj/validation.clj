@@ -81,8 +81,7 @@
      (set [(int?     (:partition_level config) "PARTITION_LEVEL")
            (present? (:ard_path config)        "ARD_PATH")
            (present? (:ard_host config)        "ARD_HOST")
-           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (http?    (:nemo_host config)       "NEMO_HOST")])))
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")])))
 
 (defmethod validate-server :aux
   [config]
@@ -90,7 +89,6 @@
      (set [(int?     (:partition_level config) "PARTITION_LEVEL")
            (present? (:ard_host config)        "ARD_HOST")
            (http?    (:aux_host config)        "AUX_HOST")
-           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")
-           (http?    (:nemo_host config)       "NEMO_HOST")])))
+           (http?    (:chipmunk_host config)   "CHIPMUNK_HOST")])))
 
 

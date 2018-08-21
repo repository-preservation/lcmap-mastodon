@@ -7,8 +7,7 @@
             [mastodon.clj.file :as file]
             [ring.mock.request :as mock]
             [mastodon.clj.persistance :as persist]
-            [mastodon.clj.validation :as validation]
-            [mastodon.clj.warehouse :as warehouse]))
+            [mastodon.clj.validation :as validation]))
 
 (def tiflist ["http://192.168.43.5/ard/oli_tirs/ARD_Tile/2013/CU/005/015/LC08_CU_005015_20130415_20171016_C01_V01_SR.tar/LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif"
               "http://192.168.43.5/ard/tm/ARD_Tile/1984/CU/005/015/LT05_CU_005015_19840508_20170912_C01_V01_BT.tar/LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"
@@ -54,14 +53,14 @@
 (deftest ard-status-test
   (with-redefs [config/config {:data_type "ard" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
                 server/data-tifs (fn [tile req] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"])
-                warehouse/ingested-tifs (fn [tile] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])]
+                persist/ingested-tifs (fn [tile] ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])]
     (is (= (server/get-status "005015" {})
            {:status 200 :body {:missing ["LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"] :ingested 2}}))))
 
 (deftest aux-status-test
   (with-redefs [config/config {:data_type "aux" :ard_host "http://ardhost.gov" :chipmunk_host "http://iwdshost.gov"}
                 server/data-tifs (fn [tile req] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif" "AUX_CU_005015_20000731_20171031_V01_TRENDS.tif"])
-                warehouse/ingested-tifs (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif"])]
+                persist/ingested-tifs (fn [tile] ["AUX_CU_005015_20000731_20171031_V01_ASPECT.tif"])]
     (is (= (server/get-status "005015" {})
            {:status 200 :body {:missing ["AUX_CU_005015_20000731_20171031_V01_TRENDS.tif" "AUX_CU_005015_20000731_20171031_V01_POSIDEX.tif"] :ingested 1}}))))
 
