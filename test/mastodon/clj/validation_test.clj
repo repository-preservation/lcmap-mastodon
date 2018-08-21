@@ -45,10 +45,10 @@
 
 (deftest validate-ard-server-test
   (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-server {:data_type "ard" :chipmunk_host "iwdshost" :ard_host "ardhost" :nemo_host "nemohost" :partition_level 10 :ard_path "/tmp/foo/"} ) true))))
+    (is (= (validation/validate-server {:data_type "ard" :chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10 :ard_path "/tmp/foo/"} ) true))))
 
 (deftest validate-aux-server-test
   (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-server {:data_type "aux" :chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :nemo_host "nemohost" :partition_level 10} ) true))))
+    (is (= (validation/validate-server {:data_type "aux" :chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :partition_level 10} ) true))))
 
 

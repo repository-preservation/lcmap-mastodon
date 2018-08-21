@@ -28,3 +28,8 @@
       (is (= (set (keys resp)) #{"LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif" :error}))
       (is (= (get resp "LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif") 500)))))
 
+(deftest ingested-tifs-test
+  (with-fake-http [{:url "http://chiphost.gov/inventory?tile=005015" :method :get} {:status 200 :body "[{\"tile\": \"005015\", \"source\": \"a.tif\"}, {\"tile\": \"005015\", \"source\": \"b.tif\"}]" }]
+    (with-redefs [config/config {:chipmunk_inventory "http://chiphost.gov/inventory?tile="}]
+      (is (= (persist/ingested-tifs "005015") '("a.tif" "b.tif"))))))
+
