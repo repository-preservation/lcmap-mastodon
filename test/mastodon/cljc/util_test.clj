@@ -44,7 +44,7 @@
 
 (deftest inventory-url-format-test
   (is
-    (= "http://magichost.org/inventory/043999"
+    (= "http://magichost.org/status/043999"
        (util/inventory-url-format "http://magichost.org" "043999"))))
 
 (deftest get-aux-name-test
