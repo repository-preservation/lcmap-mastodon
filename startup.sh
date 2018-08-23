@@ -5,7 +5,6 @@ VERSION=`head -n1 project.clj | grep -oP "[\d]+\.[\d]+\.[\d]+(-SNAPSHOT)?(-RC[\e
 
 sed -i "s!<ARDHOST>!${ARD_HOST}!g"    ${INDEX}
 sed -i "s!<CHIPMUNKHOST>!${CHIPMUNK_HOST}!g"  ${INDEX}
-sed -i "s!<NEMOHOST>!${NEMO_HOST}!g"  ${INDEX}
 sed -i "s!<AUXHOST>!${AUX_HOST}!g"    ${INDEX}
 sed -i "s!<INGESTHOST>!${ARD_HOST}!g" ${INDEX}
 sed -i "s!<INGESTPARTITIONING>!${PARTITION_LEVEL}!g" ${INDEX}
