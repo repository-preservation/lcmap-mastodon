@@ -9,7 +9,7 @@
 (deftest resource-path-test-ard
   (with-redefs [config/config {:data_type "ard" :ard_host "http://ardhost.gov"}]
     (is (= (persist/resource-path "LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif")
-           "http://ardhost.gov/ard/etm/ARD_Tile/2002/CU/005/015/LE07_CU_005015_20021221_20170919_C01_V01_BT.tar/LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif"))))
+           "http://ardhost.gov/tiles/etm/ARD_Tile/2002/CU/005/015/LE07_CU_005015_20021221_20170919_C01_V01_BT.tar/LE07_CU_005015_20021221_20170919_C01_V01_BTB6.tif"))))
 
 (deftest resource-path-test-aux
   (with-redefs [config/config {:data_type "aux" :aux_host "http://auxhost.gov"}]

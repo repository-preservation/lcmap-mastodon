@@ -92,7 +92,7 @@
   (compojure/context "/" request
     (route/resources "/")
     (compojure/GET   "/" [] (get-base request))
-    (compojure/GET   "/inventory/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
+    (compojure/GET   "/status/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
     (compojure/GET   "/config" [] (get-config request))
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 

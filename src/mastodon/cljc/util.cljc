@@ -41,7 +41,7 @@
   ([host tile-id]
    (let [hvm (hv-map tile-id)
          host-fmt (trailing-slash host)]
-    (str host-fmt "inventory/" (:h hvm) (:v hvm))))
+    (str host-fmt "status/" (:h hvm) (:v hvm))))
   ([host tile-id from to]
    (str (inventory-url-format host tile-id) "?from=" from "&to=" to)))
 
