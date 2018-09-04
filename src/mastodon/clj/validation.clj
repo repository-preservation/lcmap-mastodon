@@ -56,8 +56,8 @@
   (= #{true} 
      (set [(match? #"[0-9]{6}" tileid        "Tile ID")
            (int?   (:partition_level config) "PARTITION_LEVEL")
-           (http?  (:ard_host config)        "ARD_HOST")
-           (http? (str (:chipmunk_host config) "/sources?tile=005999") "CHIPMUNK /sources")
+           (http? (str (:ard_host config) "/status/000000") "ARD_HOST /status")
+           (http? (str (:chipmunk_host config) "/sources?tile=000000") "CHIPMUNK /sources")
            (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
 
 (defmethod validate-cli :aux
@@ -66,8 +66,8 @@
      (set [(match? #"[0-9]{6}" tileid        "Tile ID")
            (int?   (:partition_level config) "PARTITION_LEVEL")
            (http?  (:aux_host config)        "AUX_HOST")
-           (http?  (:ard_host config)        "ARD_HOST")
-           (http? (str (:chipmunk_host config) "/sources?tile=005999") "CHIPMUNK /sources")
+           (http? (str (:ard_host config) "/status/000000") "ARD_HOST /status")
+           (http? (str (:chipmunk_host config) "/sources?tile=000000") "CHIPMUNK /sources")
            (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
 
 (defmulti validate-server
