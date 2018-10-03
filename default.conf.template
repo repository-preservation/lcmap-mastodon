@@ -73,7 +73,7 @@ server {
        proxy_pass http://127.0.0.1:9876/bulk-ingest;
     }
 
-    location /tiles/ {
+    location /<DATA_DIR>/ {
        if ($request_method = 'OPTIONS') {
           add_header 'Access-Control-Allow-Origin' '*';
           add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';

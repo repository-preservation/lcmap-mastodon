@@ -9,6 +9,8 @@ sed -i "s!<AUXHOST>!${AUX_HOST}!g"    ${INDEX}
 sed -i "s!<INGESTHOST>!${ARD_HOST}!g" ${INDEX}
 sed -i "s!<INGESTPARTITIONING>!${PARTITION_LEVEL}!g" ${INDEX}
 
+sed -i "s!<DATA_DIR>!${DATA_DIR}!g" /etc/nginx/conf.d/default.conf
+
 if [ ${DATA_TYPE} == "ard" ]; then
   #uncomment javascript populating year select dropdowns
   sed -i "s/\/\/ARD//g" ${INDEX}
