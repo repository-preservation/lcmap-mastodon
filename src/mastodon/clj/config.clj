@@ -20,7 +20,7 @@
    :from_date      (:from-date     environ/env)
    :to_date        (:to-date       environ/env)
    :data_type      (:data-type     environ/env)
-   :ingest_timeout    (or (try-read (:ingest-timeout    environ/env)) 120000)
-   :inventory_timeout (or (try-read (:inventory-timeout environ/env)) 120000)
+   :ingest_timeout    (or (try-read (:ingest-timeout    environ/env)) 660000)
+   :inventory_timeout (or (try-read (:inventory-timeout environ/env)) 660000)
    :partition_level   (or (try-read (:partition-level   environ/env)) 10)})
 
