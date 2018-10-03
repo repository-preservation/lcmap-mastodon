@@ -43,6 +43,12 @@
         tos   (filter (fn [i] (<= (-> i (util/tif-only) (data/year-acquired) (read-string)) to)) tifs)]
     (vec (set/intersection (set froms) (set tos))))))
 
+(defn available-aux
+  "Return a vector of available AUX data for the given tile id"
+  [tileid]
+  true
+)
+
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
   [available-tifs ingested-tifs]
@@ -63,9 +69,8 @@
 
 (defmethod data-tifs :aux
   [tileid request]
-  (let [aux_resp (http/get (:aux_host config))
-        aux_file (util/get-aux-name (:body @aux_resp) tileid)]
-    (doall (data/aux-manifest aux_file))))
+  (let [aux_resp (available-aux tileid)]
+    (doall (data/aux-manifest aux_resp))))
 
 (defn get-status
   "Return ingest status for a given tile id"
