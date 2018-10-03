@@ -18,7 +18,7 @@
 (defn data-ingest
   [tileid args]
   (let [data_url       (util/inventory-url-format (:ard_host config) tileid (:from_date config) (:to_date config))
-        ard_response   (http/get data_url)
+        ard_response   (http/get data_url {:timeout (:inventory_timeout config)})
         response_map   (-> (:body @ard_response) (parse-string true))
         missing_vector (:missing response_map)
         ard_partition  (partition (:partition_level config) (:partition_level config) "" missing_vector)
