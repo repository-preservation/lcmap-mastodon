@@ -20,8 +20,8 @@ are handled over HTTP.
 
    docker run \
    -v /workspace/data:/data \
-   -e "ARD_PATH=${ARD_PATH}" \
-   -e "ARD_HOST=${ARD_HOST}"\
+   -e "DATA_PATH=${DATA_PATH}" \
+   -e "DATA_HOST=${DATA_HOST}"\
    -e "CHIPMUNK_HOST=${CHIPMUNK_HOST}" \
    -e "DATA_TYPE=${DATA_TYPE}" \ 
    -e "PARTITION_LEVEL=${PARTITION_LEVEL}" \
@@ -51,10 +51,10 @@ in your ${ARD_PATH} definition.
 
 .. code-block:: bash
 
-   export ARD_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
+   export DATA_PATH=/data/\{tm,etm,oli_tirs\}/ARD_Tile/*/CU/
 
 
-${ARD_HOST}      - is the host or IP address for the deployed lcmap-mastodon instance
+${DATA_HOST}      - is the host or IP address for the deployed lcmap-mastodon instance
 
 ${CHIPMUNK_HOST} - is the url to the deployed `lcmap-chipmunk <https://github.com/USGS-EROS/lcmap-chipmunk>`_ instance
 
@@ -63,9 +63,6 @@ Valid values are "ard" and "aux".
 
 ${PARTITION_LEVEL} - determines the level of parallelization applied to the ingest process. For instance, setting this
 to 10 results in 10 simultaneous data ingest requests.
-
-${AUX_HOST} - needs to be defined if ${DATA_TYPE} is defined as "aux". It is the host or ip address where auxiliary 
-data is provided.
 
 Optionally, you can define the following:
 
@@ -85,11 +82,10 @@ CLI Interaction
 ---------------
 You have the option to manage ingest from the command line as well.  Just build an uberjar with
 leiningen, and export environment variables for the ${CHIPMUNK_HOST}, ${PARTITION_LEVEL}, ${DATA_TYPE}
-and ${ARD_HOST}.  The ${ARD_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance
-which exposes the ARD over HTTP for ingest.
+and ${DATA_HOST}.  The ${DATA_HOST} is an instance of Mastodon running in server mode. It is this Mastodon instance
+which exposes the Data over HTTP for ingest.
 
-If you want to ingest Auxiliary data instead of ARD, you'll need to set the DATA_TYPE accordingly, and also
-define ${AUX_HOST}.
+If you want to ingest Auxiliary data instead of ARD, you'll need to set the DATA_TYPE accordingly.
 
 Optionally, you can export FROM_DATE and TO_DATE environment variables, to filter by year the ARD you're 
 concerned with.  Format is: YYYY.

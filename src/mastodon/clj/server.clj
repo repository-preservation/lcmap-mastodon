@@ -108,10 +108,9 @@
 
 (defn run-server
   [config]
-  (log/infof "ard-host: %s"          (:ard_host config))
+  (log/infof "data-host: %s"         (:data_host config))
   (log/infof "data-path: %s"         (:data_path config))
   (log/infof "data-dir: %s"          (:data_dir config))
-  (log/infof "aux-host: %s"          (:aux_host config))
   (log/infof "chipmunk-host: %s"     (:chipmunk_host config))
   (log/infof "from-date: %s"         (:from_date config))
   (log/infof "partition-level: %s"   (:partition_level config))

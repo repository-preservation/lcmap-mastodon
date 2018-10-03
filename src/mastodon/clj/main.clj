@@ -17,26 +17,26 @@
 
 (defn data-ingest
   [tileid args]
-  (let [data_url       (util/inventory-url-format (:ard_host config) tileid (:from_date config) (:to_date config))
-        ard_response   (http/get data_url {:timeout (:inventory_timeout config)})
-        response_map   (-> (:body @ard_response) (parse-string true))
+  (let [data_url       (util/inventory-url-format (:data_host config) tileid (:from_date config) (:to_date config))
+        data_response  (http/get data_url {:timeout (:inventory_timeout config)})
+        response_map   (-> (:body @data_response) (parse-string true))
         missing_vector (:missing response_map)
-        ard_partition  (partition (:partition_level config) (:partition_level config) "" missing_vector)
+        data_partition (partition (:partition_level config) (:partition_level config) "" missing_vector)
         ingest_map     #(persist/ingest % (:chipmunk_host config))
         autoingest     (first args)]
 
-    (if (:error @ard_response)
-      (do (log/errorf "Error response from ARD_HOST: %s" (:error @ard_response))
+    (if (:error @data_response)
+      (do (log/errorf "Error response from DATA_HOST: %s" (:error @data_response))
           (System/exit 1))
       (do (log/infof "Tile Status report for: %s \nTo be ingested: %s \nAlready ingested: %s\n" 
                tileid (count missing_vector) (:ingested response_map))))
 
     (if (= autoingest "-y")
-      (do (pmap-partitions ingest_map ard_partition)
+      (do (pmap-partitions ingest_map data_partition)
           (log/infof "Ingest Complete"))
       (do (println "Ingest? (y/n)")
           (if (= (read-line) "y")
-            (do (pmap-partitions ingest_map ard_partition)
+            (do (pmap-partitions ingest_map data_partition)
                 (println "Ingest Complete"))
             (do (println "Exiting!")))))))
 

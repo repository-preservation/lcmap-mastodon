@@ -14,8 +14,7 @@
 (def config
   {:chipmunk_host  (:chipmunk-host environ/env)
    :chipmunk_inventory (str (:chipmunk-host environ/env) "/sources?tile=")
-   :aux_host       (:aux-host      environ/env)
-   :ard_host       (:ard-host      environ/env)
+   :data_host      (:data-host     environ/env)
    :data_path      (:data-path     environ/env)
    :data_dir       (:data-dir      environ/env)
    :from_date      (:from-date     environ/env)

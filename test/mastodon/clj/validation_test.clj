@@ -37,18 +37,14 @@
 
 (deftest validate-cli-ard-test
   (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10 :data_type "ard"}) true))))
+    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :data_host "datahost" :partition_level 10 :data_type "ard"}) true))))
 
 (deftest validate-cli-aux-test
   (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :partition_level 10 :data_type "aux"}) true))))
+    (is (= (validation/validate-cli "005015" {:chipmunk_host "iwdshost" :data_host "datahost" :partition_level 10 :data_type "aux"}) true))))
 
-(deftest validate-ard-server-test
+(deftest validate-server-test
   (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-server {:data_type "ard" :chipmunk_host "iwdshost" :ard_host "ardhost" :partition_level 10 :ard_path "/tmp/foo/"} ) true))))
-
-(deftest validate-aux-server-test
-  (with-redefs [validation/http? (fn [x y] true)]
-    (is (= (validation/validate-server {:data_type "aux" :chipmunk_host "iwdshost" :ard_host "ardhost" :aux_host "auxhost" :partition_level 10} ) true))))
+    (is (= (validation/validate-server {:data_type "ard" :chipmunk_host "iwdshost" :data_host "datahost" :partition_level 10 :data_path "/tmp/foo/" :data_dir "bar"} ) true))))
 
 

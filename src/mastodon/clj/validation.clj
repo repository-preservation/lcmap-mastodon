@@ -45,53 +45,21 @@
       (log/errorf "%s is not an int" name))
     resp))
 
-(defmulti validate-cli
-  (fn [tileid config] (keyword (:data_type config))))
-
-(defmethod validate-cli :default [tileid config]
-  (log/errorf "invalid DATA_TYPE"))
-
-(defmethod validate-cli :ard
+(defn validate-cli
   [tileid config]
   (= #{true} 
-     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
-           (int?   (:partition_level config) "PARTITION_LEVEL")
-           (http? (str (:ard_host config) "/status/000000") "ARD_HOST /status")
+     (set [(match? #"[0-9]{6}" tileid          "Tile ID")
+           (int?   (:partition_level config)   "PARTITION_LEVEL")
+           (http? (str (:data_host config)     "/status/000000") "DATA_HOST /status")
            (http? (str (:chipmunk_host config) "/sources?tile=000000") "CHIPMUNK /sources")
            (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
 
-(defmethod validate-cli :aux
-  [tileid config]
-  (= #{true} 
-     (set [(match? #"[0-9]{6}" tileid        "Tile ID")
-           (int?   (:partition_level config) "PARTITION_LEVEL")
-           (http?  (:aux_host config)        "AUX_HOST")
-           (http? (str (:ard_host config) "/status/000000") "ARD_HOST /status")
-           (http? (str (:chipmunk_host config) "/sources?tile=000000") "CHIPMUNK /sources")
-           (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
-
-(defmulti validate-server
-  (fn [config] (keyword (:data_type config))))
-
-(defmethod validate-server :default [x] 
-  (log/errorf "invalid DATA_TYPE")
-  false)
-
-(defmethod validate-server :ard
+(defn validate-server
   [config]
   (= #{true} 
      (set [(int?     (:partition_level config) "PARTITION_LEVEL")
            (present? (:data_path config)       "DATA_PATH")
-           (present? (:ard_host config)        "ARD_HOST")
-           (http? (str (:chipmunk_host config) "/sources?tile=005999") "CHIPMUNK /sources")
-           (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
-
-(defmethod validate-server :aux
-  [config]
-  (= #{true} 
-     (set [(int?     (:partition_level config) "PARTITION_LEVEL")
-           (present? (:ard_host config)        "ARD_HOST")
-           (http?    (:aux_host config)        "AUX_HOST")
+           (present? (:data_host config)       "DATA_HOST")
            (http? (str (:chipmunk_host config) "/sources?tile=005999") "CHIPMUNK /sources")
            (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))
 

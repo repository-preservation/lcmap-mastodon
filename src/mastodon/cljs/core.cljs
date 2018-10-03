@@ -41,7 +41,7 @@
           ard-error (:error ard-body)]
       (if (= false (:success ard-status))
         (do (dom-hide "busydiv")
-            (dom-set-fn "error-container" ["No response from ARD_HOST!"]))
+            (dom-set-fn "error-container" ["No response from DATA_HOST!"]))
         (do (if (nil? ard-error)
               (do (log (str "ARD Status Report: " report-map))
                   (swap! ard-miss-atom assoc :tifs (:missing ard-body))

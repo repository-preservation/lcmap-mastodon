@@ -13,7 +13,7 @@
 (deftest test-config
   (is (= (set (keys config/config))
          #{:ingest_timeout :partition_level 
-           :ard_host :aux_host :from_date 
+           :data_host :data_dir :from_date 
            :chipmunk_host :inventory_timeout 
-           :to_date :data_type :ard_path 
+           :to_date :data_type :data_path 
            :chipmunk_inventory})))
