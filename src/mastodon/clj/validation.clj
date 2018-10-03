@@ -81,7 +81,7 @@
   [config]
   (= #{true} 
      (set [(int?     (:partition_level config) "PARTITION_LEVEL")
-           (present? (:ard_path config)        "ARD_PATH")
+           (present? (:data_path config)       "DATA_PATH")
            (present? (:ard_host config)        "ARD_HOST")
            (http? (str (:chipmunk_host config) "/sources?tile=005999") "CHIPMUNK /sources")
            (http? (str (:chipmunk_host config) "/inventory?url=http://fauxhost.gov/foo.tar/bar.tif") "CHIPMUNK /inventory")])))

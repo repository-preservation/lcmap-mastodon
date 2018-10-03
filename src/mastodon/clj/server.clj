@@ -32,7 +32,7 @@
   "Return a vector of available ARD for the given tile id"
   ([tileid]
    (let [hvmap    (util/hv-map tileid)
-         filepath (str (:ard_path config) (:h hvmap) "/" (:v hvmap) "/*")]
+         filepath (str (:data_path config) (:h hvmap) "/" (:v hvmap) "/*")]
      (-> filepath 
          (file/get-filenames "tar")
          (#(map data/ard-manifest %))
@@ -109,7 +109,8 @@
 (defn run-server
   [config]
   (log/infof "ard-host: %s"          (:ard_host config))
-  (log/infof "ard-path: %s"          (:ard_path config))
+  (log/infof "data-path: %s"         (:data_path config))
+  (log/infof "data-dir: %s"          (:data_dir config))
   (log/infof "aux-host: %s"          (:aux_host config))
   (log/infof "chipmunk-host: %s"     (:chipmunk_host config))
   (log/infof "from-date: %s"         (:from_date config))
