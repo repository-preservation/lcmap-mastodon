@@ -46,8 +46,13 @@
 (defn available-aux
   "Return a vector of available AUX data for the given tile id"
   [tileid]
-  true
-)
+  (let [id_filter #(filter (fn [i] (string/includes? i tileid)) %)
+        auxpath   (str (:data_path config) "/*")
+        nlcdpath  (str (:data_path config) "/nlcd/*")
+        auxtars   (file/get-filenames auxpath "tar")
+        nlcdtifs  (-> nlcdpath (file/get-filenames "tif") (id_filter))
+        auxtifs   (-> auxpath (file/get-filenames "tar") (id_filter) (#(map data/aux-manifest %)))]
+    (flatten (concat nlcdtifs auxtifs))))
 
 (defn data-report
   "Return hash-map of missing ARD and an ingested count"
@@ -69,8 +74,7 @@
 
 (defmethod data-tifs :aux
   [tileid request]
-  (let [aux_resp (available-aux tileid)]
-    (doall (data/aux-manifest aux_resp))))
+  (available-aux tileid))
 
 (defn get-status
   "Return ingest status for a given tile id"
