@@ -44,6 +44,15 @@
     (is (= (server/available-ard "005015" 1983 1994)
            ["LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"]))))
 
+(deftest available-aux-test
+  (with-redefs [config/config {:data_type "aux" :data_host "http://datahost.gov" :chipmunk_host "http://iwdshost.gov" :data_path "/data/tiled/"}
+                file/get-filenames (fn [path sfx] (get {"tar" ["AUX_CU_032020_20000731_20171031_V01.tar"] 
+                                                        "tif" ["AUX_CU_032020_20010101_20180921_V01_NLCDTRN.tif" "AUX_CU_032020_20010101_20180921_V01_NLCD.tif"]} sfx))]
+    (is (= (set (server/available-aux "032020"))
+           (set '("AUX_CU_032020_20010101_20180921_V01_NLCDTRN.tif" "AUX_CU_032020_20010101_20180921_V01_NLCD.tif" "AUX_CU_032020_20000731_20171031_V01_ASPECT.tif" 
+                  "AUX_CU_032020_20000731_20171031_V01_DEM.tif" "AUX_CU_032020_20000731_20171031_V01_MPW.tif" "AUX_CU_032020_20000731_20171031_V01_POSIDEX.tif" 
+                  "AUX_CU_032020_20000731_20171031_V01_SLOPE.tif" "AUX_CU_032020_20000731_20171031_V01_TRENDS.tif"))))))
+
 (deftest data-report-test
   (is (= (server/data-report ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif" "LT04_CU_005015_19821119_20170912_C01_V01_SRB5.tif"]
                              ["LC08_CU_005015_20130415_20171016_C01_V01_SRB4.tif" "LT05_CU_005015_19840508_20170912_C01_V01_BTB6.tif"])

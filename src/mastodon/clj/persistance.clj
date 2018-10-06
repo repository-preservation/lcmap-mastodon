@@ -16,13 +16,13 @@
   nil)
 
 (defmethod resource-path :ard [tif]
-  (let [ing_resource (str (:data_host config) "/tiles")
+  (let [ing_resource (str (:data_host config) "/" (:data_dir config))
         tar     (data/ard-tar-name tif)
         tarpath (data/tar-path tar)]
     (format "%s/%s/%s/%s" ing_resource tarpath tar tif)))
 
 (defmethod resource-path :aux [tif]
-  (let [ing_resource (:aux_host config)
+  (let [ing_resource (str (:data_host config) "/" (:data_dir config))
         tar (data/aux-tar-name tif)]
     (format "%s/%s/%s" ing_resource tar tif)))
 
