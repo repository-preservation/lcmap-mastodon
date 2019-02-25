@@ -18,7 +18,7 @@ services:
       - Xmx=4352m
 
   nemo:
-    image: "usgseros/lcmap-nemo:build"
+    image: "usgseros/lcmap-nemo:3.4.1"
     network_mode: "host"
     environment:
       - DB_HOST=localhost
