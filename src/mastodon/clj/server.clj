@@ -83,6 +83,12 @@
   [request]
   {:status 200 :body config})
 
+(defn healthy
+  "Handler for checking application health"
+  [request]
+  (log/debug "GET health")
+  {:status 200 :body {:healthy true}})
+
 (defn get-base 
   "Hello Mastodon"
   [request]
@@ -94,6 +100,7 @@
     (compojure/GET   "/" [] (get-base request))
     (compojure/GET   "/status/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
     (compojure/GET   "/config" [] (get-config request))
+    (compojure/GET   "/healthy" [] (healthy request)) 
     (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
 
 (defn response-handler
