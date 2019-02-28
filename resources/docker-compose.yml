@@ -37,7 +37,7 @@ services:
     volumes:
       - "/home/caustin/workspace/data:/data"
     environment:
-      - SERVER_TYPE=ard
+      - DATA_TYPE=ard
       - ARD_PATH=/data/ard/{tm,etm,oli_tirs}/ARD_Tile/*/CU/
       - ARD_HOST=http://127.0.0.1
       - CHIPMUNK_HOST=http://127.0.0.1:5656
