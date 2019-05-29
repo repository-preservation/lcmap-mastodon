@@ -101,7 +101,7 @@
     (compojure/GET   "/status/:tileid{[0-9]{6}}" [tileid] (get-status tileid request))
     (compojure/GET   "/config" [] (get-config request))
     (compojure/GET   "/healthy" [] (healthy request)) 
-    (compojure/POST  "/bulk-ingest" [] (bulk-ingest request))))
+    (compojure/POST  "/ingest" [] (bulk-ingest request))))
 
 (defn response-handler
   [routes]
