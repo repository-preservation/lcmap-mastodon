@@ -71,7 +71,7 @@
   (go
     (let [tifs (<! ingest-channel)
           partifs (partition partition-level partition-level "" tifs)
-          ard-resource (str ard-host "/bulk-ingest")]
+          ard-resource (str ard-host "/ingest")]
 
       (doseq [t partifs]
         (let [response (<! (http/post-request ard-resource {"urls" (string/join "," t)}))
