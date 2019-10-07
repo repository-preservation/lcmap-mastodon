@@ -1,4 +1,4 @@
-(defproject lcmap-mastodon "4.2.4"
+(defproject lcmap-mastodon "4.2.5"
   :description "Functions for LCMAP data curation"
   :url "https://eros.usgs.gov"
   :license {:name "Unlicense"
