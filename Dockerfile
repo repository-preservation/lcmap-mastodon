@@ -1,10 +1,23 @@
-from nginx:latest
-MAINTAINER USGS LCMAP http://eros.usgs.gov
+FROM centos:centos7
 
-RUN mkdir /usr/share/man/man1
-RUN apt-get update
-RUN apt-get install default-jdk curl vim -y
+RUN yum update -y
 
+## Install Java
+RUN yum install -y java-1.8.0-openjdk.x86_64 java-1.8.0-openjdk-devel.x86_64  java-1.8.0-openjdk-headless.x86_64
+
+## Install NGINX
+ENV nginxversion="1.16.1-1" \
+    os="centos" \
+    osversion="7" \
+    elversion="7"
+
+RUN yum install -y wget openssl sed &&\
+    yum -y autoremove &&\
+    yum clean all &&\
+    wget http://nginx.org/packages/$os/$osversion/x86_64/RPMS/nginx-$nginxversion.el$elversion.ngx.x86_64.rpm &&\
+    rpm -iv nginx-$nginxversion.el$elversion.ngx.x86_64.rpm
+
+## Install Mastodon
 COPY resources/public/index.html /usr/share/nginx/html/index.html
 COPY resources/public/js/compiled/mastodon_min.js /usr/share/nginx/html/js/compiled/mastodon_min.js
 COPY resources/public/js/jquery.min.js /usr/share/nginx/html/js/jquery.min.js
@@ -17,4 +30,7 @@ COPY project.clj /project.clj
 COPY target/lcmap-mastodon-*-standalone.jar /
 
 RUN mkdir /data
+
+# Run!
 CMD /startup.sh
+
